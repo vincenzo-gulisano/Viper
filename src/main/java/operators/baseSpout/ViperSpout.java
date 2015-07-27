@@ -1,42 +1,38 @@
-package spout;
+package operators.baseSpout;
 
-import java.util.List;
+import java.io.File;
 import java.util.Map;
 
 import statistics.CountStat;
-import core.TupleType;
-import core.ViperUtils;
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
+import core.ViperUtils;
 
-public class SimpleSpout extends BaseRichSpout {
+public class ViperSpout extends BaseRichSpout {
 
 	private static final long serialVersionUID = 1178144110062379252L;
 
-	private GetTuple udf;
+	private SpoutFunction udf;
 	private Fields outFields;
 	private SpoutOutputCollector collector;
-	private long tuplesToSend;
 	private boolean flushSent = false;
 	private boolean writelogSent = false;
 	private boolean keepStats;
 	private String statsPath;
 	private CountStat countStat;
 
-	public SimpleSpout(GetTuple udf, Fields outFields, long tuplesToSend,
-			boolean keepStats, String statsPath) {
+	private String componentId;
+	private int taskIndex;
+
+	public ViperSpout(SpoutFunction udf, Fields outFields, boolean keepStats,
+			String statsPath) {
 
 		this.udf = udf;
-		// Add the type and ts fields to the output fields
-		List<String> fieldsList = outFields.toList();
-		fieldsList.add(0, "type");
-		fieldsList.add(1, "ts");
-		this.outFields = new Fields(fieldsList);
-		this.tuplesToSend = tuplesToSend;
+		this.outFields = ViperUtils.enrichWithBaseFields(outFields);
 		this.keepStats = keepStats;
 		this.statsPath = statsPath;
 
@@ -44,12 +40,9 @@ public class SimpleSpout extends BaseRichSpout {
 
 	@Override
 	public void nextTuple() {
-		if (tuplesToSend > 0) {
-			tuplesToSend--;
-			List<Object> toSend = udf.getTuple().getValues();
-			toSend.add(0, TupleType.REGULAR);
-			toSend.add(1, System.currentTimeMillis());
-			collector.emit(toSend);
+		if (udf.hasNext()) {
+			collector
+					.emit(ViperUtils.enrichListWithBasicFields(udf.getTuple()));
 			if (keepStats) {
 				countStat.increase(1);
 			}
@@ -62,6 +55,7 @@ public class SimpleSpout extends BaseRichSpout {
 			writelogSent = true;
 
 			if (keepStats) {
+				Utils.sleep(2000); // Just wait for latest stats to be written
 				countStat.stopStats();
 				try {
 					countStat.join();
@@ -72,7 +66,7 @@ public class SimpleSpout extends BaseRichSpout {
 			}
 
 		} else {
-			Utils.sleep(10000);
+			Utils.sleep(1000);
 		}
 	}
 
@@ -81,9 +75,12 @@ public class SimpleSpout extends BaseRichSpout {
 	public void open(Map arg0, TopologyContext arg1, SpoutOutputCollector arg2) {
 		collector = arg2;
 
+		componentId = arg1.getThisComponentId();
+		taskIndex = arg1.getThisTaskIndex();
+
 		if (keepStats) {
-			// TODO Check the id to give to the spout
-			countStat = new CountStat("", statsPath + "spout.rate.txt", false);
+			countStat = new CountStat("", statsPath + File.separator
+					+ componentId + "." + taskIndex + ".rate.csv", false);
 			countStat.start();
 		}
 	}
