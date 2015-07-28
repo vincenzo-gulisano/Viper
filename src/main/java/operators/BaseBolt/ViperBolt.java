@@ -41,7 +41,6 @@ public class ViperBolt extends BaseRichBolt {
 	}
 
 	@SuppressWarnings("rawtypes")
-	@Override
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
 		this.collector = collector;
@@ -58,7 +57,6 @@ public class ViperBolt extends BaseRichBolt {
 
 	}
 
-	@Override
 	public void execute(Tuple input) {
 
 		TupleType ttype = (TupleType) input.getValueByField("type");
@@ -91,7 +89,6 @@ public class ViperBolt extends BaseRichBolt {
 
 	}
 
-	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(this.outFields);
 	}

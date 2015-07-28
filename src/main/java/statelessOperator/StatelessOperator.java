@@ -24,7 +24,6 @@ public class StatelessOperator extends BaseRichBolt {
 		this.transF = transF;
 	}
 
-	@Override
 	public void execute(Tuple arg0) {
 
 		internalQueue.add(arg0);
@@ -37,7 +36,6 @@ public class StatelessOperator extends BaseRichBolt {
 	}
 
 	@SuppressWarnings("rawtypes")
-	@Override
 	public void prepare(Map arg0, TopologyContext arg1, OutputCollector arg2) {
 
 		internalQueue = new ConcurrentLinkedQueue<Tuple>();
@@ -47,7 +45,6 @@ public class StatelessOperator extends BaseRichBolt {
 		
 	}
 
-	@Override
 	public void declareOutputFields(OutputFieldsDeclarer arg0) {
 		// TODO Auto-generated method stub
 

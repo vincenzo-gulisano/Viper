@@ -38,7 +38,6 @@ public class ViperSpout extends BaseRichSpout {
 
 	}
 
-	@Override
 	public void nextTuple() {
 		if (udf.hasNext()) {
 			collector
@@ -71,7 +70,6 @@ public class ViperSpout extends BaseRichSpout {
 	}
 
 	@SuppressWarnings("rawtypes")
-	@Override
 	public void open(Map arg0, TopologyContext arg1, SpoutOutputCollector arg2) {
 		collector = arg2;
 
@@ -85,7 +83,6 @@ public class ViperSpout extends BaseRichSpout {
 		}
 	}
 
-	@Override
 	public void declareOutputFields(OutputFieldsDeclarer arg0) {
 		arg0.declare(this.outFields);
 	}

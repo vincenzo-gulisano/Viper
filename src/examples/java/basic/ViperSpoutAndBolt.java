@@ -34,12 +34,10 @@ public class ViperSpoutAndBolt {
 			private int counter = 100;
 			private Random r = new Random();
 
-			@Override
 			public boolean hasNext() {
 				return counter > 0;
 			}
 
-			@Override
 			public Values getTuple() {
 				counter--;
 				return new Values(r.nextInt());
@@ -54,15 +52,12 @@ public class ViperSpoutAndBolt {
 
 							private static final long serialVersionUID = 1L;
 
-							@Override
 							public void receivedWriteLog(Tuple t) {
 							}
 
-							@Override
 							public void receivedFlush(Tuple t) {
 							}
 
-							@Override
 							public List<Values> process(Tuple t) {
 								List<Values> result = new ArrayList<Values>();
 								result.add(new Values(2 * t
