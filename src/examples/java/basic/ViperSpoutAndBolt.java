@@ -23,6 +23,9 @@ public class ViperSpoutAndBolt {
 	public static void main(String[] args) throws AlreadyAliveException,
 			InvalidTopologyException, InterruptedException {
 
+		boolean local = Boolean.valueOf(args[0]);
+		String statsPath = args[1];
+
 		TopologyBuilder builder = new TopologyBuilder();
 
 		builder.setSpout("spout", new ViperSpout(new SpoutFunction() {
@@ -42,37 +45,40 @@ public class ViperSpoutAndBolt {
 				return new Values(r.nextInt());
 			}
 
-		}, new Fields("x"), true, "."));
+		}, new Fields("x"), true, statsPath));
 
-		builder.setBolt("mul",
-				new ViperBolt(new Fields("2x"), true, ".", new BoltFunction() {
+		builder.setBolt(
+				"mul",
+				new ViperBolt(new Fields("2x"), true, statsPath,
+						new BoltFunction() {
 
-					private static final long serialVersionUID = 1L;
+							private static final long serialVersionUID = 1L;
 
-					@Override
-					public void receivedWriteLog(Tuple t) {
-					}
+							@Override
+							public void receivedWriteLog(Tuple t) {
+							}
 
-					@Override
-					public void receivedFlush(Tuple t) {
-					}
+							@Override
+							public void receivedFlush(Tuple t) {
+							}
 
-					@Override
-					public List<Values> process(Tuple t) {
-						List<Values> result = new ArrayList<Values>();
-						result.add(new Values(2 * t.getIntegerByField("x")));
-						return result;
-					}
-					
-				}), 1).shuffleGrouping("spout");
+							@Override
+							public List<Values> process(Tuple t) {
+								List<Values> result = new ArrayList<Values>();
+								result.add(new Values(2 * t
+										.getIntegerByField("x")));
+								return result;
+							}
+
+						}), 1).shuffleGrouping("spout");
 
 		Config conf = new Config();
 		conf.setDebug(false);
 
-		if (args != null && args.length > 0) {
+		if (!local) {
 			conf.setNumWorkers(1);
-			StormSubmitter.submitTopologyWithProgressBar(args[0], conf,
-					builder.createTopology());
+			StormSubmitter.submitTopologyWithProgressBar("ViperSpoutAndBolt",
+					conf, builder.createTopology());
 		} else {
 			conf.setMaxTaskParallelism(1);
 
