@@ -16,13 +16,7 @@
 	</dependencies>
 
 	<build>
-
-		<resources>
-			<resource>
-				<directory>${basedir}/src/examples/java</directory>
-			</resource>
-		</resources>
-
+		
 		<plugins>
 
 			<plugin>
