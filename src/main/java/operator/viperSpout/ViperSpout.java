@@ -9,7 +9,9 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
+import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
+import core.TupleType;
 import core.ViperUtils;
 
 public class ViperSpout extends BaseRichSpout {
@@ -25,8 +27,7 @@ public class ViperSpout extends BaseRichSpout {
 	private String statsPath;
 	private CountStat countStat;
 
-	private String componentId;
-	private int taskIndex;
+	private String id;
 
 	public ViperSpout(SpoutFunction udf, Fields outFields, boolean keepStats,
 			String statsPath) {
@@ -40,8 +41,11 @@ public class ViperSpout extends BaseRichSpout {
 
 	public void nextTuple() {
 		if (udf.hasNext()) {
-			collector
-					.emit(ViperUtils.enrichListWithBasicFields(udf.getTuple()));
+			Values v = udf.getTuple();
+			v.add(0, TupleType.REGULAR);
+			v.add(1, System.currentTimeMillis());
+			v.add(2, id);
+			collector.emit(v);
 			if (keepStats) {
 				countStat.increase(1);
 			}
@@ -73,12 +77,11 @@ public class ViperSpout extends BaseRichSpout {
 	public void open(Map arg0, TopologyContext arg1, SpoutOutputCollector arg2) {
 		collector = arg2;
 
-		componentId = arg1.getThisComponentId();
-		taskIndex = arg1.getThisTaskIndex();
+		id = arg1.getThisComponentId() + "." + arg1.getThisTaskIndex();
 
 		if (keepStats) {
-			countStat = new CountStat("", statsPath + File.separator
-					+ componentId + "." + taskIndex + ".rate.csv", false);
+			countStat = new CountStat("", statsPath + File.separator + id
+					+ ".rate.csv", false);
 			countStat.start();
 		}
 	}

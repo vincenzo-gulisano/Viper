@@ -1,10 +1,10 @@
-package operator;
+package operator.merger;
 
 import backtype.storm.tuple.Tuple;
 
 public interface Merger {
 
-	public void add(String id,long timestamp,Tuple t);
+	public void add(String id,Tuple t);
 	
 	public Tuple getNextReady();
 	

@@ -3,8 +3,8 @@ package statelessOperator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import operator.Merger;
-import operator.MergerSequential;
+import operator.merger.Merger;
+import operator.merger.MergerSequential;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -39,7 +39,7 @@ public class StatelessOperator extends BaseRichBolt {
 	public void prepare(Map arg0, TopologyContext arg1, OutputCollector arg2) {
 
 		internalQueue = new ConcurrentLinkedQueue<Tuple>();
-		merger  = new MergerSequential();
+		merger  = new MergerSequential(null);
 
 		collector = arg2;
 		

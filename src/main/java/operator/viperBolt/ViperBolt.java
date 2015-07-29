@@ -27,6 +27,10 @@ public class ViperBolt extends BaseRichBolt {
 	private String statsPath;
 	private CountStat countStat;
 	private BoltFunction f;
+	private String id;
+
+	// This is not really elegant!
+	protected boolean addMetadata = true;
 
 	public ViperBolt(Fields outFields, boolean keepStats, String statsPath,
 			BoltFunction boltFunction) {
@@ -43,14 +47,12 @@ public class ViperBolt extends BaseRichBolt {
 			OutputCollector collector) {
 		this.collector = collector;
 
+		id = context.getThisComponentId() + "." + context.getThisTaskIndex();
 		if (keepStats) {
 
-			String componentId = context.getThisComponentId();
-			int taskIndex = context.getThisTaskIndex();
-
 			// TODO Check the id to give to the spout
-			countStat = new CountStat("", statsPath + File.separator
-					+ componentId + "." + taskIndex + ".rate.csv", false);
+			countStat = new CountStat("", statsPath + File.separator + id
+					+ ".rate.csv", false);
 			countStat.start();
 		}
 
@@ -66,8 +68,13 @@ public class ViperBolt extends BaseRichBolt {
 			List<Values> result = f.process(input);
 			if (result != null)
 				for (Values t : result) {
-					t.add(0, TupleType.REGULAR);
-					t.add(1, input.getLongByField("ts"));
+
+					if (addMetadata) {
+						t.add(0, TupleType.REGULAR);
+						t.add(1, input.getLongByField("ts"));
+						t.add(2, id);
+					}
+
 					collector.emit(t);
 					if (keepStats) {
 						countStat.increase(1);

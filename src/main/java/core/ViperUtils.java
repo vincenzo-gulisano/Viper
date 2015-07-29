@@ -3,7 +3,6 @@ package core;
 import java.util.LinkedList;
 import java.util.List;
 
-import clojure.lang.Obj;
 import backtype.storm.tuple.Fields;
 
 public class ViperUtils {
@@ -17,7 +16,7 @@ public class ViperUtils {
 		}
 		return result;
 	}
-	
+
 	public static List<Object> getWriteLogTuple(int numberOfFields) {
 		List<Object> result = new LinkedList<Object>();
 		result.add(TupleType.WRITELOG);
@@ -27,18 +26,13 @@ public class ViperUtils {
 		}
 		return result;
 	}
-	
+
 	public static Fields enrichWithBaseFields(Fields fields) {
 		List<String> fieldsList = fields.toList();
 		fieldsList.add(0, "type");
 		fieldsList.add(1, "ts");
+		fieldsList.add(2, "sourceID");
 		return new Fields(fieldsList);
 	}
-	
-	public static List<Object> enrichListWithBasicFields(List<Object> values) {
-		values.add(0, TupleType.REGULAR);
-		values.add(1, System.currentTimeMillis());
-		return values;
-	}
-	
+
 }
