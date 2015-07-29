@@ -1,4 +1,4 @@
-package operators;
+package operator;
 
 import backtype.storm.tuple.Tuple;
 

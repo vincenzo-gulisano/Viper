@@ -4,19 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import operators.BaseBolt.BoltFunction;
-import operators.BaseBolt.ViperBolt;
-import operators.baseSpout.SpoutFunction;
-import operators.baseSpout.ViperSpout;
+import operator.sink.Sink;
+import operator.viperBolt.BoltFunction;
+import operator.viperBolt.ViperBolt;
+import operator.viperSpout.SpoutFunction;
+import operator.viperSpout.ViperSpout;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
+import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 
 public class ViperSpoutAndBolt {
 
@@ -31,7 +34,7 @@ public class ViperSpoutAndBolt {
 		builder.setSpout("spout", new ViperSpout(new SpoutFunction() {
 
 			private static final long serialVersionUID = 1L;
-			private int counter = 100;
+			private int counter = 20000;
 			private Random r = new Random();
 
 			public boolean hasNext() {
@@ -59,13 +62,21 @@ public class ViperSpoutAndBolt {
 							}
 
 							public List<Values> process(Tuple t) {
+								Utils.sleep(1);
 								List<Values> result = new ArrayList<Values>();
 								result.add(new Values(2 * t
 										.getIntegerByField("x")));
 								return result;
 							}
 
+							@Override
+							public void prepare(TopologyContext context) {
+							}
+
 						}), 1).shuffleGrouping("spout");
+
+		builder.setBolt("sink", new Sink(true, statsPath), 1).shuffleGrouping(
+				"mul");
 
 		Config conf = new Config();
 		conf.setDebug(false);
@@ -81,7 +92,7 @@ public class ViperSpoutAndBolt {
 			cluster.submitTopology("ViperSpoutAndBolt", conf,
 					builder.createTopology());
 
-			Thread.sleep(30000);
+			Thread.sleep(120000);
 
 			cluster.shutdown();
 		}

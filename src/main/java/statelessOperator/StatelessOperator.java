@@ -3,8 +3,8 @@ package statelessOperator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import operators.Merger;
-import operators.MergerSequential;
+import operator.Merger;
+import operator.MergerSequential;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;

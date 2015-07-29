@@ -1,6 +1,7 @@
-package operators.BaseBolt;
+package operator.viperBolt;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import statistics.CountStat;
@@ -27,9 +28,6 @@ public class ViperBolt extends BaseRichBolt {
 	private CountStat countStat;
 	private BoltFunction f;
 
-	private String componentId;
-	private int taskIndex;
-
 	public ViperBolt(Fields outFields, boolean keepStats, String statsPath,
 			BoltFunction boltFunction) {
 
@@ -45,15 +43,18 @@ public class ViperBolt extends BaseRichBolt {
 			OutputCollector collector) {
 		this.collector = collector;
 
-		componentId = context.getThisComponentId();
-		taskIndex = context.getThisTaskIndex();
-
 		if (keepStats) {
+
+			String componentId = context.getThisComponentId();
+			int taskIndex = context.getThisTaskIndex();
+
 			// TODO Check the id to give to the spout
 			countStat = new CountStat("", statsPath + File.separator
 					+ componentId + "." + taskIndex + ".rate.csv", false);
 			countStat.start();
 		}
+
+		f.prepare(context);
 
 	}
 
@@ -62,14 +63,19 @@ public class ViperBolt extends BaseRichBolt {
 		TupleType ttype = (TupleType) input.getValueByField("type");
 		if (ttype.equals(TupleType.REGULAR)) {
 
-			for (Values t : f.process(input)) {
-				collector.emit(ViperUtils.enrichListWithBasicFields(t));
-				if (keepStats) {
-					countStat.increase(1);
+			List<Values> result = f.process(input);
+			if (result != null)
+				for (Values t : result) {
+					t.add(0, TupleType.REGULAR);
+					t.add(1, input.getLongByField("ts"));
+					collector.emit(t);
+					if (keepStats) {
+						countStat.increase(1);
+					}
 				}
-			}
 		} else if (ttype.equals(TupleType.FLUSH)) {
 			f.receivedFlush(input);
+			collector.emit(input.getValues());
 		} else if (ttype.equals(TupleType.WRITELOG)) {
 			f.receivedWriteLog(input);
 
@@ -84,6 +90,8 @@ public class ViperBolt extends BaseRichBolt {
 				}
 				countStat.writeStats();
 			}
+
+			collector.emit(input.getValues());
 
 		}
 

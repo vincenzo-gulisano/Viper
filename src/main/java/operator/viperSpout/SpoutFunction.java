@@ -1,4 +1,4 @@
-package operators.baseSpout;
+package operator.viperSpout;
 
 import java.io.Serializable;
 
