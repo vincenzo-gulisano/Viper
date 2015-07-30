@@ -42,15 +42,16 @@ public class ViperBolt extends BaseRichBolt {
 
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
 		this.collector = collector;
 
-		this.keepStats = (Boolean) stormConf.getOrDefault("log.statistics",
-				false);
-		this.statsPath = (String) stormConf.getOrDefault("log.statistics.path",
-				"");
+		Object temp = stormConf.get("log.statistics");
+		this.keepStats = temp != null ? (Boolean) temp : false;
+		
+		temp = stormConf.get("log.statistics.path");
+		this.statsPath = temp != null ? (String) temp : "";
 
 		LOG.info("Bolt preparation, component id: "
 				+ context.getThisComponentId() + ", task id: "

@@ -47,7 +47,7 @@ public class ViperSpout extends BaseRichSpout {
 		if (udf.hasNext()) {
 
 			if (ackGap < 1000) {
-				
+
 				Values v = udf.getTuple();
 				v.add(0, TupleType.REGULAR);
 				v.add(1, System.currentTimeMillis());
@@ -86,12 +86,15 @@ public class ViperSpout extends BaseRichSpout {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public void open(Map arg0, TopologyContext arg1, SpoutOutputCollector arg2) {
 		collector = arg2;
 
-		this.keepStats = (Boolean) arg0.getOrDefault("log.statistics", false);
-		this.statsPath = (String) arg0.getOrDefault("log.statistics.path", "");
+		Object temp = arg0.get("log.statistics");
+		this.keepStats = temp != null ? (Boolean) temp : false;
+
+		temp = arg0.get("log.statistics.path");
+		this.statsPath = temp != null ? (String) temp : "";
 
 		id = arg1.getThisComponentId() + "." + arg1.getThisTaskIndex();
 

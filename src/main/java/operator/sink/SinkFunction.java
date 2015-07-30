@@ -51,15 +51,15 @@ public class SinkFunction implements BoltFunction {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	@Override
 	public void prepare(Map stormConf, TopologyContext context) {
 
 		Object temp = stormConf.get("log.statistics");
 		this.keepStats = temp != null ? (Boolean) temp : false;
 		
-		this.statsPath = (String) stormConf.getOrDefault("log.statistics.path",
-				"");
+		temp = stormConf.get("log.statistics.path");
+		this.statsPath = temp != null ? (String) temp : "";
 
 		if (keepStats) {
 
