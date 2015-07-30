@@ -23,8 +23,9 @@ public class ViperMergerFunction implements BoltFunction {
 	private static final long serialVersionUID = -3710608737079122065L;
 	private Merger merger;
 
+	@SuppressWarnings({ "rawtypes" })
 	@Override
-	public void prepare(TopologyContext context) {
+	public void prepare(Map stormConf, TopologyContext context) {
 
 		List<String> ids = new LinkedList<String>();
 		Map<GlobalStreamId, Grouping> sources = context.getThisSources();
@@ -47,7 +48,7 @@ public class ViperMergerFunction implements BoltFunction {
 	@Override
 	public List<Values> process(Tuple t) {
 		List<Values> result = new LinkedList<Values>();
-		merger.add(t.getStringByField("sourceID"),t);
+		merger.add(t.getStringByField("sourceID"), t);
 		Tuple nReady = merger.getNextReady();
 		if (nReady != null)
 			result.add(new ViperValues(nReady));

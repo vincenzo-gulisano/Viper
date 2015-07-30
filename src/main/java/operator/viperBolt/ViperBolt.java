@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import statistics.CountStat;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -20,44 +23,76 @@ public class ViperBolt extends BaseRichBolt {
 
 	private static final long serialVersionUID = 8693720878488229181L;
 
+	public static Logger LOG = LoggerFactory.getLogger(ViperBolt.class);
+
 	private Fields outFields;
-	private OutputCollector collector;
+	protected OutputCollector collector;
 	private boolean keepStats;
 	private boolean statsWritten = false;
 	private String statsPath;
 	private CountStat countStat;
 	private BoltFunction f;
-	private String id;
+	protected int thisTaskIndex;
+	protected String id;
 
-	// This is not really elegant!
-	protected boolean addMetadata = true;
-
-	public ViperBolt(Fields outFields, boolean keepStats, String statsPath,
-			BoltFunction boltFunction) {
+	public ViperBolt(Fields outFields, BoltFunction boltFunction) {
 
 		this.outFields = ViperUtils.enrichWithBaseFields(outFields);
-		this.keepStats = keepStats;
-		this.statsPath = statsPath;
 		this.f = boltFunction;
 
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
 		this.collector = collector;
 
+		this.keepStats = (Boolean) stormConf.getOrDefault("log.statistics",
+				false);
+		this.statsPath = (String) stormConf.getOrDefault("log.statistics.path",
+				"");
+
+		LOG.info("Bolt preparation, component id: "
+				+ context.getThisComponentId() + ", task id: "
+				+ context.getThisTaskId() + ", task index: "
+				+ context.getThisTaskIndex());
+
+		thisTaskIndex = context.getThisTaskIndex();
 		id = context.getThisComponentId() + "." + context.getThisTaskIndex();
 		if (keepStats) {
 
-			// TODO Check the id to give to the spout
 			countStat = new CountStat("", statsPath + File.separator + id
 					+ ".rate.csv", false);
 			countStat.start();
 		}
 
-		f.prepare(context);
+		f.prepare(stormConf, context);
 
+		childPrepare(stormConf, context, collector);
+
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected void childPrepare(Map stormConf, TopologyContext context,
+			OutputCollector collector) {
+
+	}
+
+	protected void emit(Tuple input, Values t) {
+
+		t.add(0, TupleType.REGULAR);
+		t.add(1, input.getLongByField("ts"));
+		t.add(2, id);
+
+		collector.emit(t);
+	}
+
+	protected void emitFlush(Tuple t) {
+		collector.emit(t.getValues());
+	}
+
+	protected void emitWriteLog(Tuple t) {
+		collector.emit(t.getValues());
 	}
 
 	public void execute(Tuple input) {
@@ -65,24 +100,20 @@ public class ViperBolt extends BaseRichBolt {
 		TupleType ttype = (TupleType) input.getValueByField("type");
 		if (ttype.equals(TupleType.REGULAR)) {
 
+			// LOG.info("Bolt " + id + " received tuple " + input);
+
 			List<Values> result = f.process(input);
 			if (result != null)
 				for (Values t : result) {
-
-					if (addMetadata) {
-						t.add(0, TupleType.REGULAR);
-						t.add(1, input.getLongByField("ts"));
-						t.add(2, id);
-					}
-
-					collector.emit(t);
+					emit(input, t);
 					if (keepStats) {
 						countStat.increase(1);
 					}
 				}
+			collector.ack(input);
 		} else if (ttype.equals(TupleType.FLUSH)) {
 			f.receivedFlush(input);
-			collector.emit(input.getValues());
+			emitFlush(input);
 		} else if (ttype.equals(TupleType.WRITELOG)) {
 			f.receivedWriteLog(input);
 
@@ -98,7 +129,7 @@ public class ViperBolt extends BaseRichBolt {
 				countStat.writeStats();
 			}
 
-			collector.emit(input.getValues());
+			emitFlush(input);
 
 		}
 

@@ -2,6 +2,7 @@ package examples;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import operator.sink.Sink;
@@ -46,40 +47,40 @@ public class ViperSpoutAndBolt {
 				return new Values(r.nextInt());
 			}
 
-		}, new Fields("x"), true, statsPath));
+		}, new Fields("x")));
 
-		builder.setBolt(
-				"mul",
-				new ViperBolt(new Fields("2x"), true, statsPath,
-						new BoltFunction() {
+		builder.setBolt("mul",
+				new ViperBolt(new Fields("2x"), new BoltFunction() {
 
-							private static final long serialVersionUID = 1L;
+					private static final long serialVersionUID = 1L;
 
-							public void receivedWriteLog(Tuple t) {
-							}
+					public void receivedWriteLog(Tuple t) {
+					}
 
-							public void receivedFlush(Tuple t) {
-							}
+					public void receivedFlush(Tuple t) {
+					}
 
-							public List<Values> process(Tuple t) {
-								Utils.sleep(1);
-								List<Values> result = new ArrayList<Values>();
-								result.add(new Values(2 * t
-										.getIntegerByField("x")));
-								return result;
-							}
+					public List<Values> process(Tuple t) {
+						Utils.sleep(1);
+						List<Values> result = new ArrayList<Values>();
+						result.add(new Values(2 * t.getIntegerByField("x")));
+						return result;
+					}
 
-							@Override
-							public void prepare(TopologyContext context) {
-							}
+					@SuppressWarnings("rawtypes")
+					@Override
+					public void prepare(Map stormConf, TopologyContext context) {
+					}
 
-						}), 1).shuffleGrouping("spout");
+				}), 1).shuffleGrouping("spout");
 
-		builder.setBolt("sink", new Sink(true, statsPath), 1).shuffleGrouping(
-				"mul");
+		builder.setBolt("sink", new Sink(), 1).shuffleGrouping("mul");
 
 		Config conf = new Config();
 		conf.setDebug(false);
+
+		conf.put("log.statistics", true);
+		conf.put("log.statistics.path", statsPath);
 
 		if (!local) {
 			conf.setNumWorkers(1);

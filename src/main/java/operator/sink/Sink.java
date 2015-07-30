@@ -7,9 +7,8 @@ public class Sink extends ViperBolt {
 
 	private static final long serialVersionUID = 1L;
 
-	public Sink(boolean keepStats, String statsPath) {
-		super(new Fields(), keepStats, statsPath, new SinkFunction(keepStats,
-				statsPath));
+	public Sink() {
+		super(new Fields(), new SinkFunction());
 	}
 
 }

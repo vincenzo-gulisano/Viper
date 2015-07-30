@@ -2,6 +2,7 @@ package operator.sink;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import operator.viperBolt.BoltFunction;
 import statistics.AvgStat;
@@ -18,16 +19,14 @@ public class SinkFunction implements BoltFunction {
 	private String statsPath;
 	private boolean statsWritten = false;
 
-	public SinkFunction(boolean keepStats, String statsPath) {
-		this.keepStats = keepStats;
-		this.statsPath = statsPath;
+	public SinkFunction() {
 	}
 
 	@Override
 	public List<Values> process(Tuple t) {
 		if (keepStats) {
-			latencyStat.add(System.currentTimeMillis()
-					- t.getLongByField("ts"));
+			latencyStat
+					.add(System.currentTimeMillis() - t.getLongByField("ts"));
 		}
 		return null;
 	}
@@ -52,8 +51,15 @@ public class SinkFunction implements BoltFunction {
 		}
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public void prepare(TopologyContext context) {
+	public void prepare(Map stormConf, TopologyContext context) {
+
+		this.keepStats = (Boolean) stormConf.getOrDefault("log.statistics",
+				false);
+		this.statsPath = (String) stormConf.getOrDefault("log.statistics.path",
+				"");
+
 		if (keepStats) {
 
 			String componentId = context.getThisComponentId();
