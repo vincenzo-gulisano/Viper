@@ -63,7 +63,7 @@ public class SharedNothingParallelStateless {
 				new BoltFunction() {
 
 					private static final long serialVersionUID = 1L;
-					private int limiter = 100;
+//					private int limiter = 100;
 					
 					public void receivedWriteLog(Tuple t) {
 					}
@@ -73,11 +73,11 @@ public class SharedNothingParallelStateless {
 
 					public List<Values> process(Tuple t) {
 //						Utils.sleep(1000);
-						limiter--;
-						if (limiter==0) {
-							limiter = 100;
-							Utils.sleep(5);
-						}
+//						limiter--;
+//						if (limiter==0) {
+//							limiter = 100;
+//							Utils.sleep(5);
+//						}
 						List<Values> result = new ArrayList<Values>();
 						result.add(new Values(2 * t.getIntegerByField("x")));
 						return result;
@@ -107,7 +107,7 @@ public class SharedNothingParallelStateless {
 			LocalCluster cluster = new LocalCluster();
 			cluster.submitTopology(topologyName, conf, builder.createTopology());
 
-			Thread.sleep(50000);
+			Thread.sleep(80000);
 
 			cluster.shutdown();
 		}

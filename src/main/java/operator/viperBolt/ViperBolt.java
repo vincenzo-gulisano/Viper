@@ -7,6 +7,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import statistics.AvgStat;
 import statistics.CountStat;
 import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
@@ -32,6 +33,7 @@ public class ViperBolt extends BaseRichBolt {
 	private boolean statsWritten = false;
 	private String statsPath;
 	private CountStat countStat;
+	private AvgStat costStat;
 	private BoltFunction f;
 	protected int thisTaskIndex;
 	protected String id;
@@ -67,6 +69,10 @@ public class ViperBolt extends BaseRichBolt {
 					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".rate.csv", false);
 			countStat.start();
+			costStat = new AvgStat("", statsPath + File.separator
+					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + id
+					+ ".cost.csv", false);
+			costStat.start();
 		}
 
 		f.prepare(stormConf, context);
@@ -100,6 +106,8 @@ public class ViperBolt extends BaseRichBolt {
 
 	public void execute(Tuple input) {
 
+		long start = System.nanoTime();
+		
 		TupleType ttype = (TupleType) input.getValueByField("type");
 		if (ttype.equals(TupleType.REGULAR)) {
 
@@ -113,7 +121,10 @@ public class ViperBolt extends BaseRichBolt {
 						countStat.increase(1);
 					}
 				}
-			collector.ack(input);
+//			collector.ack(input);
+			if (keepStats) {
+				costStat.add((System.nanoTime()-start)/1000);
+			}
 		} else if (ttype.equals(TupleType.FLUSH)) {
 			f.receivedFlush(input);
 			emitFlush(input);
@@ -124,12 +135,15 @@ public class ViperBolt extends BaseRichBolt {
 				statsWritten = true;
 				Utils.sleep(2000); // Just wait for latest stats to be written
 				countStat.stopStats();
+				costStat.stopStats();
 				try {
 					countStat.join();
+					costStat.join();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 				countStat.writeStats();
+				costStat.writeStats();
 			}
 
 			emitFlush(input);

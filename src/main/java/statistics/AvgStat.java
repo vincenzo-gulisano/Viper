@@ -52,10 +52,10 @@ public class AvgStat extends Thread implements Serializable {
 			
 			long time = System.currentTimeMillis();
 			if (immediateWrite) {
-				out.println(time + "," + (count != 0 ? sum / count : 0));
+				out.println(time + "," + (count != 0 ? sum / count : -1));
 				out.flush();
 			} else {
-				this.stats.put(time, count != 0 ? sum / count : 0);
+				this.stats.put(time, count != 0 ? sum / count : -1);
 			}
 
 			sum = 0;

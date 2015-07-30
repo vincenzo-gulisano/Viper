@@ -6,9 +6,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import statistics.AvgStat;
 import statistics.CountStat;
 import backtype.storm.Config;
-import backtype.storm.generated.Grouping;
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -32,14 +32,11 @@ public class ViperSpout extends BaseRichSpout {
 	private boolean keepStats;
 	private String statsPath;
 	private CountStat countStat;
+	private AvgStat costStat;
 
 	private String id;
 	private long counter = 0;
-	private long ackGap = 0;
-
-	private int flushAcksToWaitFor;
-
-	// private long failCounter = 0;
+//	private long ackGap = 0;
 
 	public ViperSpout(SpoutFunction udf, Fields outFields) {
 
@@ -49,21 +46,26 @@ public class ViperSpout extends BaseRichSpout {
 	}
 
 	public void nextTuple() {
+
+		long start = System.nanoTime();
+
 		if (udf.hasNext()) {
 
-			if (ackGap < 1000) {
+			// if (ackGap < 1000) {
 
-				Values v = udf.getTuple();
-				v.add(0, TupleType.REGULAR);
-				v.add(1, System.currentTimeMillis());
-				v.add(2, id);
-				collector.emit(v, counter);
-				counter++;
-				if (keepStats) {
-					countStat.increase(1);
-				}
+			Values v = udf.getTuple();
+			v.add(0, TupleType.REGULAR);
+			v.add(1, System.currentTimeMillis());
+			v.add(2, id);
+			collector.emit(v);//, counter);
+			//counter++;
 
+			if (keepStats) {
+				countStat.increase(1);
+				costStat.add((System.nanoTime()-start)/1000);
 			}
+
+			// }
 		} else if (!flushSent) {
 			collector.emit(ViperUtils.getFlushTuple(this.outFields.size() - 2));
 
@@ -79,12 +81,15 @@ public class ViperSpout extends BaseRichSpout {
 				Utils.sleep(2000); // Just wait for latest statistics to be
 									// written
 				countStat.stopStats();
+				costStat.stopStats();
 				try {
 					countStat.join();
+					costStat.join();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 				countStat.writeStats();
+				costStat.writeStats();
 			}
 
 		} else {
@@ -109,6 +114,10 @@ public class ViperSpout extends BaseRichSpout {
 					+ arg0.get(Config.TOPOLOGY_NAME) + "_" + id + ".rate.csv",
 					false);
 			countStat.start();
+			costStat = new AvgStat("", statsPath + File.separator
+					+ arg0.get(Config.TOPOLOGY_NAME) + "_" + id + ".cost.csv",
+					false);
+			costStat.start();
 		}
 
 		udf.prepare(arg0, arg1);
@@ -121,7 +130,7 @@ public class ViperSpout extends BaseRichSpout {
 
 	@Override
 	public void ack(Object msgId) {
-		ackGap = counter - (Long) msgId;
+//		ackGap = counter - (Long) msgId;
 		// if (ackGap % 100 == 0) {
 		// System.out.println("ack: " + ackGap);
 		// }
