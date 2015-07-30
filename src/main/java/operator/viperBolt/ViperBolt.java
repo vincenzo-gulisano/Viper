@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import statistics.CountStat;
+import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -62,7 +63,8 @@ public class ViperBolt extends BaseRichBolt {
 		id = context.getThisComponentId() + "." + context.getThisTaskIndex();
 		if (keepStats) {
 
-			countStat = new CountStat("", statsPath + File.separator + id
+			countStat = new CountStat("", statsPath + File.separator
+					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".rate.csv", false);
 			countStat.start();
 		}

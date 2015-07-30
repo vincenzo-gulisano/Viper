@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import statistics.CountStat;
+import backtype.storm.Config;
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -99,8 +100,9 @@ public class ViperSpout extends BaseRichSpout {
 		id = arg1.getThisComponentId() + "." + arg1.getThisTaskIndex();
 
 		if (keepStats) {
-			countStat = new CountStat("", statsPath + File.separator + id
-					+ ".rate.csv", false);
+			countStat = new CountStat("", statsPath + File.separator
+					+ arg0.get(Config.TOPOLOGY_NAME) + "_" + id + ".rate.csv",
+					false);
 			countStat.start();
 		}
 	}
