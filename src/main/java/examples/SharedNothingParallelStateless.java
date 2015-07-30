@@ -28,9 +28,9 @@ public class SharedNothingParallelStateless {
 
 		boolean local = Boolean.valueOf(args[0]);
 		String statsPath = args[1];
-		final int number_of_tuples = Integer.valueOf(args[2]);
-		final int duration = Integer.valueOf(args[3]);
-		final int parallelism = Integer.valueOf(args[4]);
+		final int duration = Integer.valueOf(args[2]);
+		final int parallelism = Integer.valueOf(args[3]);
+		String topologyName = args[4];
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -91,13 +91,13 @@ public class SharedNothingParallelStateless {
 
 		if (!local) {
 			conf.setNumWorkers(1);
-			StormSubmitter.submitTopologyWithProgressBar("ViperSpoutAndBolt",
+			StormSubmitter.submitTopologyWithProgressBar(topologyName,
 					conf, builder.createTopology());
 		} else {
 			// conf.setMaxTaskParallelism(1);
 
 			LocalCluster cluster = new LocalCluster();
-			cluster.submitTopology("ViperSpoutAndBolt", conf,
+			cluster.submitTopology(topologyName, conf,
 					builder.createTopology());
 
 			Thread.sleep(40000);
