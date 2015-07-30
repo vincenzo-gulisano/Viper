@@ -20,7 +20,7 @@ public class ViperTopologyBuilder extends TopologyBuilder {
 					"parallelism hint needs to be at least 2 for a parallel operator!");
 
 		setBolt(id + "_merger", new ViperMerger(prevFields), parallelism_hint)
-				.shuffleGrouping(prevId);
+				.customGrouping(prevId, new ViperShuffle());
 
 		setBolt(id, bolt, parallelism_hint).directGrouping(id + "_merger");
 

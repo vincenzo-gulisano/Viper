@@ -20,6 +20,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 
 public class SharedNothingParallelStateless {
 
@@ -41,10 +42,11 @@ public class SharedNothingParallelStateless {
 			private long startTime;
 
 			public boolean hasNext() {
-				return System.currentTimeMillis()-startTime<=duration;
+				return System.currentTimeMillis() - startTime <= duration;
 			}
 
 			public Values getTuple() {
+//				Utils.sleep(1000);
 				return new Values(r.nextInt());
 			}
 
@@ -52,7 +54,7 @@ public class SharedNothingParallelStateless {
 			@Override
 			public void prepare(Map stormConf, TopologyContext context) {
 				startTime = System.currentTimeMillis();
-				
+
 			}
 
 		}, new Fields("x")), 2);
@@ -61,7 +63,8 @@ public class SharedNothingParallelStateless {
 				new BoltFunction() {
 
 					private static final long serialVersionUID = 1L;
-
+					private int limiter = 100;
+					
 					public void receivedWriteLog(Tuple t) {
 					}
 
@@ -69,7 +72,12 @@ public class SharedNothingParallelStateless {
 					}
 
 					public List<Values> process(Tuple t) {
-//						Utils.sleep(1);
+//						Utils.sleep(1000);
+						limiter--;
+						if (limiter==0) {
+							limiter = 100;
+							Utils.sleep(5);
+						}
 						List<Values> result = new ArrayList<Values>();
 						result.add(new Values(2 * t.getIntegerByField("x")));
 						return result;
@@ -91,16 +99,15 @@ public class SharedNothingParallelStateless {
 
 		if (!local) {
 			conf.setNumWorkers(1);
-			StormSubmitter.submitTopologyWithProgressBar(topologyName,
-					conf, builder.createTopology());
+			StormSubmitter.submitTopologyWithProgressBar(topologyName, conf,
+					builder.createTopology());
 		} else {
 			// conf.setMaxTaskParallelism(1);
 
 			LocalCluster cluster = new LocalCluster();
-			cluster.submitTopology(topologyName, conf,
-					builder.createTopology());
+			cluster.submitTopology(topologyName, conf, builder.createTopology());
 
-			Thread.sleep(40000);
+			Thread.sleep(50000);
 
 			cluster.shutdown();
 		}

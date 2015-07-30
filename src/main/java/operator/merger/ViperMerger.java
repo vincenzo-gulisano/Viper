@@ -27,29 +27,28 @@ public class ViperMerger extends ViperBolt {
 	protected void childPrepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
 
-//		Map<GlobalStreamId, Grouping> sources = context.getThisSources();
-//		if (sources.size()!=1)
-//			throw new RuntimeException("Merger bolts require exactly one source");
-//		GlobalStreamId id = (GlobalStreamId) sources.keySet().toArray()[0];
-//		System.out.println(context.getComponentOutputFields(id));
-		
-		nextBoltTaskIndex = context.getComponentTasks("mul").get(thisTaskIndex);
+		// Map<GlobalStreamId, Grouping> sources = context.getThisSources();
+		// if (sources.size()!=1)
+		// throw new
+		// RuntimeException("Merger bolts require exactly one source");
+		// GlobalStreamId id = (GlobalStreamId) sources.keySet().toArray()[0];
+		// System.out.println(context.getComponentOutputFields(id));
 
-		System.out.println(stormConf.get("log.statistics.path"));
+		nextBoltTaskIndex = context.getComponentTasks("mul").get(thisTaskIndex);
 
 	}
 
 	protected void emit(Tuple input, Values t) {
 		t.set(2, id);
-//		LOG.info("I am merger " + id + " and I am sending tuple " + t
-//				+ " to task index " + nextBoltTaskIndex);
+		// LOG.info("I am merger " + id + " and I am sending tuple " + t
+		// + " to task index " + nextBoltTaskIndex);
 		collector.emitDirect(nextBoltTaskIndex, t);
 	}
-	
+
 	protected void emitFlush(Tuple input) {
 		collector.emitDirect(nextBoltTaskIndex, input.getValues());
 	}
-	
+
 	protected void emitWriteLog(Tuple input) {
 		collector.emitDirect(nextBoltTaskIndex, input.getValues());
 	}

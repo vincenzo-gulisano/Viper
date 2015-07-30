@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import statistics.CountStat;
 import backtype.storm.Config;
+import backtype.storm.generated.Grouping;
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -35,7 +36,10 @@ public class ViperSpout extends BaseRichSpout {
 	private String id;
 	private long counter = 0;
 	private long ackGap = 0;
-	private long failCounter = 0;
+
+	private int flushAcksToWaitFor;
+
+	// private long failCounter = 0;
 
 	public ViperSpout(SpoutFunction udf, Fields outFields) {
 
@@ -72,7 +76,8 @@ public class ViperSpout extends BaseRichSpout {
 			writelogSent = true;
 
 			if (keepStats) {
-				Utils.sleep(2000); // Just wait for latest stats to be written
+				Utils.sleep(2000); // Just wait for latest statistics to be
+									// written
 				countStat.stopStats();
 				try {
 					countStat.join();
@@ -107,6 +112,7 @@ public class ViperSpout extends BaseRichSpout {
 		}
 
 		udf.prepare(arg0, arg1);
+
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer arg0) {
@@ -116,16 +122,16 @@ public class ViperSpout extends BaseRichSpout {
 	@Override
 	public void ack(Object msgId) {
 		ackGap = counter - (Long) msgId;
-		if (ackGap % 100 == 0) {
-			System.out.println("ack: " + ackGap);
-		}
+		// if (ackGap % 100 == 0) {
+		// System.out.println("ack: " + ackGap);
+		// }
 	}
 
 	@Override
 	public void fail(Object msgId) {
-		failCounter++;
-		if (failCounter % 1000 == 0) {
-			System.out.println("fail: " + failCounter);
-		}
+		// failCounter++;
+		// if (failCounter % 1000 == 0) {
+		// System.out.println("fail: " + failCounter);
+		// }
 	}
 }

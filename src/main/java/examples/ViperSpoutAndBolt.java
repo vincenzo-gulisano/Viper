@@ -47,10 +47,10 @@ public class ViperSpoutAndBolt {
 				return new Values(r.nextInt());
 			}
 
+			@SuppressWarnings("rawtypes")
 			@Override
 			public void prepare(Map stormConf, TopologyContext context) {
-				// TODO Auto-generated method stub
-				
+
 			}
 
 		}, new Fields("x")));

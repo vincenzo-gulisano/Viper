@@ -103,7 +103,7 @@ public class ViperBolt extends BaseRichBolt {
 		TupleType ttype = (TupleType) input.getValueByField("type");
 		if (ttype.equals(TupleType.REGULAR)) {
 
-			// LOG.info("Bolt " + id + " received tuple " + input);
+			//LOG.info("Bolt " + id + " received tuple " + input);
 
 			List<Values> result = f.process(input);
 			if (result != null)
