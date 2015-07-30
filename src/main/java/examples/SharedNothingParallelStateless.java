@@ -72,7 +72,7 @@ public class SharedNothingParallelStateless {
 					}
 
 					public List<Values> process(Tuple t) {
-//						Utils.sleep(1000);
+						Utils.sleep(1);
 //						limiter--;
 //						if (limiter==0) {
 //							limiter = 100;
