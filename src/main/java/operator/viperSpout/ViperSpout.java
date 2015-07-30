@@ -105,6 +105,8 @@ public class ViperSpout extends BaseRichSpout {
 					false);
 			countStat.start();
 		}
+
+		udf.prepare(arg0, arg1);
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer arg0) {
