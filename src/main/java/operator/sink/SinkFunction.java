@@ -55,8 +55,9 @@ public class SinkFunction implements BoltFunction {
 	@Override
 	public void prepare(Map stormConf, TopologyContext context) {
 
-		this.keepStats = (Boolean) stormConf.getOrDefault("log.statistics",
-				false);
+		Object temp = stormConf.get("log.statistics");
+		this.keepStats = temp != null ? (Boolean) temp : false;
+		
 		this.statsPath = (String) stormConf.getOrDefault("log.statistics.path",
 				"");
 
