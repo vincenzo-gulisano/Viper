@@ -29,23 +29,30 @@ public class SharedNothingParallelStateless {
 		boolean local = Boolean.valueOf(args[0]);
 		String statsPath = args[1];
 		final int number_of_tuples = Integer.valueOf(args[2]);
+		final int duration = Integer.valueOf(args[3]);
+		final int parallelism = Integer.valueOf(args[4]);
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
 		builder.setSpout("spout", new ViperSpout(new SpoutFunction() {
 
 			private static final long serialVersionUID = 1L;
-			private int counter = number_of_tuples;
 			private Random r = new Random();
+			private long startTime;
 
 			public boolean hasNext() {
-				return counter > 0;
+				return System.currentTimeMillis()-startTime<=duration;
 			}
 
 			public Values getTuple() {
-//				Utils.sleep(1);
-				counter--;
 				return new Values(r.nextInt());
+			}
+
+			@SuppressWarnings("rawtypes")
+			@Override
+			public void prepare(Map stormConf, TopologyContext context) {
+				startTime = System.currentTimeMillis();
+				
 			}
 
 		}, new Fields("x")), 2);
@@ -72,7 +79,7 @@ public class SharedNothingParallelStateless {
 					public void prepare(Map stormConf, TopologyContext context) {
 					}
 
-				}), 2, "spout", new Fields("x"));
+				}), parallelism, "spout", new Fields("x"));
 
 		builder.setBolt("sink", new Sink(), 1).shuffleGrouping("mul");
 
