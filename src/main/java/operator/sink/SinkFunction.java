@@ -6,6 +6,7 @@ import java.util.Map;
 
 import operator.viperBolt.BoltFunction;
 import statistics.AvgStat;
+import backtype.storm.Config;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
@@ -57,7 +58,7 @@ public class SinkFunction implements BoltFunction {
 
 		Object temp = stormConf.get("log.statistics");
 		this.keepStats = temp != null ? (Boolean) temp : false;
-		
+
 		temp = stormConf.get("log.statistics.path");
 		this.statsPath = temp != null ? (String) temp : "";
 
@@ -67,7 +68,8 @@ public class SinkFunction implements BoltFunction {
 			int taskIndex = context.getThisTaskIndex();
 
 			latencyStat = new AvgStat("", statsPath + File.separator
-					+ componentId + "." + taskIndex + ".latency.csv", false);
+					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + componentId
+					+ "." + taskIndex + ".latency.csv", false);
 			latencyStat.start();
 		}
 	}
