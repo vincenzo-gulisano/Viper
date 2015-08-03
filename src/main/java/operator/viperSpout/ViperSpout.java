@@ -36,7 +36,8 @@ public class ViperSpout extends BaseRichSpout {
 
 	private String id;
 	private long counter = 0;
-//	private long ackGap = 0;
+
+	// private long ackGap = 0;
 
 	public ViperSpout(SpoutFunction udf, Fields outFields) {
 
@@ -57,12 +58,15 @@ public class ViperSpout extends BaseRichSpout {
 			v.add(0, TupleType.REGULAR);
 			v.add(1, System.currentTimeMillis());
 			v.add(2, id);
-			collector.emit(v);//, counter);
-			//counter++;
+
+//			LOG.info("Spout " + id + " sending " + v);
+
+			collector.emit(v);// , counter);
+			// counter++;
 
 			if (keepStats) {
 				countStat.increase(1);
-				costStat.add((System.nanoTime()-start)/1000);
+				costStat.add((System.nanoTime() - start) / 1000);
 			}
 
 			// }
@@ -130,7 +134,7 @@ public class ViperSpout extends BaseRichSpout {
 
 	@Override
 	public void ack(Object msgId) {
-//		ackGap = counter - (Long) msgId;
+		// ackGap = counter - (Long) msgId;
 		// if (ackGap % 100 == 0) {
 		// System.out.println("ack: " + ackGap);
 		// }

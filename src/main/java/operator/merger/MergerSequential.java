@@ -5,31 +5,29 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import backtype.storm.tuple.Tuple;
-
 public class MergerSequential implements Merger {
 
-	LinkedList<ArrayDeque<Tuple>> queues;
+	LinkedList<ArrayDeque<MergerEntry>> queues;
 	HashMap<String, Integer> ids;
 
 	public MergerSequential(List<String> ids) {
-		queues = new LinkedList<ArrayDeque<Tuple>>();
+		queues = new LinkedList<ArrayDeque<MergerEntry>>();
 		this.ids = new HashMap<String, Integer>();
 		int index = 0;
 		for (String id : ids) {
 			this.ids.put(id, index);
-			queues.add(index, new ArrayDeque<Tuple>());
+			queues.add(index, new ArrayDeque<MergerEntry>());
 			index++;
 		}
 	}
 
-	public void add(String id, Tuple t) {
+	public void add(String id, MergerEntry e) {
 		if (!ids.containsKey(id))
 			throw new RuntimeException("Unknown id " + id);
-		queues.get(ids.get(id)).add(t);
+		queues.get(ids.get(id)).add(e);
 	}
 
-	public Tuple getNextReady() {
+	public MergerEntry getNextReady() {
 
 		boolean allQueuesHaveATuple = true;
 		int index = 0;
@@ -38,8 +36,8 @@ public class MergerSequential implements Merger {
 			if (!allQueuesHaveATuple)
 				break;
 			if (thisIndex == 0
-					|| queues.get(thisIndex).peek().getLongByField("ts") < queues
-							.get(index).peek().getLongByField("ts"))
+					|| queues.get(thisIndex).peek().getTs() < queues.get(index)
+							.peek().getTs())
 				index = thisIndex;
 		}
 

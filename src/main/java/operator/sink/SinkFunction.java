@@ -33,7 +33,8 @@ public class SinkFunction implements BoltFunction {
 	}
 
 	@Override
-	public void receivedFlush(Tuple t) {
+	public List<Values> receivedFlush(Tuple t) {
+		return null;
 	}
 
 	@Override

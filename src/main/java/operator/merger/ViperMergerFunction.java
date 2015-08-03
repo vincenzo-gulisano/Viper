@@ -22,6 +22,11 @@ public class ViperMergerFunction implements BoltFunction {
 			.getLogger(ViperMergerFunction.class);
 	private static final long serialVersionUID = -3710608737079122065L;
 	private Merger merger;
+	private String tsField;
+
+	public ViperMergerFunction(String tsField) {
+		this.tsField = tsField;
+	}
 
 	@SuppressWarnings({ "rawtypes" })
 	@Override
@@ -48,15 +53,18 @@ public class ViperMergerFunction implements BoltFunction {
 	@Override
 	public List<Values> process(Tuple t) {
 		List<Values> result = new LinkedList<Values>();
-		merger.add(t.getStringByField("sourceID"), t);
-		Tuple nReady = merger.getNextReady();
+		merger.add(t.getStringByField("sourceID"),
+				new MergerEntry(t.getLongByField(tsField), t));
+		Tuple nReady = (Tuple) merger.getNextReady().getO();
 		if (nReady != null)
 			result.add(new ViperValues(nReady));
 		return result;
 	}
 
 	@Override
-	public void receivedFlush(Tuple t) {
+	public List<Values> receivedFlush(Tuple t) {
+		// TODO
+		return null;
 	}
 
 	@Override

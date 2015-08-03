@@ -19,8 +19,8 @@ public class ViperMerger extends ViperBolt {
 	private static final long serialVersionUID = -3556782352568567327L;
 	private int nextBoltTaskIndex;
 
-	public ViperMerger(Fields outFields) {
-		super(outFields, new ViperMergerFunction());
+	public ViperMerger(Fields outFields, String tsField) {
+		super(outFields, new ViperMergerFunction(tsField));
 	}
 
 	@SuppressWarnings("rawtypes")

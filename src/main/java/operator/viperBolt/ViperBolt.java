@@ -34,7 +34,7 @@ public class ViperBolt extends BaseRichBolt {
 	private String statsPath;
 	private CountStat countStat;
 	private AvgStat costStat;
-	private BoltFunction f;
+	protected BoltFunction f;
 	protected int thisTaskIndex;
 	protected String id;
 
@@ -52,7 +52,7 @@ public class ViperBolt extends BaseRichBolt {
 
 		Object temp = stormConf.get("log.statistics");
 		this.keepStats = temp != null ? (Boolean) temp : false;
-		
+
 		temp = stormConf.get("log.statistics.path");
 		this.statsPath = temp != null ? (String) temp : "";
 
@@ -107,11 +107,11 @@ public class ViperBolt extends BaseRichBolt {
 	public void execute(Tuple input) {
 
 		long start = System.nanoTime();
-		
+
 		TupleType ttype = (TupleType) input.getValueByField("type");
 		if (ttype.equals(TupleType.REGULAR)) {
 
-			//LOG.info("Bolt " + id + " received tuple " + input);
+			// LOG.info("Bolt " + id + " received tuple " + input);
 
 			List<Values> result = f.process(input);
 			if (result != null)
@@ -121,12 +121,21 @@ public class ViperBolt extends BaseRichBolt {
 						countStat.increase(1);
 					}
 				}
-//			collector.ack(input);
+			// collector.ack(input);
 			if (keepStats) {
-				costStat.add((System.nanoTime()-start)/1000);
+				costStat.add((System.nanoTime() - start) / 1000);
 			}
 		} else if (ttype.equals(TupleType.FLUSH)) {
-			f.receivedFlush(input);
+			List<Values> result = f.receivedFlush(input);
+			if (result != null)
+				for (Values t : result) {
+					if (t != null) {
+						emit(input, t);
+						if (keepStats) {
+							countStat.increase(1);
+						}
+					}
+				}
 			emitFlush(input);
 		} else if (ttype.equals(TupleType.WRITELOG)) {
 			f.receivedWriteLog(input);
@@ -146,7 +155,7 @@ public class ViperBolt extends BaseRichBolt {
 				costStat.writeStats();
 			}
 
-			emitFlush(input);
+			emitWriteLog(input);
 
 		}
 
