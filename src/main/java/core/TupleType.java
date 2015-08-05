@@ -1,5 +1,5 @@
 package core;
 
 public enum TupleType {
-	REGULAR,FLUSH,WRITELOG;
+	REGULAR, FLUSH;// ,WRITELOG;
 }

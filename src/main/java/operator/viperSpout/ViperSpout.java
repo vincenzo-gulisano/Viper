@@ -28,7 +28,7 @@ public class ViperSpout extends BaseRichSpout {
 	private Fields outFields;
 	private SpoutOutputCollector collector;
 	private boolean flushSent = false;
-	private boolean writelogSent = false;
+	// private boolean writelogSent = false;
 	private boolean keepStats;
 	private String statsPath;
 	private CountStat countStat;
@@ -57,12 +57,11 @@ public class ViperSpout extends BaseRichSpout {
 			Values v = udf.getTuple();
 			v.add(0, TupleType.REGULAR);
 			v.add(1, System.currentTimeMillis());
-			v.add(2, id);
 
-//			LOG.info("Spout " + id + " sending " + v);
+			// LOG.info("Spout " + id + " sending " + v);
 
 			collector.emit(v);// , counter);
-			// counter++;
+			counter++;
 
 			if (keepStats) {
 				countStat.increase(1);
@@ -73,13 +72,10 @@ public class ViperSpout extends BaseRichSpout {
 		} else if (!flushSent) {
 			collector.emit(ViperUtils.getFlushTuple(this.outFields.size() - 2));
 
-			LOG.info("Spout " + id + " sending FLUSH tuple");
+			LOG.info("Spout " + id + " sending FLUSH tuple, " + counter
+					+ " tuples sent");
 
 			flushSent = true;
-		} else if (!writelogSent) {
-			collector
-					.emit(ViperUtils.getWriteLogTuple(this.outFields.size() - 2));
-			writelogSent = true;
 
 			if (keepStats) {
 				Utils.sleep(2000); // Just wait for latest statistics to be
@@ -96,7 +92,16 @@ public class ViperSpout extends BaseRichSpout {
 				costStat.writeStats();
 			}
 
-		} else {
+		}
+		// else if (!writelogSent) {
+		// collector.emit(ViperUtils.getWriteLogTuple(
+		// this.outFields.size() - 3, id));
+		// writelogSent = true;
+		//
+		//
+		//
+		// }
+		else {
 			Utils.sleep(1000);
 		}
 	}
@@ -132,19 +137,17 @@ public class ViperSpout extends BaseRichSpout {
 		arg0.declare(this.outFields);
 	}
 
-	@Override
-	public void ack(Object msgId) {
-		// ackGap = counter - (Long) msgId;
-		// if (ackGap % 100 == 0) {
-		// System.out.println("ack: " + ackGap);
-		// }
-	}
-
-	@Override
-	public void fail(Object msgId) {
-		// failCounter++;
-		// if (failCounter % 1000 == 0) {
-		// System.out.println("fail: " + failCounter);
-		// }
-	}
+	// @Override
+	// public void ack(Object msgId) {
+	// // ackGap = counter - (Long) msgId;
+	// // if (ackGap % 100 == 0) {
+	// // System.out.println("ack: " + ackGap);
+	// // }
+	// }
+	//
+	// @Override
+	// public void fail(Object msgId) {
+	// System.out.println("Failed: " + msgId);
+	// // throw new RuntimeException("DIO BOIA");
+	// }
 }

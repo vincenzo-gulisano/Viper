@@ -63,7 +63,8 @@ public class ViperSpoutAndBolt {
 					public void receivedWriteLog(Tuple t) {
 					}
 
-					public void receivedFlush(Tuple t) {
+					public List<Values> receivedFlush(Tuple t) {
+						return null;
 					}
 
 					public List<Values> process(Tuple t) {

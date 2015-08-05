@@ -17,6 +17,6 @@ public interface BoltFunction extends Serializable {
 	
 	public List<Values> receivedFlush(Tuple t);
 	
-	public void receivedWriteLog(Tuple t);
+	//public void receivedWriteLog(Tuple t);
 	
 }

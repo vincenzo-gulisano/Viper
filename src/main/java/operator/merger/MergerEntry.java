@@ -19,4 +19,8 @@ public class MergerEntry {
 		return o;
 	}
 
+	public String toString() {
+		return ts + "," + o;
+	}
+
 }

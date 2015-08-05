@@ -13,11 +13,12 @@ public class ViperValues extends Values {
 	public ViperValues(Object... vals) {
 		super(vals);
 	}
-	
+
 	public ViperValues(Tuple t) {
-		for(Object o: t.getValues()) {
-            add(o);
-        }
+		for (Object o : t.getValues()) {
+			add(o);
+		}
 	}
+
 
 }

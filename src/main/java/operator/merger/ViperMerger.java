@@ -7,6 +7,7 @@ import operator.viperBolt.ViperBolt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import backtype.storm.generated.Grouping;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
@@ -34,14 +35,23 @@ public class ViperMerger extends ViperBolt {
 		// GlobalStreamId id = (GlobalStreamId) sources.keySet().toArray()[0];
 		// System.out.println(context.getComponentOutputFields(id));
 
-		nextBoltTaskIndex = context.getComponentTasks("mul").get(thisTaskIndex);
+		// This is extremely inelegant!!!
+		Map<String, Map<String, Grouping>> targets = context.getThisTargets();
+		if (targets.size() != 1)
+			throw new RuntimeException(
+					"Merger bolts require exactly one target");
+		for (Map<String, Grouping> target : targets.values()) {
+			if (target.size() != 1)
+				throw new RuntimeException(
+						"Merger bolts require exactly one target");
+			for (String id : target.keySet())
+				nextBoltTaskIndex = context.getComponentTasks(id).get(
+						thisTaskIndex);
+		}
 
 	}
 
 	protected void emit(Tuple input, Values t) {
-		t.set(2, id);
-		// LOG.info("I am merger " + id + " and I am sending tuple " + t
-		// + " to task index " + nextBoltTaskIndex);
 		collector.emitDirect(nextBoltTaskIndex, t);
 	}
 

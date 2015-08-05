@@ -4,16 +4,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import core.TupleType;
 import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.grouping.CustomStreamGrouping;
 import backtype.storm.task.WorkerTopologyContext;
+import core.TupleType;
 
 public class ViperShuffle implements CustomStreamGrouping, Serializable {
 
 	private static final long serialVersionUID = 3014404246770284550L;
 	int index = 0;
 	List<Integer> targetTasks;
+	int counter = 0;
 
 	@Override
 	public void prepare(WorkerTopologyContext context, GlobalStreamId stream,
@@ -28,9 +29,9 @@ public class ViperShuffle implements CustomStreamGrouping, Serializable {
 		if (type.equals(TupleType.REGULAR)) {
 			result.add(targetTasks.get(index));
 			index = (index + 1) % targetTasks.size();
+			counter++;
 			return result;
-		} else if (type.equals(TupleType.FLUSH)
-				|| type.equals(TupleType.WRITELOG)) {
+		} else if (type.equals(TupleType.FLUSH)) {
 			return targetTasks;
 		}
 		return null;

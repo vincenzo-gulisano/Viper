@@ -1,5 +1,6 @@
 package operator.viperBolt;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,12 +22,12 @@ public abstract class BoltFunctionBase implements BoltFunction {
 
 	@Override
 	public List<Values> receivedFlush(Tuple t) {
-		return null;
+		return new ArrayList<Values>();
 	}
 
-	@Override
-	public void receivedWriteLog(Tuple t) {
-
-	}
+//	@Override
+//	public void receivedWriteLog(Tuple t) {
+//
+//	}
 
 }

@@ -1,10 +1,11 @@
 package operator.sink;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import operator.viperBolt.BoltFunction;
+import operator.viperBolt.BoltFunctionBase;
 import statistics.AvgStat;
 import backtype.storm.Config;
 import backtype.storm.task.TopologyContext;
@@ -12,7 +13,7 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 
-public class SinkFunction implements BoltFunction {
+public class SinkFunction extends BoltFunctionBase {
 
 	private static final long serialVersionUID = 1L;
 	private AvgStat latencyStat;
@@ -34,11 +35,6 @@ public class SinkFunction implements BoltFunction {
 
 	@Override
 	public List<Values> receivedFlush(Tuple t) {
-		return null;
-	}
-
-	@Override
-	public void receivedWriteLog(Tuple t) {
 		if (keepStats && !statsWritten) {
 			statsWritten = true;
 			Utils.sleep(2000); // Just wait for latest statistics to be
@@ -51,7 +47,13 @@ public class SinkFunction implements BoltFunction {
 			}
 			latencyStat.writeStats();
 		}
+		return new ArrayList<Values>();
 	}
+
+//	@Override
+//	public void receivedWriteLog(Tuple t) {
+//
+//	}
 
 	@SuppressWarnings({ "rawtypes" })
 	@Override

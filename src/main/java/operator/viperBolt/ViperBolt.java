@@ -37,6 +37,10 @@ public class ViperBolt extends BaseRichBolt {
 	protected BoltFunction f;
 	protected int thisTaskIndex;
 	protected String id;
+	private int counter = 0;
+
+	// temp
+	// private Values lastEmit;
 
 	public ViperBolt(Fields outFields, BoltFunction boltFunction) {
 
@@ -91,18 +95,18 @@ public class ViperBolt extends BaseRichBolt {
 
 		t.add(0, TupleType.REGULAR);
 		t.add(1, input.getLongByField("ts"));
-		t.add(2, id);
+		// t.add(2, id);
 
 		collector.emit(t);
 	}
 
 	protected void emitFlush(Tuple t) {
-		collector.emit(t.getValues());
+		collector.emit(ViperUtils.getFlushTuple(this.outFields.size() - 2));
 	}
 
-	protected void emitWriteLog(Tuple t) {
-		collector.emit(t.getValues());
-	}
+	// protected void emitWriteLog(Tuple t) {
+	// collector.emit(t.getValues());
+	// }
 
 	public void execute(Tuple input) {
 
@@ -112,10 +116,11 @@ public class ViperBolt extends BaseRichBolt {
 		if (ttype.equals(TupleType.REGULAR)) {
 
 			// LOG.info("Bolt " + id + " received tuple " + input);
-
+			counter++;
 			List<Values> result = f.process(input);
 			if (result != null)
 				for (Values t : result) {
+					// lastEmit = t;
 					emit(input, t);
 					if (keepStats) {
 						countStat.increase(1);
@@ -126,8 +131,15 @@ public class ViperBolt extends BaseRichBolt {
 				costStat.add((System.nanoTime() - start) / 1000);
 			}
 		} else if (ttype.equals(TupleType.FLUSH)) {
+			// LOG.info("ViperBolt " + id + " received FLUSH from "
+			// + input.getSourceComponent() + ":" + input.getSourceTask());
 			List<Values> result = f.receivedFlush(input);
-			if (result != null)
+			if (result != null) {
+				// LOG.info("ViperBolt " + id + " got flushed tuples!!!");
+				// LOG.info("last emit:" + lastEmit);
+				// for (Values t : result) {
+				// LOG.info(t.toString());
+				// }
 				for (Values t : result) {
 					if (t != null) {
 						emit(input, t);
@@ -136,28 +148,34 @@ public class ViperBolt extends BaseRichBolt {
 						}
 					}
 				}
-			emitFlush(input);
-		} else if (ttype.equals(TupleType.WRITELOG)) {
-			f.receivedWriteLog(input);
-
-			if (keepStats && !statsWritten) {
-				statsWritten = true;
-				Utils.sleep(2000); // Just wait for latest stats to be written
-				countStat.stopStats();
-				costStat.stopStats();
-				try {
-					countStat.join();
-					costStat.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				LOG.info("ViperBolt " + id + " received " + counter
+						+ " tuples before sending FLUSH");
+				emitFlush(input);
+				if (keepStats && !statsWritten) {
+					statsWritten = true;
+					Utils.sleep(2000); // Just wait for latest stats to be
+										// written
+					countStat.stopStats();
+					costStat.stopStats();
+					try {
+						countStat.join();
+						costStat.join();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					countStat.writeStats();
+					costStat.writeStats();
 				}
-				countStat.writeStats();
-				costStat.writeStats();
 			}
-
-			emitWriteLog(input);
-
 		}
+		// else if (ttype.equals(TupleType.WRITELOG)) {
+		// f.receivedWriteLog(input);
+		//
+		//
+		//
+		// emitWriteLog(input);
+		//
+		// }
 
 	}
 
