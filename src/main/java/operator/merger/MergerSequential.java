@@ -49,14 +49,16 @@ public class MergerSequential implements Merger {
 
 		boolean allQueuesHaveATuple = true;
 		int index = 0;
+		long thisIndexTS = 0;
+		long indexTS = 0;
 		for (int thisIndex = 0; thisIndex < ids.size(); thisIndex++) {
 			try {
 				allQueuesHaveATuple &= !queues.get(thisIndex).isEmpty();
 				if (!allQueuesHaveATuple)
 					break;
-				if (thisIndex == 0
-						|| queues.get(thisIndex).peek().getTs() < queues
-								.get(index).peek().getTs()) {
+				thisIndexTS = queues.get(thisIndex).peek().getTs();
+				indexTS = queues.get(index).peek().getTs();
+				if (thisIndex == 0 || thisIndexTS < indexTS) {
 					index = thisIndex;
 				}
 			} catch (NullPointerException e) {
@@ -72,6 +74,8 @@ public class MergerSequential implements Merger {
 						+ queues.get(index).peek().getTs());
 				LOG.info("queues.get(thisIndex).peek()="
 						+ queues.get(thisIndex).peek());
+				LOG.info("thisIndexTS=" + thisIndexTS);
+				LOG.info("indexTS=" + indexTS);
 				throw e;
 			}
 		}
