@@ -1,6 +1,9 @@
 package operator.sink;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +23,10 @@ public class SinkFunction extends BoltFunctionBase {
 	private boolean keepStats;
 	private String statsPath;
 	private boolean statsWritten = false;
+	private String topologyID; // TODO does it make sense to have this
+	private int taskIndex;
+
+	// duplicated here?
 
 	public SinkFunction() {
 	}
@@ -46,14 +53,23 @@ public class SinkFunction extends BoltFunctionBase {
 				e.printStackTrace();
 			}
 			latencyStat.writeStats();
+			String messageFilePath = statsPath + File.separator + topologyID
+					+ "." + taskIndex;
+			try {
+				PrintWriter pw = new PrintWriter(
+						new FileWriter(messageFilePath));
+				pw.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		return new ArrayList<Values>();
 	}
 
-//	@Override
-//	public void receivedWriteLog(Tuple t) {
-//
-//	}
+	// @Override
+	// public void receivedWriteLog(Tuple t) {
+	//
+	// }
 
 	@SuppressWarnings({ "rawtypes" })
 	@Override
@@ -74,7 +90,10 @@ public class SinkFunction extends BoltFunctionBase {
 					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + componentId
 					+ "." + taskIndex + ".latency.csv", false);
 			latencyStat.start();
+
 		}
+		this.topologyID = (String) stormConf.get(Config.TOPOLOGY_NAME);
+		taskIndex = context.getThisTaskIndex();
 	}
 
 }

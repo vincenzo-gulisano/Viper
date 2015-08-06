@@ -7,6 +7,7 @@ import operator.csvSink.CSVFileWriter;
 import operator.csvSink.CSVSink;
 import operator.csvSpout.CSVFileReader;
 import operator.csvSpout.CSVReaderSpout;
+import operator.sink.Sink;
 import operator.viperBolt.BoltFunctionBase;
 import operator.viperBolt.ViperBolt;
 import topology.ViperTopologyBuilder;
@@ -27,12 +28,14 @@ public class SharedNothingParallelStateless {
 			InvalidTopologyException, InterruptedException {
 
 		boolean local = Boolean.valueOf(args[0]);
-		String statsPath = args[1];
-		final int spout_parallelism = Integer.valueOf(args[2]);
-		final int stateless_parallelism = Integer.valueOf(args[3]);
-		String topologyName = args[4];
-		String inputFilePrefix = args[5];
-		String outputFile = args[6];
+		boolean logStats = Boolean.valueOf(args[1]);
+		String statsPath = args[2];
+		final int spout_parallelism = Integer.valueOf(args[3]);
+		final int stateless_parallelism = Integer.valueOf(args[4]);
+		String topologyName = args[5];
+		String inputFilePrefix = args[6];
+		boolean logOut = Boolean.valueOf(args[7]);
+		String outputFile = args[8];
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -124,29 +127,34 @@ public class SharedNothingParallelStateless {
 				}), stateless_parallelism, "spout", new Fields("tuple_ts",
 				"line"), "tuple_ts");
 
-		builder.addParallelStatelessBolt("sink", new CSVSink(
-				new CSVFileWriter() {
+		if (logOut) {
+			builder.addParallelStatelessBolt("sink", new CSVSink(
+					new CSVFileWriter() {
 
-					@Override
-					protected String convertTupleToLine(Tuple t) {
-						return t.getStringByField("license") + ";"
-								+ t.getLongByField("pickUpTS") + ";"
-								+ t.getStringByField("pickUpDate") + ";"
-								+ t.getLongByField("dropOffTS") + ";"
-								+ t.getStringByField("dropOffDate") + ";"
-								+ t.getIntegerByField("startCellQ1") + ";"
-								+ t.getIntegerByField("endCellQ1") + ";"
-								+ t.getIntegerByField("startCellQ2") + ";"
-								+ t.getIntegerByField("endCellQ2") + ";"
-								+ t.getDoubleByField("amount");
-					}
+						@Override
+						protected String convertTupleToLine(Tuple t) {
+							return t.getStringByField("license") + ";"
+									+ t.getLongByField("pickUpTS") + ";"
+									+ t.getStringByField("pickUpDate") + ";"
+									+ t.getLongByField("dropOffTS") + ";"
+									+ t.getStringByField("dropOffDate") + ";"
+									+ t.getIntegerByField("startCellQ1") + ";"
+									+ t.getIntegerByField("endCellQ1") + ";"
+									+ t.getIntegerByField("startCellQ2") + ";"
+									+ t.getIntegerByField("endCellQ2") + ";"
+									+ t.getDoubleByField("amount");
+						}
 
-				}), 1, "convert", outFields, "dropOffTS");
+					}), 1, "convert", outFields, "dropOffTS");
+		} else {
+			builder.addParallelStatelessBolt("sink", new Sink(), 1, "convert",
+					outFields, "dropOffTS");
+		}
 
 		Config conf = new Config();
 		conf.setDebug(false);
 
-		conf.put("log.statistics", true);
+		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
 		for (int i = 0; i < spout_parallelism; i++) {
 			conf.put("spout." + i + ".filepath", inputFilePrefix + i + ".csv");
