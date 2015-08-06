@@ -1,9 +1,9 @@
 package operator.merger;
 
-import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class MergerSequential implements Merger {
 
 	public static Logger LOG = LoggerFactory.getLogger(MergerSequential.class);
-	LinkedList<ArrayDeque<MergerEntry>> queues;
+	LinkedList<ConcurrentLinkedQueue<MergerEntry>> queues;
 	LinkedList<Long> latestInputTs;
 	long latestOutputTs;
 	HashMap<String, Integer> ids;
@@ -19,13 +19,13 @@ public class MergerSequential implements Merger {
 
 	public MergerSequential(List<String> ids, String mergerId) {
 		this.mergerId = mergerId;
-		queues = new LinkedList<ArrayDeque<MergerEntry>>();
+		queues = new LinkedList<ConcurrentLinkedQueue<MergerEntry>>();
 		latestInputTs = new LinkedList<Long>();
 		this.ids = new HashMap<String, Integer>();
 		int index = 0;
 		for (String id : ids) {
 			this.ids.put(id, index);
-			queues.add(index, new ArrayDeque<MergerEntry>());
+			queues.add(index, new ConcurrentLinkedQueue<MergerEntry>());
 			latestInputTs.add(index, -1L);
 			index++;
 		}
