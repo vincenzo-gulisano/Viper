@@ -68,6 +68,7 @@ public class MergerSequential implements Merger {
 				LOG.info("queues.get(index).size()=" + queues.get(index).size());
 				LOG.info("queues.get(thisIndex).size()="
 						+ queues.get(thisIndex).size());
+				throw e;
 			}
 		}
 
