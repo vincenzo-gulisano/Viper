@@ -74,11 +74,10 @@ public class ViperMergerFunction implements BoltFunction {
 
 	@Override
 	public List<Values> receivedFlush(Tuple t) {
-		((MergerSequential) merger).areWeFlushing = false;
 		merger.add(t.getSourceComponent() + ":" + t.getSourceTask(),
 				new MergerEntry(Long.MAX_VALUE, t));
 		// LOG.info(id + " adding flush from " + t.getSourceComponent() + ":"
-		//		+ t.getSourceTask());
+		// + t.getSourceTask());
 		idsFlushed.remove(t.getSourceComponent() + ":" + t.getSourceTask());
 		if (idsFlushed.isEmpty()) {
 			List<Values> flushedResults = new ArrayList<Values>();
