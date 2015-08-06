@@ -5,8 +5,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MergerSequential implements Merger {
 
+	public static Logger LOG = LoggerFactory.getLogger(MergerSequential.class);
 	LinkedList<ArrayDeque<MergerEntry>> queues;
 	LinkedList<Long> latestInputTs;
 	long latestOutputTs;
@@ -46,13 +50,24 @@ public class MergerSequential implements Merger {
 		boolean allQueuesHaveATuple = true;
 		int index = 0;
 		for (int thisIndex = 0; thisIndex < ids.size(); thisIndex++) {
-			allQueuesHaveATuple &= !queues.get(thisIndex).isEmpty();
-			if (!allQueuesHaveATuple)
-				break;
-			if (thisIndex == 0
-					|| queues.get(thisIndex).peek().getTs() < queues.get(index)
-							.peek().getTs()) {
-				index = thisIndex;
+			try {
+				allQueuesHaveATuple &= !queues.get(thisIndex).isEmpty();
+				if (!allQueuesHaveATuple)
+					break;
+				if (thisIndex == 0
+						|| queues.get(thisIndex).peek().getTs() < queues
+								.get(index).peek().getTs()) {
+					index = thisIndex;
+				}
+			} catch (NullPointerException e) {
+				LOG.info("NullPointerException catched...");
+				LOG.info("index=" + index);
+				LOG.info("thisIndex=" + thisIndex);
+				LOG.info("allQueuesHaveATuple=" + allQueuesHaveATuple);
+				LOG.info("queues.size()=" + queues.size());
+				LOG.info("queues.get(index).size()=" + queues.get(index).size());
+				LOG.info("queues.get(thisIndex).size()="
+						+ queues.get(thisIndex).size());
 			}
 		}
 
