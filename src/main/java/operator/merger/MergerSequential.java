@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import jline.internal.Log;
-
 public class MergerSequential implements Merger {
 
 	LinkedList<ArrayDeque<MergerEntry>> queues;
@@ -14,7 +12,6 @@ public class MergerSequential implements Merger {
 	long latestOutputTs;
 	HashMap<String, Integer> ids;
 	String mergerId;
-	public boolean areWeFlushing = false;
 
 	public MergerSequential(List<String> ids, String mergerId) {
 		this.mergerId = mergerId;
@@ -44,31 +41,18 @@ public class MergerSequential implements Merger {
 		latestInputTs.set(ids.get(id), e.getTs());
 	}
 
-	// TODO remove areWeFlushing
 	public MergerEntry getNextReady() {
 
-		if (areWeFlushing)
-			System.out.println(mergerId + " getNextReady");
 		boolean allQueuesHaveATuple = true;
 		int index = 0;
 		for (int thisIndex = 0; thisIndex < ids.size(); thisIndex++) {
-			if (areWeFlushing)
-				System.out.println(mergerId + " checking index " + thisIndex);
 			allQueuesHaveATuple &= !queues.get(thisIndex).isEmpty();
-			if (areWeFlushing) {
-				System.out.println(mergerId + " allQueuesHaveATuple="
-						+ allQueuesHaveATuple);
-				System.out.println(mergerId + " at this index="
-						+ queues.get(thisIndex).peek());
-			}
 			if (!allQueuesHaveATuple)
 				break;
 			if (thisIndex == 0
 					|| queues.get(thisIndex).peek().getTs() < queues.get(index)
 							.peek().getTs()) {
 				index = thisIndex;
-				if (areWeFlushing)
-					System.out.println(mergerId + " chosen index=" + index);
 			}
 		}
 
@@ -78,9 +62,6 @@ public class MergerSequential implements Merger {
 				throw new RuntimeException(mergerId
 						+ "cannot return ready entry: decreasing timestamp!");
 			latestOutputTs = queues.get(index).peek().getTs();
-			if (areWeFlushing)
-				System.out.println(mergerId + " returning "
-						+ queues.get(index).peek());
 			return queues.get(index).poll();
 		}
 
