@@ -28,16 +28,14 @@ public class SplitSourceFile {
 					new FileOutputStream(new File(outputFilePrefix + i
 							+ outputFileSuffix)))));
 		}
-
-		try (BufferedReader br = new BufferedReader(new FileReader(inputFile))) {
-			for (String line; (line = br.readLine()) != null;) {
-				int nextWriter = r.nextInt(outputFiles);
-				writers.get(nextWriter).write(line);
-				writers.get(nextWriter).newLine();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		BufferedReader br = new BufferedReader(new FileReader(inputFile));
+		String nextLine = "";
+		if ((nextLine = br.readLine()) != null) {
+			int nextWriter = r.nextInt(outputFiles);
+			writers.get(nextWriter).write(nextLine);
+			writers.get(nextWriter).newLine();
 		}
+		br.close();
 
 		for (BufferedWriter w : writers) {
 			w.flush();
