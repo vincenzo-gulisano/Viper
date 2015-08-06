@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+// TODO better parameters
 public class SplitSourceFile {
 
 	public static void main(String[] args) throws IOException {
@@ -30,7 +31,7 @@ public class SplitSourceFile {
 		}
 		BufferedReader br = new BufferedReader(new FileReader(inputFile));
 		String nextLine = "";
-		if ((nextLine = br.readLine()) != null) {
+		while ((nextLine = br.readLine()) != null) {
 			int nextWriter = r.nextInt(outputFiles);
 			writers.get(nextWriter).write(nextLine);
 			writers.get(nextWriter).newLine();
