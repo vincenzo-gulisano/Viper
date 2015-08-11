@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import operator.merger.Merger;
-import operator.merger.MergerEntry;
 import operator.merger.MergerThreadSafe;
 import operator.viperBolt.BoltFunction;
 
@@ -30,10 +29,16 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 			.getLogger(StatelessBoltFunctionWrapper.class);
 
 	private ConcurrentLinkedQueue<Tuple> internalQueue;
+	private ConcurrentLinkedQueue<Values> readyTuplesQueue;
 	private Merger merger;
 	private int parallelism;
+
 	private List<Thread> threads;
 	private List<StatelessOpInternalThread> internalOps;
+
+	private Thread readyThread;
+	private StatelessOpReadyThread readyOp;
+
 	private BoltFunctionFactory factory;
 	private int fullQueueOccurences;
 	private String tsField;
@@ -75,6 +80,7 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 		}
 
 		internalQueue = new ConcurrentLinkedQueue<Tuple>();
+		readyTuplesQueue = new ConcurrentLinkedQueue<Values>();
 		merger = new MergerThreadSafe(internalThreadsIds,
 				context.getThisComponentId() + ":" + context.getThisTaskId());
 
@@ -89,6 +95,10 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 			threads.add(new Thread(internalOps.get(i), "Internal thread " + i));
 			threads.get(i).start();
 		}
+
+		readyOp = new StatelessOpReadyThread(readyTuplesQueue, merger);
+		readyThread = new Thread(readyOp);
+		readyThread.start();
 
 	}
 
@@ -108,14 +118,22 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 		// LOG.info("Added tuple " + t + " to internal queue (size: "
 		// + internalQueue.size() + ")");
 		List<Values> result = new ArrayList<Values>();
-		MergerEntry me = merger.getNextReady();
-		while (me != null) {
-			// LOG.info("Got values " + (Values) me.getO()
-			// + " from internal queue (size: " + internalQueue.size()
-			// + ")");
-			result.add((Values) me.getO());
-			me = merger.getNextReady();
+
+		// With dedicated thread taking out ready tuples...
+		Values ready = readyTuplesQueue.poll();
+		while (ready != null) {
+			result.add((ready));
+			ready = readyTuplesQueue.poll();
 		}
+
+		// MergerEntry me = merger.getNextReady();
+		// while (me != null) {
+		// // LOG.info("Got values " + (Values) me.getO()
+		// // + " from internal queue (size: " + internalQueue.size()
+		// // + ")");
+		// result.add((Values) me.getO());
+		// me = merger.getNextReady();
+		// }
 
 		return result;
 
@@ -152,13 +170,27 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 					e.printStackTrace();
 				}
 
-			List<Values> lastValues = new ArrayList<Values>();
-			MergerEntry me = merger.getNextReady();
-			while (me != null && me.getO() != null) {
-				lastValues.add((Values) me.getO());
-				// LOG.info("Adding last values " + me.getO());
-				me = merger.getNextReady();
+			LOG.info("Waiting for ready thread to complete");
+			try {
+				readyThread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
+
+			List<Values> lastValues = new ArrayList<Values>();
+			Values ready = readyTuplesQueue.poll();
+			while (ready != null) {
+				lastValues.add((ready));
+				ready = readyTuplesQueue.poll();
+			}
+			
+			// THIS IS NOW MANAGED BY DEDICATED THREAD
+//			MergerEntry me = merger.getNextReady();
+//			while (me != null && me.getO() != null) {
+//				lastValues.add((Values) me.getO());
+//				// LOG.info("Adding last values " + me.getO());
+//				me = merger.getNextReady();
+//			}
 
 			LOG.info("Total tuples added " + counter);
 			// And now we can return the values

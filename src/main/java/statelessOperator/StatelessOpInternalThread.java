@@ -10,11 +10,10 @@ import operator.viperBolt.BoltFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import core.TupleType;
-import core.ViperValues;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
+import core.TupleType;
 
 public class StatelessOpInternalThread implements Runnable {
 
