@@ -160,8 +160,8 @@ public class SharedMemoryParallelStateless {
 			}), stateless_parallelism).customGrouping("convert",
 					new ViperShuffle());
 		} else {
-			builder.addParallelStatelessBolt("sink", new Sink(),
-					stateless_parallelism, "convert", outFields, "dropOffTS");
+			builder.setBolt("sink", new Sink(), stateless_parallelism).customGrouping("convert",
+					new ViperShuffle());
 		}
 
 		Config conf = new Config();
