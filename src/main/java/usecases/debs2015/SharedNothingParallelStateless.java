@@ -35,7 +35,7 @@ public class SharedNothingParallelStateless {
 		String topologyName = args[5];
 		String inputFilePrefix = args[6];
 		boolean logOut = Boolean.valueOf(args[7]);
-		String outputFile = args[8];
+		String outputFilePrefix = args[8];
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -125,8 +125,8 @@ public class SharedNothingParallelStateless {
 								}
 							}
 						} catch (NumberFormatException e) {
-							System.out.println("Cannot convert line: "
-									+ t.getStringByField("line"));
+							// System.out.println("Cannot convert line: "
+							// + t.getStringByField("line"));
 						}
 
 						return null;
@@ -153,9 +153,9 @@ public class SharedNothingParallelStateless {
 									+ t.getDoubleByField("amount");
 						}
 
-					}), 1, "convert", outFields, "dropOffTS");
+					}), stateless_parallelism, "convert", outFields, "dropOffTS");
 		} else {
-			builder.addParallelStatelessBolt("sink", new Sink(), 1, "convert",
+			builder.addParallelStatelessBolt("sink", new Sink(), stateless_parallelism, "convert",
 					outFields, "dropOffTS");
 		}
 
@@ -167,7 +167,9 @@ public class SharedNothingParallelStateless {
 		for (int i = 0; i < spout_parallelism; i++) {
 			conf.put("spout." + i + ".filepath", inputFilePrefix + i + ".csv");
 		}
-		conf.put("sink.0.filepath", outputFile);
+		for (int i = 0; i < stateless_parallelism; i++) {
+			conf.put("sink." + i + ".filepath", outputFilePrefix + i + ".csv");
+		}
 
 		if (!local) {
 			conf.setNumWorkers(1);

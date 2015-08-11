@@ -11,6 +11,7 @@ import operator.sink.Sink;
 import operator.viperBolt.BoltFunction;
 import operator.viperBolt.BoltFunctionBase;
 import statelessOperator.BoltFunctionFactory;
+import topology.ViperShuffle;
 import topology.ViperTopologyBuilder;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -36,7 +37,7 @@ public class SharedMemoryParallelStateless {
 		String topologyName = args[5];
 		String inputFilePrefix = args[6];
 		boolean logOut = Boolean.valueOf(args[7]);
-		String outputFile = args[8];
+		String outputFilePrefix = args[8];
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -128,8 +129,8 @@ public class SharedMemoryParallelStateless {
 										}
 									}
 								} catch (NumberFormatException e) {
-									System.out.println("Cannot convert line "
-											+ t.getStringByField("line"));
+									// System.out.println("Cannot convert line "
+									// + t.getStringByField("line"));
 								}
 
 								return null;
@@ -156,10 +157,11 @@ public class SharedMemoryParallelStateless {
 							+ t.getDoubleByField("amount");
 				}
 
-			}), 1).shuffleGrouping("convert");
+			}), stateless_parallelism).customGrouping("convert",
+					new ViperShuffle());
 		} else {
-			builder.addParallelStatelessBolt("sink", new Sink(), 1, "convert",
-					outFields, "dropOffTS");
+			builder.addParallelStatelessBolt("sink", new Sink(),
+					stateless_parallelism, "convert", outFields, "dropOffTS");
 		}
 
 		Config conf = new Config();
@@ -170,7 +172,9 @@ public class SharedMemoryParallelStateless {
 		for (int i = 0; i < spout_parallelism; i++) {
 			conf.put("spout." + i + ".filepath", inputFilePrefix + i + ".csv");
 		}
-		conf.put("sink.0.filepath", outputFile);
+		for (int i = 0; i < stateless_parallelism; i++) {
+			conf.put("sink." + i + ".filepath", outputFilePrefix + i + ".csv");
+		}
 		//
 		// conf.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE, new Integer(
 		// 16384));

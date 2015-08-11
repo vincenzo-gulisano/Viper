@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import operator.merger.Merger;
 import operator.merger.MergerEntry;
-import operator.merger.MergerSequential;
+import operator.merger.MergerThreadSafe;
 import operator.viperBolt.BoltFunction;
 
 import org.slf4j.Logger;
@@ -75,7 +75,7 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 		}
 
 		internalQueue = new ConcurrentLinkedQueue<Tuple>();
-		merger = new MergerSequential(internalThreadsIds,
+		merger = new MergerThreadSafe(internalThreadsIds,
 				context.getThisComponentId() + ":" + context.getThisTaskId());
 
 		threads = new ArrayList<Thread>();
