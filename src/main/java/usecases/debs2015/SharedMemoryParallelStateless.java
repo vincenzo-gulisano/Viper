@@ -8,9 +8,7 @@ import operator.csvSink.CSVSink;
 import operator.csvSpout.CSVFileReader;
 import operator.csvSpout.CSVReaderSpout;
 import operator.sink.Sink;
-import operator.viperBolt.BoltFunction;
 import operator.viperBolt.BoltFunctionBase;
-import statelessOperator.BoltFunctionFactory;
 import topology.ViperShuffle;
 import topology.ViperTopologyBuilder;
 import backtype.storm.Config;
@@ -55,89 +53,75 @@ public class SharedMemoryParallelStateless {
 				"dropOffTS", "dropOffDate", "startCellQ1", "endCellQ1",
 				"startCellQ2", "endCellQ2", "amount");
 		builder.addViperStatelessBolt("convert", stateless_parallelism,
-				outFields, new BoltFunctionFactory() {
+				outFields, new BoltFunctionBase() {
 
-					@Override
-					public BoltFunction getBoltFunction() {
-						return new BoltFunctionBase() {
+					public List<Values> process(Tuple t) {
 
-							public List<Values> process(Tuple t) {
+						String[] split = t.getStringByField("line").split(",");
+						try {
+							String hackLicense = split[1];
+							long pickUpDate = ViperUtils.getTsFromText(
+									"yyyy-MM-dd HH:mm:ss", split[2]);
+							long dropOffDate = ViperUtils.getTsFromText(
+									"yyyy-MM-dd HH:mm:ss", split[3]);
+							double pickupLongitude = Double.valueOf(split[6]);
+							if (pickupLongitude >= -74.916578
+									&& pickupLongitude < -73.120778) {
+								double pickupLatitude = Double
+										.valueOf(split[7]);
+								if (pickupLatitude <= 41.47718278
+										&& pickupLatitude > 40.12971598) {
+									double dropOffLongitude = Double
+											.valueOf(split[8]);
+									if (dropOffLongitude >= -74.916578
+											&& dropOffLongitude < -73.120778) {
+										double dropOffLatitude = Double
+												.valueOf(split[9]);
+										if (dropOffLatitude <= 41.47718278
+												&& dropOffLatitude > 40.12971598) {
+											double amount = Double
+													.valueOf(split[11])
+													+ Double.valueOf(split[14]);
+											int startCellQ1 = (int) (Math
+													.floor(((pickupLongitude - (-74.916578)) / 0.005986) + 1) * 1000 + (Math
+													.floor((41.47718 - pickupLatitude) / 0.004491556) + 1));
+											int endCellQ1 = (int) ((Math
+													.floor((dropOffLongitude - (-74.916578)) / 0.005986) + 1) * 1000 + (Math
+													.floor((41.47718 - dropOffLatitude) / 0.004491556) + 1));
+											int startCellQ2 = (int) ((Math
+													.floor((pickupLongitude - (-74.916578))
+															/ (0.005986 / 2)) + 1) * 1000 + (Math
+													.floor((41.47718 - pickupLatitude)
+															/ (0.004491556 / 2)) + 1));
+											int endCellQ2 = (int) ((Math
+													.floor((dropOffLongitude - (-74.916578))
+															/ (0.005986 / 2)) + 1) * 1000 + (Math
+													.floor((41.47718 - dropOffLatitude)
+															/ (0.004491556 / 2)) + 1));
 
-								String[] split = t.getStringByField("line")
-										.split(",");
-								try {
-									String hackLicense = split[1];
-									long pickUpDate = ViperUtils.getTsFromText(
-											"yyyy-MM-dd HH:mm:ss", split[2]);
-									long dropOffDate = ViperUtils
-											.getTsFromText(
-													"yyyy-MM-dd HH:mm:ss",
-													split[3]);
-									double pickupLongitude = Double
-											.valueOf(split[6]);
-									if (pickupLongitude >= -74.916578
-											&& pickupLongitude < -73.120778) {
-										double pickupLatitude = Double
-												.valueOf(split[7]);
-										if (pickupLatitude <= 41.47718278
-												&& pickupLatitude > 40.12971598) {
-											double dropOffLongitude = Double
-													.valueOf(split[8]);
-											if (dropOffLongitude >= -74.916578
-													&& dropOffLongitude < -73.120778) {
-												double dropOffLatitude = Double
-														.valueOf(split[9]);
-												if (dropOffLatitude <= 41.47718278
-														&& dropOffLatitude > 40.12971598) {
-													double amount = Double
-															.valueOf(split[11])
-															+ Double.valueOf(split[14]);
-													int startCellQ1 = (int) (Math
-															.floor(((pickupLongitude - (-74.916578)) / 0.005986) + 1) * 1000 + (Math
-															.floor((41.47718 - pickupLatitude) / 0.004491556) + 1));
-													int endCellQ1 = (int) ((Math
-															.floor((dropOffLongitude - (-74.916578)) / 0.005986) + 1) * 1000 + (Math
-															.floor((41.47718 - dropOffLatitude) / 0.004491556) + 1));
-													int startCellQ2 = (int) ((Math
-															.floor((pickupLongitude - (-74.916578))
-																	/ (0.005986 / 2)) + 1) * 1000 + (Math
-															.floor((41.47718 - pickupLatitude)
-																	/ (0.004491556 / 2)) + 1));
-													int endCellQ2 = (int) ((Math
-															.floor((dropOffLongitude - (-74.916578))
-																	/ (0.005986 / 2)) + 1) * 1000 + (Math
-															.floor((41.47718 - dropOffLatitude)
-																	/ (0.004491556 / 2)) + 1));
+											List<Values> result = new ArrayList<Values>();
 
-													List<Values> result = new ArrayList<Values>();
+											result.add(new Values(hackLicense,
+													pickUpDate, split[2],
+													dropOffDate, split[3],
+													startCellQ1, endCellQ1,
+													startCellQ2, endCellQ2,
+													amount));
 
-													result.add(new Values(
-															hackLicense,
-															pickUpDate,
-															split[2],
-															dropOffDate,
-															split[3],
-															startCellQ1,
-															endCellQ1,
-															startCellQ2,
-															endCellQ2, amount));
+											return result;
 
-													return result;
-
-												}
-											}
 										}
 									}
-								} catch (NumberFormatException e) {
-									// System.out.println("Cannot convert line "
-									// + t.getStringByField("line"));
 								}
-
-								return null;
 							}
+						} catch (NumberFormatException e) {
+							// System.out.println("Cannot convert line "
+							// + t.getStringByField("line"));
+						}
 
-						};
+						return null;
 					}
+
 				}, "tuple_ts", "spout");
 
 		if (logOut) {
@@ -160,8 +144,8 @@ public class SharedMemoryParallelStateless {
 			}), stateless_parallelism).customGrouping("convert",
 					new ViperShuffle());
 		} else {
-			builder.setBolt("sink", new Sink(), stateless_parallelism).customGrouping("convert",
-					new ViperShuffle());
+			builder.setBolt("sink", new Sink(), stateless_parallelism)
+					.customGrouping("convert", new ViperShuffle());
 		}
 
 		Config conf = new Config();
