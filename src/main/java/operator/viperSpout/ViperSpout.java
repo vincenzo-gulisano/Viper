@@ -36,6 +36,7 @@ public class ViperSpout extends BaseRichSpout {
 
 	private String id;
 	private long counter = 0;
+	private int batchSize;
 
 	// private long ackGap = 0;
 
@@ -72,7 +73,7 @@ public class ViperSpout extends BaseRichSpout {
 		} else if (!flushSent) {
 
 			// JUST A TEST
-			for (int i = 0; i < 20; i++) {
+			for (int i = 0; i < batchSize * 2; i++) {
 				collector
 						.emit(ViperUtils.getFlushTuple(this.outFields.size() - 2));
 			}
@@ -120,6 +121,9 @@ public class ViperSpout extends BaseRichSpout {
 
 		temp = arg0.get("log.statistics.path");
 		this.statsPath = temp != null ? (String) temp : "";
+
+		temp = arg0.get("batchsize");
+		this.batchSize = temp != null ? (Integer) temp : 1;
 
 		id = arg1.getThisComponentId() + "." + arg1.getThisTaskIndex();
 

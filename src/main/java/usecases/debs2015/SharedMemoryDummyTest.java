@@ -89,6 +89,7 @@ public class SharedMemoryDummyTest {
 			conf.put("spout." + i + ".filepath", inputFilePrefix + i + ".csv");
 		}
 		conf.put("sink.0.filepath", outputFilePrefix + "0.csv");
+		conf.put("batchsize", batchSize);
 
 		if (!local) {
 			conf.setNumWorkers(1);

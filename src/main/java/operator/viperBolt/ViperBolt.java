@@ -38,6 +38,7 @@ public class ViperBolt extends BaseRichBolt {
 	protected int thisTaskIndex;
 	protected String id;
 	private int counter = 0;
+	int batchSize;
 
 	private boolean flushSent;
 
@@ -61,6 +62,9 @@ public class ViperBolt extends BaseRichBolt {
 
 		temp = stormConf.get("log.statistics.path");
 		this.statsPath = temp != null ? (String) temp : "";
+
+		temp = stormConf.get("batchsize");
+		this.batchSize = temp != null ? (Integer) temp : 1;
 
 		LOG.info("Bolt preparation, component id: "
 				+ context.getThisComponentId() + ", task id: "
@@ -156,7 +160,7 @@ public class ViperBolt extends BaseRichBolt {
 						+ " tuples before sending FLUSH");
 
 				// JUST A TEST
-				for (int i = 0; i < 20; i++) {
+				for (int i = 0; i < batchSize * 2; i++) {
 					emitFlush(input);
 				}
 				flushSent = true;
