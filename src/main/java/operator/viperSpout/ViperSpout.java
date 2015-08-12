@@ -36,7 +36,7 @@ public class ViperSpout extends BaseRichSpout {
 
 	private String id;
 	private long counter = 0;
-	private int batchSize;
+	private long batchSize;
 
 	// private long ackGap = 0;
 
@@ -123,7 +123,7 @@ public class ViperSpout extends BaseRichSpout {
 		this.statsPath = temp != null ? (String) temp : "";
 
 		temp = arg0.get("batchsize");
-		this.batchSize = temp != null ? (Integer) temp : 1;
+		this.batchSize = temp != null ? (Long) temp : 1;
 
 		id = arg1.getThisComponentId() + "." + arg1.getThisTaskIndex();
 

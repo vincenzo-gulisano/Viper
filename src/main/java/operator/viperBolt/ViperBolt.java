@@ -38,7 +38,7 @@ public class ViperBolt extends BaseRichBolt {
 	protected int thisTaskIndex;
 	protected String id;
 	private int counter = 0;
-	int batchSize;
+	long batchSize;
 
 	private boolean flushSent;
 
@@ -64,7 +64,7 @@ public class ViperBolt extends BaseRichBolt {
 		this.statsPath = temp != null ? (String) temp : "";
 
 		temp = stormConf.get("batchsize");
-		this.batchSize = temp != null ? (Integer) temp : 1;
+		this.batchSize = temp != null ? (Long) temp : 1;
 
 		LOG.info("Bolt preparation, component id: "
 				+ context.getThisComponentId() + ", task id: "
