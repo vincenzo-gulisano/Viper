@@ -32,11 +32,12 @@ public class SharedMemoryDummyTest {
 		boolean local = Boolean.valueOf(args[0]);
 		boolean logStats = Boolean.valueOf(args[1]);
 		String statsPath = args[2];
-		final int spout_parallelism = Integer.valueOf(args[3]);
-		String topologyName = args[4];
-		String inputFilePrefix = args[5];
-		boolean logOut = Boolean.valueOf(args[6]);
-		String outputFilePrefix = args[7];
+		final int parallelism = Integer.valueOf(args[3]);
+		final int stateless_parallelism = Integer.valueOf(args[4]);
+		String topologyName = args[5];
+		String inputFilePrefix = args[6];
+		boolean logOut = Boolean.valueOf(args[7]);
+		String outputFilePrefix = args[8];
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -48,7 +49,7 @@ public class SharedMemoryDummyTest {
 						"yyyy-MM-dd HH:mm:ss", line.split(",")[3]), line);
 			}
 
-		}, new Fields("tuple_ts", "line")), spout_parallelism);
+		}, new Fields("tuple_ts", "line")), parallelism);
 
 		Fields outFields = new Fields("tuple_ts", "line");
 		builder.setBolt("convert",
@@ -62,7 +63,8 @@ public class SharedMemoryDummyTest {
 										.getStringByField("line")));
 						return result;
 					}
-				})).shuffleGrouping("spout");
+				}), stateless_parallelism).customGrouping("convert",
+				new ViperShuffle());
 
 		if (logOut) {
 			builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
@@ -73,10 +75,11 @@ public class SharedMemoryDummyTest {
 							+ t.getStringByField("line");
 				}
 
-			}), 1).customGrouping("convert", new ViperShuffle());
-		} else {
-			builder.setBolt("sink", new Sink(), 1).customGrouping("convert",
+			}), stateless_parallelism).customGrouping("convert",
 					new ViperShuffle());
+		} else {
+			builder.setBolt("sink", new Sink(), stateless_parallelism)
+					.customGrouping("convert", new ViperShuffle());
 		}
 
 		Config conf = new Config();
@@ -84,10 +87,12 @@ public class SharedMemoryDummyTest {
 
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
-		for (int i = 0; i < spout_parallelism; i++) {
+		for (int i = 0; i < parallelism; i++) {
 			conf.put("spout." + i + ".filepath", inputFilePrefix + i + ".csv");
 		}
-		conf.put("sink.0.filepath", outputFilePrefix + "0.csv");
+		for (int i = 0; i < stateless_parallelism; i++) {
+			conf.put("sink.0.filepath", outputFilePrefix + i + ".csv");
+		}
 
 		if (!local) {
 			conf.setNumWorkers(1);
