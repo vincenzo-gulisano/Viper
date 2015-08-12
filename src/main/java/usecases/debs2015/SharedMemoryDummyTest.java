@@ -37,8 +37,7 @@ public class SharedMemoryDummyTest {
 		String inputFilePrefix = args[5];
 		boolean logOut = Boolean.valueOf(args[6]);
 		String outputFilePrefix = args[7];
-
-		int batchSize = 10;
+		int batchSize = Integer.valueOf(args[8]);
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
