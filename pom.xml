@@ -13,6 +13,20 @@
 			<version>0.9.5</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+		    <groupId>aeolus</groupId>
+		    <artifactId>batching</artifactId>
+		    <version>1.0</version>
+		    <scope>system</scope>
+		    <systemPath>${project.basedir}/libs/batching-1.0-SNAPSHOT.jar</systemPath>
+		</dependency>
+		<dependency>
+		    <groupId>aeolus</groupId>
+		    <artifactId>storm-connector</artifactId>
+		    <version>1.0</version>
+		    <scope>system</scope>
+		    <systemPath>${project.basedir}/libs/aeolus-storm-connector-1.0-SNAPSHOT.jar</systemPath>
+		</dependency>
 	</dependencies>
 
 	<build>
