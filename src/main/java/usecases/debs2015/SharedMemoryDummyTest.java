@@ -63,7 +63,7 @@ public class SharedMemoryDummyTest {
 										.getStringByField("line")));
 						return result;
 					}
-				}), stateless_parallelism).customGrouping("convert",
+				}), stateless_parallelism).customGrouping("spout",
 				new ViperShuffle());
 
 		if (logOut) {
