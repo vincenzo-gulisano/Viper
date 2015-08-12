@@ -70,7 +70,12 @@ public class ViperSpout extends BaseRichSpout {
 
 			// }
 		} else if (!flushSent) {
-			collector.emit(ViperUtils.getFlushTuple(this.outFields.size() - 2));
+
+			// JUST A TEST
+			for (int i = 0; i < 20; i++) {
+				collector
+						.emit(ViperUtils.getFlushTuple(this.outFields.size() - 2));
+			}
 
 			LOG.info("Spout " + id + " sending FLUSH tuple, " + counter
 					+ " tuples sent");

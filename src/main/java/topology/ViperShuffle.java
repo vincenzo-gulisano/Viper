@@ -8,6 +8,7 @@ import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.grouping.CustomStreamGrouping;
 import backtype.storm.task.WorkerTopologyContext;
 import core.TupleType;
+import de.hub.cs.dbis.aeolus.batching.BatchColumn;
 
 public class ViperShuffle implements CustomStreamGrouping, Serializable {
 
@@ -25,7 +26,15 @@ public class ViperShuffle implements CustomStreamGrouping, Serializable {
 	@Override
 	public List<Integer> chooseTasks(int taskId, List<Object> values) {
 		ArrayList<Integer> result = new ArrayList<Integer>();
-		TupleType type = (TupleType) values.get(0);
+		
+		TupleType type = null;
+		if (values.get(0) instanceof BatchColumn) {
+			type = (TupleType) ((BatchColumn) values.get(0)).get(0);
+		} else {
+			type = (TupleType) values.get(0);
+		}
+		
+		
 		if (type.equals(TupleType.REGULAR)) {
 			result.add(targetTasks.get(index));
 			index = (index + 1) % targetTasks.size();

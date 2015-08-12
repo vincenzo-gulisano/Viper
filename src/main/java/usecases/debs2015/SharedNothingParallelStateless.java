@@ -37,6 +37,8 @@ public class SharedNothingParallelStateless {
 		boolean logOut = Boolean.valueOf(args[7]);
 		String outputFilePrefix = args[8];
 
+		int batchSize = 10;
+
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
 		builder.setSpout("spout", new CSVReaderSpout(new CSVFileReader() {
@@ -47,7 +49,7 @@ public class SharedNothingParallelStateless {
 						"yyyy-MM-dd HH:mm:ss", line.split(",")[3]), line);
 			}
 
-		}, new Fields("tuple_ts", "line")), spout_parallelism);
+		}, new Fields("tuple_ts", "line")), spout_parallelism, batchSize);
 
 		Fields outFields = new Fields("license", "pickUpTS", "pickUpDate",
 				"dropOffTS", "dropOffDate", "startCellQ1", "endCellQ1",
@@ -133,11 +135,12 @@ public class SharedNothingParallelStateless {
 					}
 
 				}), stateless_parallelism, "spout", new Fields("tuple_ts",
-				"line"), "tuple_ts");
+				"line"), "tuple_ts", batchSize);
 
 		if (logOut) {
-			builder.addParallelStatelessBolt("sink", new CSVSink(
-					new CSVFileWriter() {
+			builder.addParallelStatelessBolt(
+					"sink",
+					new CSVSink(new CSVFileWriter() {
 
 						@Override
 						protected String convertTupleToLine(Tuple t) {
@@ -153,10 +156,12 @@ public class SharedNothingParallelStateless {
 									+ t.getDoubleByField("amount");
 						}
 
-					}), stateless_parallelism, "convert", outFields, "dropOffTS");
+					}), stateless_parallelism, "convert", outFields,
+					"dropOffTS", batchSize);
 		} else {
-			builder.addParallelStatelessBolt("sink", new Sink(), stateless_parallelism, "convert",
-					outFields, "dropOffTS");
+			builder.addParallelStatelessBolt("sink", new Sink(),
+					stateless_parallelism, "convert", outFields, "dropOffTS",
+					batchSize);
 		}
 
 		Config conf = new Config();

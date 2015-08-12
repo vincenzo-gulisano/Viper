@@ -45,6 +45,8 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 	private List<String> internalThreadsIds;
 	private List<String> componentsIds;
 	private Set<String> componentsIdsWaitingFlush;
+	// TEST
+	private Set<String> componentsIdsAlreadyFlushed;
 	private int counter = 0;
 
 	public StatelessBoltFunctionWrapper(BoltFunctionFactory factory,
@@ -61,15 +63,18 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 
 		// Find the sources
 		Map<GlobalStreamId, Grouping> sources = context.getThisSources();
-		if (sources.size() != 1)
-			throw new RuntimeException(
-					"Merger bolts require exactly one source");
+
+		// if (sources.size() != 1)
+		// throw new RuntimeException(
+		// "Merger bolts require exactly one source, not " + sources);
+
 		GlobalStreamId id = (GlobalStreamId) sources.keySet().toArray()[0];
 		List<Integer> componentIds = context.getComponentTasks(id
 				.get_componentId());
 		internalThreadsIds = new ArrayList<String>();
 		componentsIds = new ArrayList<String>();
 		componentsIdsWaitingFlush = new HashSet<String>();
+		componentsIdsAlreadyFlushed = new HashSet<String>();
 		for (Integer i : componentIds) {
 			componentsIds.add(id.get_componentId() + ":" + i);
 			componentsIdsWaitingFlush.add(id.get_componentId() + ":" + i);
@@ -144,16 +149,22 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 
 		// Managing the last tuples (flushing)
 
+		String id = t.getSourceComponent() + ":" + t.getSourceTask();
+
+		// Already received a flush from this guy?
+		if (componentsIdsAlreadyFlushed.contains(id))
+			return null;
+
 		// First we put one flush tuple for each internal thread
-		// When getting a flush tuple, the internal thread adds a tuple for each
+		// When getting a flush tuple, the internal thread adds a tuple for
+		// each
 		// source in the merger and then exists, so we only have to wait...
-		if (!componentsIdsWaitingFlush.contains(t.getSourceComponent() + ":"
-				+ t.getSourceTask()))
+		if (!componentsIdsWaitingFlush.contains(id))
 			throw new RuntimeException("Why the fuck do I receive an ack from "
 					+ t.getSourceComponent() + ":" + t.getSourceTask() + "?");
 
-		componentsIdsWaitingFlush.remove(t.getSourceComponent() + ":"
-				+ t.getSourceTask());
+		componentsIdsAlreadyFlushed.add(id);
+		componentsIdsWaitingFlush.remove(id);
 		if (componentsIdsWaitingFlush.isEmpty()) {
 
 			LOG.info("Adding flush tuples");
@@ -183,14 +194,14 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 				lastValues.add((ready));
 				ready = readyTuplesQueue.poll();
 			}
-			
+
 			// THIS IS NOW MANAGED BY DEDICATED THREAD
-//			MergerEntry me = merger.getNextReady();
-//			while (me != null && me.getO() != null) {
-//				lastValues.add((Values) me.getO());
-//				// LOG.info("Adding last values " + me.getO());
-//				me = merger.getNextReady();
-//			}
+			// MergerEntry me = merger.getNextReady();
+			// while (me != null && me.getO() != null) {
+			// lastValues.add((Values) me.getO());
+			// // LOG.info("Adding last values " + me.getO());
+			// me = merger.getNextReady();
+			// }
 
 			LOG.info("Total tuples added " + counter);
 			// And now we can return the values
@@ -200,7 +211,6 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 		return null;
 
 	}
-
 	// @Override
 	// public void receivedWriteLog(Tuple t) {
 	// // TO DO, maybe just remove this?

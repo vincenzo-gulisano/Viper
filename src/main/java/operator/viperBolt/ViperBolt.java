@@ -39,6 +39,8 @@ public class ViperBolt extends BaseRichBolt {
 	protected String id;
 	private int counter = 0;
 
+	private boolean flushSent;
+
 	// temp
 	// private Values lastEmit;
 
@@ -82,6 +84,8 @@ public class ViperBolt extends BaseRichBolt {
 		f.prepare(stormConf, context);
 
 		childPrepare(stormConf, context, collector);
+
+		flushSent = false;
 
 	}
 
@@ -130,7 +134,7 @@ public class ViperBolt extends BaseRichBolt {
 			if (keepStats) {
 				costStat.add((System.nanoTime() - start) / 1000);
 			}
-		} else if (ttype.equals(TupleType.FLUSH)) {
+		} else if (ttype.equals(TupleType.FLUSH) && !flushSent) {
 			// LOG.info("ViperBolt " + id + " received FLUSH from "
 			// + input.getSourceComponent() + ":" + input.getSourceTask());
 			List<Values> result = f.receivedFlush(input);
@@ -150,7 +154,13 @@ public class ViperBolt extends BaseRichBolt {
 				}
 				LOG.info("ViperBolt " + id + " received " + counter
 						+ " tuples before sending FLUSH");
-				emitFlush(input);
+
+				// JUST A TEST
+				for (int i = 0; i < 20; i++) {
+					emitFlush(input);
+				}
+				flushSent = true;
+
 				if (keepStats && !statsWritten) {
 					statsWritten = true;
 					Utils.sleep(2000); // Just wait for latest stats to be
