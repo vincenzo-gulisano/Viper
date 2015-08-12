@@ -55,17 +55,19 @@ public class ViperSpout extends BaseRichSpout {
 			// if (ackGap < 1000) {
 
 			Values v = udf.getTuple();
-			v.add(0, TupleType.REGULAR);
-			v.add(1, System.currentTimeMillis());
+			if (v != null) {
+				v.add(0, TupleType.REGULAR);
+				v.add(1, System.currentTimeMillis());
 
-			// LOG.info("Spout " + id + " sending " + v);
+				// LOG.info("Spout " + id + " sending " + v);
 
-			collector.emit(v);// , counter);
-			counter++;
+				collector.emit(v);// , counter);
+				counter++;
 
-			if (keepStats) {
-				countStat.increase(1);
-				costStat.add((System.nanoTime() - start) / 1000);
+				if (keepStats) {
+					countStat.increase(1);
+					costStat.add((System.nanoTime() - start) / 1000);
+				}
 			}
 
 			// }

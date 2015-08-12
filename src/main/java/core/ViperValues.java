@@ -1,5 +1,7 @@
 package core;
 
+import java.util.List;
+
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
@@ -20,5 +22,10 @@ public class ViperValues extends Values {
 		}
 	}
 
+	public ViperValues(List<Object> vals) {
+		for (Object o : vals) {
+			add(o);
+		}
+	}
 
 }

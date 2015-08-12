@@ -131,8 +131,8 @@ public class ViperBolt extends BaseRichBolt {
 				costStat.add((System.nanoTime() - start) / 1000);
 			}
 		} else if (ttype.equals(TupleType.FLUSH)) {
-			// LOG.info("ViperBolt " + id + " received FLUSH from "
-			// + input.getSourceComponent() + ":" + input.getSourceTask());
+			LOG.info("ViperBolt " + id + " received FLUSH from "
+					+ input.getSourceComponent() + ":" + input.getSourceTask());
 			List<Values> result = f.receivedFlush(input);
 			if (result != null) {
 				// LOG.info("ViperBolt " + id + " got flushed tuples!!!");
