@@ -67,7 +67,7 @@ public class OnlySpouts {
 		for (int i = 0; i < spout_parallelism; i++) {
 			conf.put("spout." + i + ".filepath", inputFilePrefix + i + ".csv");
 		}
-		for (int i = 0; i < stateless_parallelism; i++) {
+		for (int i = 0; i < spout_parallelism; i++) {
 			conf.put("sink." + i + ".filepath", outputFilePrefix + i + ".csv");
 		}
 
