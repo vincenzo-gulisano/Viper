@@ -61,8 +61,7 @@ public class MergerTest {
 				new ViperMerger(new Fields("x", "y", "z"), "ts"), 1)
 				.customGrouping("spout", new ViperShuffle());
 
-		builder.setBolt("sink", new Sink(), 1).customGrouping("merger",
-				new ViperShuffle());
+		builder.setBolt("sink", new Sink(), 1).directGrouping("merger");
 
 		Config conf = new Config();
 		conf.setDebug(false);
