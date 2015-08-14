@@ -33,6 +33,7 @@ public class MergerTestSN {
 		final int spout_parallelism = Integer.valueOf(args[3]);
 		String topologyName = args[4];
 		final long duration = Long.valueOf(args[5]);
+		final double selectivity = Double.valueOf(args[6]);
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -63,11 +64,22 @@ public class MergerTestSN {
 		builder.addParallelStatelessBolt("op", new ViperBolt(new Fields("x",
 				"y", "z"), new BoltFunctionBase() {
 
+			private Random rand;
+
+			@SuppressWarnings("rawtypes")
+			@Override
+			public void prepare(Map stormConf, TopologyContext context) {
+				rand = new Random();
+				super.prepare(stormConf, context);
+			}
+
 			@Override
 			public List<Values> process(Tuple t) {
 				List<Values> result = new ArrayList<Values>();
-				result.add(new Values(t.getIntegerByField("x"), t
-						.getIntegerByField("y"), t.getIntegerByField("z")));
+				if (rand.nextDouble() < selectivity) {
+					result.add(new Values(t.getIntegerByField("x"), t
+							.getIntegerByField("y"), t.getIntegerByField("z")));
+				}
 				return result;
 			}
 		}), spout_parallelism, "spout", new Fields("x", "y", "z"), "ts");
