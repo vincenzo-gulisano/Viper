@@ -3,7 +3,6 @@ package topology;
 import operator.merger.ViperMerger;
 import operator.viperBolt.BoltFunction;
 import statelessOperator.StatelessBolt;
-import statelessOperator.StatelessSpout;
 import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
