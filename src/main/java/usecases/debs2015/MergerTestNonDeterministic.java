@@ -94,7 +94,7 @@ public class MergerTestNonDeterministic {
 				new ViperShuffle());
 
 		builder.setBolt("sink", new Sink(), sink_parallelism).customGrouping(
-				"spout", new ViperShuffle());
+				"op", new ViperShuffle());
 
 		Config conf = new Config();
 		conf.setDebug(false);
