@@ -73,7 +73,6 @@ public class ViperBolt extends BaseRichBolt {
 			countStat = new CountStat("", statsPath + File.separator
 					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".rate.csv", false);
-			countStat.start();
 			costStat = new AvgStat("", statsPath + File.separator
 					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".cost.csv", false);
