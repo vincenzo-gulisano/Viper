@@ -34,6 +34,7 @@ public class ViperBolt extends BaseRichBolt {
 	private String statsPath;
 	private CountStat countStat;
 	private AvgStat costStat;
+	private CountStat invocationsStat;
 	protected BoltFunction f;
 	protected int thisTaskIndex;
 	protected String id;
@@ -76,7 +77,12 @@ public class ViperBolt extends BaseRichBolt {
 			costStat = new AvgStat("", statsPath + File.separator
 					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".cost.csv", false);
+			invocationsStat = new CountStat("", statsPath + File.separator
+					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + id
+					+ ".invocations.csv", false);
+			countStat.start();
 			costStat.start();
+			invocationsStat.start();
 		}
 
 		f.prepare(stormConf, context);
@@ -111,6 +117,8 @@ public class ViperBolt extends BaseRichBolt {
 	public void execute(Tuple input) {
 
 		long start = System.nanoTime();
+		if (keepStats)
+			invocationsStat.increase(1);
 
 		TupleType ttype = (TupleType) input.getValueByField("type");
 		if (ttype.equals(TupleType.REGULAR)) {
@@ -157,14 +165,18 @@ public class ViperBolt extends BaseRichBolt {
 										// written
 					countStat.stopStats();
 					costStat.stopStats();
+					invocationsStat.stopStats();
 					try {
 						countStat.join();
 						costStat.join();
+						invocationsStat.join();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 					countStat.writeStats();
 					costStat.writeStats();
+					invocationsStat.writeStats();
+					keepStats = false;
 				}
 			}
 		}
