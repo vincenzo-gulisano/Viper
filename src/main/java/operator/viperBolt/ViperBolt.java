@@ -128,7 +128,7 @@ public class ViperBolt extends BaseRichBolt {
 				}
 			// collector.ack(input);
 			if (keepStats) {
-				costStat.add((System.nanoTime() - start) / 1000);
+				costStat.add((System.nanoTime() - start));
 			}
 		} else if (ttype.equals(TupleType.FLUSH)) {
 			LOG.info("ViperBolt " + id + " received FLUSH from "
