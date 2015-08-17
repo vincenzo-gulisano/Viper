@@ -17,6 +17,7 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
+import backtype.storm.metric.LoggingMetricsConsumer;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
@@ -98,7 +99,8 @@ public class MergerTestNonDeterministic {
 
 		Config conf = new Config();
 		conf.setDebug(false);
-
+		conf.registerMetricsConsumer(LoggingMetricsConsumer.class, 1);
+		 
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
 
