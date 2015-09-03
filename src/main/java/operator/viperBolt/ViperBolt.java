@@ -9,13 +9,16 @@ import org.slf4j.LoggerFactory;
 
 import statistics.AvgStat;
 import statistics.CountStat;
+import topology.SharedQueues;
 import backtype.storm.Config;
+import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
+import backtype.storm.tuple.TupleImpl;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 import core.TupleType;
@@ -37,8 +40,12 @@ public class ViperBolt extends BaseRichBolt {
 	private CountStat invocationsStat;
 	protected BoltFunction f;
 	protected int thisTaskIndex;
+	protected int thisTask;
 	protected String id;
 	private int counter = 0;
+
+	TopologyContext context;
+	String streamId;
 
 	// temp
 	// private Values lastEmit;
@@ -53,6 +60,7 @@ public class ViperBolt extends BaseRichBolt {
 	@SuppressWarnings({ "rawtypes" })
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
+		this.context = context;
 		this.collector = collector;
 
 		Object temp = stormConf.get("log.statistics");
@@ -66,10 +74,20 @@ public class ViperBolt extends BaseRichBolt {
 				+ context.getThisTaskId() + ", task index: "
 				+ context.getThisTaskIndex());
 
+		thisTask = context.getThisTaskId();
+		streamId = context.getThisComponentId();
+
+		// TODO Should check whether there's only 1 source!!!
+		GlobalStreamId sourceId = (GlobalStreamId) context.getThisSources()
+				.keySet().toArray()[0];
+		List<Integer> componentIds = context.getComponentTasks(sourceId
+				.get_componentId());
+		for (int sourceTask : componentIds)
+			SharedQueues.registerQueue(sourceTask + ":" + thisTask);
+
 		thisTaskIndex = context.getThisTaskIndex();
 		id = context.getThisComponentId() + "." + context.getThisTaskIndex();
 		if (keepStats) {
-
 			countStat = new CountStat("", statsPath + File.separator
 					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".rate.csv", false);
@@ -93,15 +111,13 @@ public class ViperBolt extends BaseRichBolt {
 	@SuppressWarnings("rawtypes")
 	protected void childPrepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
-
 	}
 
+	// TODO this will not work for stateful operators like the aggregate that
+	// already set a timestamp, right?
 	protected void emit(Tuple input, Values t) {
-
 		t.add(0, TupleType.REGULAR);
 		t.add(1, input.getLongByField("ts"));
-		// t.add(2, id);
-
 		collector.emit(t);
 	}
 
@@ -109,9 +125,32 @@ public class ViperBolt extends BaseRichBolt {
 		collector.emit(ViperUtils.getFlushTuple(this.outFields.size() - 2));
 	}
 
-	// protected void emitWriteLog(Tuple t) {
-	// collector.emit(t.getValues());
-	// }
+	private void process(Tuple t) {
+		List<Values> result = f.process(t);
+		if (result != null)
+			for (Values out : result) {
+				emit(t, out);
+				if (keepStats) {
+					countStat.increase(1);
+				}
+			}
+	}
+
+	private void takeFromInternalBuffer(Tuple input) {
+		// TODO id is already used...
+		String id = input.getSourceTask() + ":" + thisTask;
+		while (SharedQueues.peekNextTuple(id) != null) {
+			// TODO Should avoid to create two tuple instances every time!
+			Tuple t = new TupleImpl(context, SharedQueues.peekNextTuple(id),
+					input.getSourceTask(), input.getSourceStreamId());
+			if (t.getLongByField("ts") <= input.getLongByField("ts")) {
+				t = new TupleImpl(context, SharedQueues.pollNextTuple(id),
+						input.getSourceTask(), input.getSourceStreamId());
+				counter++;
+				process(t);
+			}
+		}
+	}
 
 	public void execute(Tuple input) {
 
@@ -119,34 +158,25 @@ public class ViperBolt extends BaseRichBolt {
 		if (keepStats)
 			invocationsStat.increase(1);
 
+		takeFromInternalBuffer(input);
+
 		TupleType ttype = (TupleType) input.getValueByField("type");
 		if (ttype.equals(TupleType.REGULAR)) {
 
-			// LOG.info("Bolt " + id + " received tuple " + input);
 			counter++;
-			List<Values> result = f.process(input);
-			if (result != null)
-				for (Values t : result) {
-					// lastEmit = t;
-					emit(input, t);
-					if (keepStats) {
-						countStat.increase(1);
-					}
-				}
-			// collector.ack(input);
-			if (keepStats) {
+			process(input);
+
+			if (keepStats)
 				costStat.add((System.nanoTime() - start));
-			}
+
 		} else if (ttype.equals(TupleType.FLUSH)) {
+
 			LOG.info("ViperBolt " + id + " received FLUSH from "
 					+ input.getSourceComponent() + ":" + input.getSourceTask());
+
 			List<Values> result = f.receivedFlush(input);
 			if (result != null) {
-				// LOG.info("ViperBolt " + id + " got flushed tuples!!!");
-				// LOG.info("last emit:" + lastEmit);
-				// for (Values t : result) {
-				// LOG.info(t.toString());
-				// }
+
 				for (Values t : result) {
 					if (t != null) {
 						emit(input, t);
@@ -155,9 +185,11 @@ public class ViperBolt extends BaseRichBolt {
 						}
 					}
 				}
+
 				LOG.info("ViperBolt " + id + " received " + counter
 						+ " tuples before sending FLUSH");
 				emitFlush(input);
+
 				if (keepStats && !statsWritten) {
 					statsWritten = true;
 					Utils.sleep(2000); // Just wait for latest stats to be
@@ -179,14 +211,6 @@ public class ViperBolt extends BaseRichBolt {
 				}
 			}
 		}
-		// else if (ttype.equals(TupleType.WRITELOG)) {
-		// f.receivedWriteLog(input);
-		//
-		//
-		//
-		// emitWriteLog(input);
-		//
-		// }
 
 	}
 

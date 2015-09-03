@@ -20,6 +20,7 @@ public class ViperShuffle implements CustomStreamGrouping, Serializable {
 	public void prepare(WorkerTopologyContext context, GlobalStreamId stream,
 			List<Integer> targetTasks) {
 		this.targetTasks = targetTasks;
+		
 	}
 
 	@Override
