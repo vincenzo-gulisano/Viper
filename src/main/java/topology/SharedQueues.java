@@ -25,23 +25,26 @@ public class SharedQueues {
 	}
 
 	public static void add(String id, List<Object> values) {
-		if (!queues.containsKey(id))
-			throw new IllegalArgumentException("Cannot add to queue for task "
-					+ id + " not registered!");
-		queues.get(id).add(values);
+		if (queues.containsKey(id))
+			// throw new
+			// IllegalArgumentException("Cannot add to queue for task "
+			// + id + " not registered!");
+			queues.get(id).add(values);
 	}
 
 	public static List<Object> pollNextTuple(String id) {
-		if (!queues.containsKey(id))
-			throw new IllegalArgumentException(
-					"Cannot get from queue for task " + id + " not registered!");
-		return queues.get(id).poll();
+		if (queues.containsKey(id))
+			// throw new IllegalArgumentException(
+			// "Cannot get from queue for task " + id + " not registered!");
+			return queues.get(id).poll();
+		return null;
 	}
 
 	public static List<Object> peekNextTuple(String id) {
-		if (!queues.containsKey(id))
-			throw new IllegalArgumentException(
-					"Cannot get from queue for task " + id + " not registered!");
-		return queues.get(id).peek();
+		if (queues.containsKey(id))
+			// throw new IllegalArgumentException(
+			// "Cannot get from queue for task " + id + " not registered!");
+			return queues.get(id).peek();
+		return null;
 	}
 }
