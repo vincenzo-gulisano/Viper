@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.grouping.CustomStreamGrouping;
@@ -19,7 +18,7 @@ public class ViperShuffleInternalQueues implements CustomStreamGrouping,
 	List<Integer> targetTasks;
 	HashMap<Integer, Boolean> local;
 	HashMap<Integer, Integer> maxPending;
-	private final int MAXPENDING = 10000;
+	private final int MAXPENDING = 1000;
 
 	// This one is wrong, we need queues for each sender/receiver pair, not just
 	// the receiver!!!
@@ -43,6 +42,7 @@ public class ViperShuffleInternalQueues implements CustomStreamGrouping,
 		TupleType type = (TupleType) values.get(0);
 		if (type.equals(TupleType.REGULAR)) {
 			int task = targetTasks.get(index);
+			SharedQueues.registerQueue(taskId + ":" + task);
 			if (local.get(task) && maxPending.get(task) > 0) {
 				SharedQueues.add(taskId + ":" + task, values);
 				maxPending.put(task, maxPending.get(task) - 1);

@@ -100,15 +100,16 @@ public class MergerTestNonDeterministicInternalQueues {
 
 		Config conf = new Config();
 		conf.setDebug(false);
-		conf.registerMetricsConsumer(LoggingMetricsConsumer.class, 1);
-		 
+		// conf.registerMetricsConsumer(LoggingMetricsConsumer.class, 1);
+
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
+		conf.put("internal.queues", true);
 
-//		conf.put(Config.TOPOLOGY_RECEIVER_BUFFER_SIZE, 8);
-//		conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE, 16384);
-//		conf.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE, 16384);
-//		conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE, 16384);
+		// conf.put(Config.TOPOLOGY_RECEIVER_BUFFER_SIZE, 8);
+		// conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE, 16384);
+		// conf.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE, 16384);
+		// conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE, 16384);
 
 		if (!local) {
 			conf.setNumWorkers(1);

@@ -17,11 +17,11 @@ public class SharedQueues {
 	}
 
 	public static void registerQueue(String id) {
-		if (queues.containsKey(id))
-			throw new IllegalArgumentException(
-					"Cannot register queue for task " + id
-							+ " already registered!");
-		queues.put(id, new ConcurrentLinkedQueue<List<Object>>());
+		if (!queues.containsKey(id))
+			// throw new IllegalArgumentException(
+			// "Cannot register queue for task " + id
+			// + " already registered!");
+			queues.put(id, new ConcurrentLinkedQueue<List<Object>>());
 	}
 
 	public static void add(String id, List<Object> values) {

@@ -11,7 +11,6 @@ import statistics.AvgStat;
 import statistics.CountStat;
 import topology.SharedQueues;
 import backtype.storm.Config;
-import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -43,6 +42,7 @@ public class ViperBolt extends BaseRichBolt {
 	protected int thisTask;
 	protected String id;
 	private int counter = 0;
+	private boolean useInternalQueues;
 
 	TopologyContext context;
 	String streamId;
@@ -69,6 +69,9 @@ public class ViperBolt extends BaseRichBolt {
 		temp = stormConf.get("log.statistics.path");
 		this.statsPath = temp != null ? (String) temp : "";
 
+		temp = stormConf.get("internal.queues");
+		this.useInternalQueues = temp != null ? (Boolean) temp : false;
+
 		LOG.info("Bolt preparation, component id: "
 				+ context.getThisComponentId() + ", task id: "
 				+ context.getThisTaskId() + ", task index: "
@@ -76,14 +79,6 @@ public class ViperBolt extends BaseRichBolt {
 
 		thisTask = context.getThisTaskId();
 		streamId = context.getThisComponentId();
-
-		// TODO Should check whether there's only 1 source!!!
-		GlobalStreamId sourceId = (GlobalStreamId) context.getThisSources()
-				.keySet().toArray()[0];
-		List<Integer> componentIds = context.getComponentTasks(sourceId
-				.get_componentId());
-		for (int sourceTask : componentIds)
-			SharedQueues.registerQueue(sourceTask + ":" + thisTask);
 
 		thisTaskIndex = context.getThisTaskIndex();
 		id = context.getThisComponentId() + "." + context.getThisTaskIndex();
@@ -148,7 +143,8 @@ public class ViperBolt extends BaseRichBolt {
 						input.getSourceTask(), input.getSourceStreamId());
 				counter++;
 				process(t);
-			}
+			} else
+				break;
 		}
 	}
 
@@ -158,7 +154,8 @@ public class ViperBolt extends BaseRichBolt {
 		if (keepStats)
 			invocationsStat.increase(1);
 
-		takeFromInternalBuffer(input);
+		if (useInternalQueues)
+			takeFromInternalBuffer(input);
 
 		TupleType ttype = (TupleType) input.getValueByField("type");
 		if (ttype.equals(TupleType.REGULAR)) {
