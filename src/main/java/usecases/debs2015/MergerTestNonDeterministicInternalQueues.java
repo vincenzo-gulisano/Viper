@@ -10,15 +10,14 @@ import operator.viperBolt.BoltFunctionBase;
 import operator.viperBolt.ViperBolt;
 import operator.viperSpout.SpoutFunction;
 import operator.viperSpout.ViperSpout;
-import topology.ViperShuffle;
 import topology.ViperShuffleInternalQueues;
+import topology.SharedQueuesParams;
 import topology.ViperTopologyBuilder;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
-import backtype.storm.metric.LoggingMetricsConsumer;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
@@ -92,11 +91,15 @@ public class MergerTestNonDeterministicInternalQueues {
 								}
 								return result;
 							}
-						}), op_parallelism).customGrouping("spout",
-				new ViperShuffleInternalQueues());
+						}), op_parallelism).customGrouping(
+				"spout",
+				new ViperShuffleInternalQueues(new SharedQueuesParams(true,
+						100, 50, 2000, 1000)));
 
 		builder.setBolt("sink", new Sink(), sink_parallelism).customGrouping(
-				"op", new ViperShuffleInternalQueues());
+				"op",
+				new ViperShuffleInternalQueues(new SharedQueuesParams(true,
+						100, 50, 2000, 1000)));
 
 		Config conf = new Config();
 		conf.setDebug(false);
@@ -104,6 +107,7 @@ public class MergerTestNonDeterministicInternalQueues {
 
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
+
 		conf.put("internal.queues", true);
 
 		// conf.put(Config.TOPOLOGY_RECEIVER_BUFFER_SIZE, 8);

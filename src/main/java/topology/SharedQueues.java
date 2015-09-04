@@ -47,4 +47,13 @@ public class SharedQueues {
 			return queues.get(id).peek();
 		return null;
 	}
+
+	public static int size(String id) {
+		if (queues.containsKey(id))
+			// throw new IllegalArgumentException(
+			// "Cannot get from queue for task " + id + " not registered!");
+			return queues.get(id).size();
+		return 0;
+	}
+
 }
