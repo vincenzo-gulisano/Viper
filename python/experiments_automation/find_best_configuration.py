@@ -1,5 +1,3 @@
-import os
-import time
 import analyze_topology_results
 
 stats_folder = '/home/vincenzo/storm_experiments/understanding_storm/results/'

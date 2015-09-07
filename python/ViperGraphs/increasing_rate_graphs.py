@@ -1,8 +1,10 @@
 __author__ = 'vinmas'
-import create_op_rate_graph as corg
 import statistics as stat
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+
+import create_op_rate_graph as corg
 
 out_folder = '/Users/vinmas/repositories/viper_experiments/debs2015/results_maroon/stateless/'
 

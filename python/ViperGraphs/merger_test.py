@@ -1,9 +1,11 @@
 __author__ = 'vinmas'
-import create_op_rate_graph as corg
 import statistics as stat
+
 from scipy import stats as scipystat
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+
+import create_op_rate_graph as corg
 
 out_folder = '/Users/vinmas/repositories/viper_experiments/merger_test/'
 
