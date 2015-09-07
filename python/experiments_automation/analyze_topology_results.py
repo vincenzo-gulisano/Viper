@@ -30,7 +30,7 @@ def analyze_topology_results(operators, instances, duration, repetitions, stats_
         data = corg.manage_topology_parallel_op_graphs(stats_folder,
                                                        [id + op for op in operators],
                                                        list(instances.values()),
-                                                       generate_individual_files, start_ts, end_ts)
+                                                       start_ts, end_ts)
         for o in operators:
             reps_throughput[o].append(scipystat.trim_mean(data[id + o + "_rate"][1][start_ts:end_ts], 0.05))
             if id + o + "_latency" in data:
