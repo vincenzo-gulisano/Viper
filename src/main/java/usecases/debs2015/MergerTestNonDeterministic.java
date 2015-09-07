@@ -32,12 +32,11 @@ public class MergerTestNonDeterministic {
 		boolean local = Boolean.valueOf(args[0]);
 		boolean logStats = Boolean.valueOf(args[1]);
 		String statsPath = args[2];
-		final int spout_parallelism = Integer.valueOf(args[3]);
-		final int op_parallelism = Integer.valueOf(args[4]);
-		final int sink_parallelism = Integer.valueOf(args[5]);
-		String topologyName = args[6];
-		final long duration = Long.valueOf(args[7]);
-		final double selectivity = Double.valueOf(args[8]);
+		String topologyName = args[3];
+		final long duration = Long.valueOf(args[4]);
+		final int spout_parallelism = Integer.valueOf(args[5]);
+		final int op_parallelism = Integer.valueOf(args[6]);
+		final int sink_parallelism = Integer.valueOf(args[7]);
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -70,25 +69,20 @@ public class MergerTestNonDeterministic {
 				new ViperBolt(new Fields("x", "y", "z"),
 						new BoltFunctionBase() {
 
-							private Random rand;
-
 							@SuppressWarnings("rawtypes")
 							@Override
 							public void prepare(Map stormConf,
 									TopologyContext context) {
-								rand = new Random();
 								super.prepare(stormConf, context);
 							}
 
 							@Override
 							public List<Values> process(Tuple t) {
 								List<Values> result = new ArrayList<Values>();
-								if (rand.nextDouble() < selectivity) {
-									result.add(new Values(t
-											.getIntegerByField("x"), t
-											.getIntegerByField("y"), t
-											.getIntegerByField("z")));
-								}
+								result.add(new Values(t.getIntegerByField("x"),
+										t.getIntegerByField("y"), t
+												.getIntegerByField("z")));
+
 								return result;
 							}
 						}), op_parallelism).customGrouping("spout",
@@ -100,14 +94,14 @@ public class MergerTestNonDeterministic {
 		Config conf = new Config();
 		conf.setDebug(false);
 		conf.registerMetricsConsumer(LoggingMetricsConsumer.class, 1);
-		 
+
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
 
-//		conf.put(Config.TOPOLOGY_RECEIVER_BUFFER_SIZE, 8);
-//		conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE, 16384);
-//		conf.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE, 16384);
-//		conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE, 16384);
+		// conf.put(Config.TOPOLOGY_RECEIVER_BUFFER_SIZE, 8);
+		// conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE, 16384);
+		// conf.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE, 16384);
+		// conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE, 16384);
 
 		if (!local) {
 			conf.setNumWorkers(1);
