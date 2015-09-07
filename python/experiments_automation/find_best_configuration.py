@@ -13,22 +13,12 @@ instances = {'spout': 1, 'op': 1, 'sink': 1}
 
 available_threads = 10
 
-# Run experiments with initial configurations
-
-# boolean local = Boolean.valueOf(args[0]);
-# boolean logStats = Boolean.valueOf(args[1]);
-# String statsPath = args[2];
-# String topologyName = args[3];
-# final long duration = Long.valueOf(args[4]);
-# final int spout_parallelism = Integer.valueOf(args[5]);
-# final int op_parallelism = Integer.valueOf(args[6]);
-# final int sink_parallelism = Integer.valueOf(args[7]);
 
 for r in range(0, repetitions):
 
     id = str(r) + '_'
     for o in operators:
-        id += o + '_'
+        id += str(instances[o]) + '_'
     id += id_prefix
 
     command = '/home/vincenzo/storm/apache-storm-0.9.5/bin/storm jar ' + jar + ' ' + main + ' false true ' + \
