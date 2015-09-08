@@ -33,7 +33,7 @@ for r in range(0, repetitions):
     # time.sleep(10)
 
 [throughput, latency, cost, invocations] = \
-    analyze_topology_results(operators, instances, duration, repetitions, stats_folder, id_prefix)
+    analyze_topology_results.analyze_topology_results(operators, instances, duration, repetitions, stats_folder, id_prefix)
 
 highest_cost_op = operators[throughput.index(max(throughput))]
 print('Operator with highest cost is ' + highest_cost_op)
