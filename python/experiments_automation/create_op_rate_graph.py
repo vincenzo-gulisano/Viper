@@ -5,6 +5,7 @@ import numpy as np
 
 import interpolation
 
+
 def create_parallel_op_graph_time_value(files, interpolation_type):
     data_ts = []
     data_v = []
@@ -34,8 +35,7 @@ def manage_parallel_op_graphs(dir, op_name, instances, warm_up_end=None,
         file_name = op_name + '.' + str(i) + '.rate'
         file_path = dir + file_name
         rate_files.append(file_path + '.csv')
-    (time, value) = create_parallel_op_graph_time_value(rate_files, dir + op_name + '.rate.pdf', op_name + '.rate',
-                                                        'Rate (t/s)', 0, warm_up_end, measurement_end)
+    (time, value) = create_parallel_op_graph_time_value(rate_files, 0)
     data[op_name + "_rate"] = (time, value)
 
     # INVOCATIONS
@@ -44,9 +44,7 @@ def manage_parallel_op_graphs(dir, op_name, instances, warm_up_end=None,
         file_name = op_name + '.' + str(i) + '.invocations'
         file_path = dir + file_name
         invocations_files.append(file_path + '.csv')
-    (time, value) = create_parallel_op_graph_time_value(invocations_files, dir + op_name + '.invocations.pdf',
-                                                        op_name + '.invocations',
-                                                        'Invocations', 0, warm_up_end, measurement_end)
+    (time, value) = create_parallel_op_graph_time_value(invocations_files, 0)
     data[op_name + "_invocations"] = (time, value)
 
     # COST
@@ -55,8 +53,7 @@ def manage_parallel_op_graphs(dir, op_name, instances, warm_up_end=None,
         file_name = op_name + '.' + str(i) + '.cost'
         file_path = dir + file_name
         cost_files.append(file_path + '.csv')
-    (time, value) = create_parallel_op_graph_time_value(cost_files, dir + op_name + '.cost.pdf', op_name + '.cost',
-                                                        'Cost (ms)', 1, warm_up_end, measurement_end)
+    (time, value) = create_parallel_op_graph_time_value(cost_files, 1)
     data[op_name + "_cost"] = (time, value)
 
     # LATENCY
@@ -66,9 +63,7 @@ def manage_parallel_op_graphs(dir, op_name, instances, warm_up_end=None,
             file_name = op_name + '.' + str(i) + '.latency'
             file_path = dir + file_name
             latency_files.append(file_path + '.csv')
-        (time, value) = create_parallel_op_graph_time_value(latency_files, dir + op_name + '.latency.pdf',
-                                                            op_name + '.latency',
-                                                            'Latency (ms)', 1, warm_up_end, measurement_end)
+        (time, value) = create_parallel_op_graph_time_value(latency_files, 1)
         data[op_name + "_latency"] = (time, value)
 
     return data
