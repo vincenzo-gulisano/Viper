@@ -35,7 +35,7 @@ for r in range(0, repetitions):
 [throughput, latency, cost, invocations] = \
     analyze_topology_results.analyze_topology_results(operators, instances, duration, repetitions, stats_folder, id_prefix)
 
-highest_cost_op = operators[throughput.index(max(throughput))]
+highest_cost_op = operators[throughput.index(max(cost))]
 print('Operator with highest cost is ' + highest_cost_op)
 instances[highest_cost_op] += 1
 available_threads -= 1
