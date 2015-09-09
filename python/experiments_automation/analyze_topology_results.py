@@ -38,19 +38,19 @@ def analyze_topology_results(operators, instances, duration, repetitions, stats_
             reps_invocations[o].append(scipystat.trim_mean(data[id + o + "_invocations"][1][start_ts:end_ts], 0.05))
             reps_cost[o].append(scipystat.trim_mean(data[id + o + "_cost"][1][start_ts:end_ts], 0.05))
 
-    throughput = {}
-    latency = {}
-    cost = {}
+    throughput = []
+    latency = []
+    cost = []
     for o in operators:
 
-        throughput[o] = stat.mean(reps_throughput[o])
+        throughput.append(stat.mean(reps_throughput[o]))
         if len(reps_latency[o]) > 0:
-            latency[o] = stat.mean(reps_latency[o])
+            latency.append(stat.mean(reps_latency[o]))
         else:
-            latency[o] = 0.0
-        cost[o] = stat.mean(reps_cost[o]) * stat.mean(reps_invocations[o]) / instances[o] / pow(10, 9)
+            latency.append(0.0)
+        cost.append(stat.mean(reps_cost[o]) * stat.mean(reps_invocations[o]) / instances[o] / pow(10, 9))
 
-        print(o + ': T ' + str(throughput[o]) + ' L ' + str(latency[o])
-              + ' C ' + str(cost[o]))
+        print(o + ': T ' + str(throughput[-1]) + ' L ' + str(latency[-1])
+              + ' C ' + str(cost[-1]))
 
-    return [list(throughput.values()), list(latency.values()), list(cost.values())]
+    return [throughput, latency, cost]
