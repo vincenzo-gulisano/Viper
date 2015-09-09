@@ -29,12 +29,11 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
 def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances):
     run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances)
 
-    [throughput, latency, cost, invocations] = \
+    [throughput, latency, cost] = \
         analyze_topology_results.analyze_topology_results(operators, instances, duration, repetitions, stats_folder,
                                                           id_prefix)
 
-    costs = cost * invocations / instances / pow(10, 9)
-    highest_cost_op = operators[costs.index(max(costs))]
+    highest_cost_op = operators[cost.index(max(cost))]
     print('Operator with highest cost is ' + highest_cost_op)
     instances[highest_cost_op] += 1
     return instances

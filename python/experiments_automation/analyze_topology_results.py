@@ -41,7 +41,6 @@ def analyze_topology_results(operators, instances, duration, repetitions, stats_
     throughput = {}
     latency = {}
     cost = {}
-    invocations = {}
     for o in operators:
 
         throughput[o] = stat.mean(reps_throughput[o])
@@ -49,10 +48,9 @@ def analyze_topology_results(operators, instances, duration, repetitions, stats_
             latency[o] = stat.mean(reps_latency[o])
         else:
             latency[o] = 0.0
-        cost[o] = stat.mean(reps_cost[o])
-        invocations[o] = stat.mean(reps_invocations[o])
+        cost[o] = stat.mean(reps_cost[o]) * stat.mean(reps_invocations[o]) / instances[o] / pow(10, 9)
 
         print(o + ': T ' + str(throughput[o]) + ' L ' + str(latency[o])
-              + ' C ' + str(cost[o] * invocations[o] / instances[o] / pow(10, 9)))
+              + ' C ' + str(cost[o]))
 
-    return [list(throughput.values()), list(latency.values()), list(cost.values()), list(invocations.values())]
+    return [list(throughput.values()), list(latency.values()), list(cost.values())]
