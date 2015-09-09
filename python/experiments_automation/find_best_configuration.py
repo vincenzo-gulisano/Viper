@@ -33,7 +33,7 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
         analyze_topology_results.analyze_topology_results(operators, instances, duration, repetitions, stats_folder,
                                                           id_prefix)
 
-    costs = cost * invocations / instances / pow(10, 9)
+    costs = cost * invocations / list(instances.values()) / pow(10, 9)
     highest_cost_op = operators[costs.index(max(costs))]
     print('Operator with highest cost is ' + highest_cost_op)
     instances[highest_cost_op] += 1
