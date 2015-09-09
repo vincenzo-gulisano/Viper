@@ -22,14 +22,16 @@ def analyze_topology_results(operators, instances, duration, repetitions, stats_
     for r in range(0, repetitions):
 
         # compute experiment id
+        instances_list = []
         id = str(r) + '_'
         for o in operators:
             id += str(instances[o]) + '_'
+            instances_list.append(instances[o])
         id += id_prefix + '_'
 
         data = corg.manage_topology_parallel_op_graphs(stats_folder,
                                                        [id + op for op in operators],
-                                                       list(instances.values()),
+                                                       instances_list,
                                                        start_ts, end_ts)
         for o in operators:
             reps_throughput[o].append(scipystat.trim_mean(data[id + o + "_rate"][1][start_ts:end_ts], 0.05))
