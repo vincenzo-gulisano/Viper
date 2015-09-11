@@ -37,7 +37,7 @@ public class MergerTestNonDeterministic {
 		final int spout_parallelism = Integer.valueOf(args[5]);
 		final int op_parallelism = Integer.valueOf(args[6]);
 		final int sink_parallelism = Integer.valueOf(args[7]);
-		final int selectivity = Integer.valueOf(args[8]);
+		final double selectivity = Double.valueOf(args[8]);
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
