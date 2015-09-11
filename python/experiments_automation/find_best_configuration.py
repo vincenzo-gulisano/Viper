@@ -1,7 +1,7 @@
 import analyze_topology_results
 import os
 import time
-
+import csv
 
 def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances):
     for r in range(0, repetitions):
@@ -23,6 +23,16 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
         print('Killing topology')
         os.system('/home/vincenzo/storm/apache-storm-0.9.5/bin/storm kill ' + exp_id)
         time.sleep(10)
+
+        with open(id_prefix+'.csv', 'a') as csvfile:
+            fieldnames = ['exp_id']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            #writer.writeheader()
+            writer.writerow({'exp_id': exp_id})
+            #writer.writerow({'first_name': 'Lovely', 'last_name': 'Spam'})
+            #writer.writerow({'first_name': 'Wonderful', 'last_name': 'Spam'})
+
     return
 
 
@@ -36,13 +46,14 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
     highest_cost_op = operators[cost.index(max(cost))]
     print('Operator with highest cost is ' + highest_cost_op)
     instances[highest_cost_op] += 1
+
     return instances
 
 
 stats_folder = '/home/vincenzo/storm_experiments/understanding_storm/results/'
 jar = '/home/vincenzo/Viper/target/Viper-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
 main = 'usecases.debs2015.MergerTestNonDeterministic'
-id_prefix = 'mtndiq'
+id_prefix = 'mtnd'
 duration = 60
 repetitions = 1
 
