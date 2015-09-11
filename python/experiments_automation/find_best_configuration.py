@@ -29,7 +29,7 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
 
 
 def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances):
-    run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances)
+    # run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances)
 
     [throughput, latency, cost] = \
         analyze_topology_results.analyze_topology_results(operators, instances, duration, repetitions, stats_folder,
@@ -46,7 +46,10 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
         row = []
         index = 0
         for o in operators:
-            row.append([str(instances[o]),str(throughput[index]),str(latency[index]),str(cost[index])])
+            row.append(str(instances[o]))
+            row.append(str(throughput[index]))
+            row.append(str(latency[index]))
+            row.append(str(cost[index]))
             index += 1
         writer.writerow(row)
 
@@ -78,6 +81,10 @@ repetitions = 1
 
 operators = ['spout', 'op', 'sink']
 instances = {'spout': 1, 'op': 1, 'sink': 1}
+
+
+find_most_expensive_op('/Users/vinmas/repositories/viper_experiments/internalqueues/', '', '', 'mtnd', 60, 1, operators, instances)
+
 
 available_threads = 10
 
