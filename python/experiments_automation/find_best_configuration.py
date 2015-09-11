@@ -142,8 +142,8 @@ with open(options.stats_folder + options.id + '.csv', 'w') as csvfile:
         row.append(o + '_cost')
     writer.writerow(row)
 
-instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id, options.duration,
-                                   options.repetitions, operators, instances)
+instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id, int(options.duration),
+                                   int(options.repetitions), operators, instances)
 available_threads -= 1
 
 while available_threads > 0:
