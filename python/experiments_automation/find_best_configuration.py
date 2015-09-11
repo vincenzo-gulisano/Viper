@@ -44,7 +44,10 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
 
         row = []
         for o in operators:
-            row.append([str(instances[o]),str(throughput[o]),str(latency[o]),str(cost[o])])
+            row.append(str(instances[o]))
+            row.append(str(throughput[o]))
+            row.append(str(latency[o]))
+            row.append(str(cost[o]))
         writer.writerow(row)
 
     return instances
