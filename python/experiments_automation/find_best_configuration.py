@@ -20,7 +20,7 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
         exp_id += str(selectivity) + '_' + id_prefix
 
         command = '/home/vincenzo/storm/apache-storm-0.9.5/bin/storm jar ' + jar + ' ' + main + ' false true ' + \
-                  stats_folder + ' ' + exp_id + ' ' + str(duration) + ' '
+                  stats_folder + ' ' + exp_id.replace('.','-') + ' ' + str(duration) + ' '
         for o in operators:
             command += str(instances[o]) + ' '
         command += str(selectivity)
@@ -30,7 +30,7 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
         os.system(command)
         time.sleep(duration + 60)
         print('Killing topology')
-        os.system('/home/vincenzo/storm/apache-storm-0.9.5/bin/storm kill ' + exp_id)
+        os.system('/home/vincenzo/storm/apache-storm-0.9.5/bin/storm kill ' + exp_id.replace('.','-'))
         time.sleep(10)
 
     return
@@ -122,6 +122,8 @@ parser.add_option("-r", "--repetitions", dest="repetitions",
                   help="experiment repetitions", metavar="REPETITIONS")
 parser.add_option("-x", "--selectivity", dest="selectivity",
                   help="selectivity for operator", metavar="SELECTIVITY")
+parser.add_option("-t", "--threads", dest="threads",
+                  help="available threads", metavar="THREADS")
 
 (options, args) = parser.parse_args()
 
@@ -135,7 +137,7 @@ parser.add_option("-x", "--selectivity", dest="selectivity",
 operators = ['spout', 'op', 'sink']
 instances = {'spout': 1, 'op': 1, 'sink': 1}
 
-available_threads = 10
+available_threads = int(options.threads)
 
 with open(options.stats_folder + options.id + '.csv', 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
