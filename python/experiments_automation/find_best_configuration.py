@@ -147,8 +147,9 @@ instances = find_most_expensive_op(options.stats_folder, options.jar, options.ma
 available_threads -= 1
 
 while available_threads > 0:
-    instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id, options.duration,
-                                       options.repetitions, operators, instances)
+    instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id,
+                                       int(options.duration),
+                                       int(options.repetitions), operators, instances)
     available_threads -= 1
 
 create_graphs(options.stats_folder, options.id, operators, instances, 'spout', 'sink')
