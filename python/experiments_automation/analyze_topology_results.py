@@ -29,6 +29,9 @@ def analyze_topology_results(operators, instances, duration, repetitions, stats_
             instances_list.append(instances[o])
         id += str(selectivity) + '_' + id_prefix + '_'
 
+        # remove illegal characters
+        id = id .replace('.','-')
+
         data = corg.manage_topology_parallel_op_graphs(stats_folder,
                                                        [id + op for op in operators],
                                                        instances_list,
