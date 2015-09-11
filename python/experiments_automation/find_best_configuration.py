@@ -2,6 +2,7 @@ import analyze_topology_results
 import os
 import time
 import csv
+from optparse import OptionParser
 
 def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances):
     for r in range(0, repetitions):
@@ -43,14 +44,29 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
         writer = csv.writer(csvfile, delimiter=',')
 
         row = []
+        index = 0
         for o in operators:
-            row.append(str(instances[o]))
-            row.append(str(throughput[o]))
-            row.append(str(latency[o]))
-            row.append(str(cost[o]))
+            row.append([str(instances[o]),str(throughput[index]),str(latency[index]),str(cost[index])])
+            index += 1
         writer.writerow(row)
 
     return instances
+
+parser = OptionParser()
+parser.add_option("-s", "--statsfolder", dest="stats_folder",
+                  help="folder to which experiment results are written", metavar="STATSFOLDER")
+parser.add_option("-j", "--jar", dest="jar",
+                  help="Jar to submit to Storm", metavar="JAR")
+parser.add_option("-m", "--main", dest="main",
+                  help="Mina class in jar", metavar="MAIN")
+parser.add_option("-i", "--id", dest="id",
+                  help="id prefix for the experiment", metavar="ID")
+parser.add_option("-d", "--duration", dest="duration",
+                  help="experiment duration", metavar="DURATION")
+parser.add_option("-r", "--repetitions", dest="repetitions",
+                  help="experiment repetitions", metavar="REPETITIONS")
+
+(options, args) = parser.parse_args()
 
 
 stats_folder = '/home/vincenzo/storm_experiments/understanding_storm/results/'
