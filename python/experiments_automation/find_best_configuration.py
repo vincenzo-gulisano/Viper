@@ -4,6 +4,7 @@ import time
 import csv
 from optparse import OptionParser
 
+
 def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances):
     for r in range(0, repetitions):
 
@@ -37,10 +38,8 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
 
     highest_cost_op = operators[cost.index(max(cost))]
     print('Operator with highest cost is ' + highest_cost_op)
-    instances[highest_cost_op] += 1
 
-    with open(id_prefix+'.csv', 'a') as csvfile:
-
+    with open(id_prefix + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
 
         row = []
@@ -52,8 +51,11 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
             row.append(str(cost[index]))
             index += 1
         writer.writerow(row)
+        
+    instances[highest_cost_op] += 1
 
     return instances
+
 
 parser = OptionParser()
 parser.add_option("-s", "--statsfolder", dest="stats_folder",
@@ -70,7 +72,6 @@ parser.add_option("-r", "--repetitions", dest="repetitions",
                   help="experiment repetitions", metavar="REPETITIONS")
 
 (options, args) = parser.parse_args()
-
 
 stats_folder = '/home/vincenzo/storm_experiments/understanding_storm/results/'
 jar = '/home/vincenzo/Viper/target/Viper-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
