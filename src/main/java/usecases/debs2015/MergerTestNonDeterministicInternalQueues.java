@@ -37,6 +37,7 @@ public class MergerTestNonDeterministicInternalQueues {
 		final int spout_parallelism = Integer.valueOf(args[5]);
 		final int op_parallelism = Integer.valueOf(args[6]);
 		final int sink_parallelism = Integer.valueOf(args[7]);
+		final int selectivity = Integer.valueOf(args[8]);
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -69,25 +70,25 @@ public class MergerTestNonDeterministicInternalQueues {
 				new ViperBolt(new Fields("x", "y", "z"),
 						new BoltFunctionBase() {
 
-//							private Random rand;
+							private Random rand;
 
 							@SuppressWarnings("rawtypes")
 							@Override
 							public void prepare(Map stormConf,
 									TopologyContext context) {
-//								rand = new Random();
+								rand = new Random();
 								super.prepare(stormConf, context);
 							}
 
 							@Override
 							public List<Values> process(Tuple t) {
 								List<Values> result = new ArrayList<Values>();
-//								if (rand.nextDouble() < selectivity) {
+								if (rand.nextDouble() < selectivity) {
 									result.add(new Values(t
 											.getIntegerByField("x"), t
 											.getIntegerByField("y"), t
 											.getIntegerByField("z")));
-//								}
+								}
 								return result;
 							}
 						}), op_parallelism).customGrouping(

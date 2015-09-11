@@ -3,7 +3,7 @@ import statistics as stat
 from scipy import stats as scipystat
 
 
-def analyze_topology_results(operators, instances, duration, repetitions, stats_folder, id_prefix):
+def analyze_topology_results(operators, instances, duration, repetitions, stats_folder, id_prefix, selectivity):
     generate_individual_files = False
 
     start_ts = duration * 0.1
@@ -27,7 +27,7 @@ def analyze_topology_results(operators, instances, duration, repetitions, stats_
         for o in operators:
             id += str(instances[o]) + '_'
             instances_list.append(instances[o])
-        id += id_prefix + '_'
+        id += str(selectivity) + '_' + id_prefix + '_'
 
         data = corg.manage_topology_parallel_op_graphs(stats_folder,
                                                        [id + op for op in operators],
