@@ -24,15 +24,6 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
         os.system('/home/vincenzo/storm/apache-storm-0.9.5/bin/storm kill ' + exp_id)
         time.sleep(10)
 
-        with open(id_prefix+'.csv', 'a') as csvfile:
-            fieldnames = ['exp_id']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-            #writer.writeheader()
-            writer.writerow({'exp_id': exp_id})
-            #writer.writerow({'first_name': 'Lovely', 'last_name': 'Spam'})
-            #writer.writerow({'first_name': 'Wonderful', 'last_name': 'Spam'})
-
     return
 
 
@@ -46,6 +37,15 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
     highest_cost_op = operators[cost.index(max(cost))]
     print('Operator with highest cost is ' + highest_cost_op)
     instances[highest_cost_op] += 1
+
+    with open(id_prefix+'.csv', 'a') as csvfile:
+
+        writer = csv.writer(csvfile, delimiter=',')
+
+        row = []
+        for o in operators:
+            row.append([str(instances[o]),str(throughput[o]),str(latency[o]),str(cost[o])])
+        writer.writerow(row)
 
     return instances
 
