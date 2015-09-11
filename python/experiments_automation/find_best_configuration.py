@@ -4,6 +4,8 @@ import time
 import csv
 from optparse import OptionParser
 from collections import defaultdict
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import rcParams
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
