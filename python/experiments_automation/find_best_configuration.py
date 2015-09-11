@@ -3,6 +3,10 @@ import os
 import time
 import csv
 from optparse import OptionParser
+from collections import defaultdict
+from matplotlib import rcParams
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
 
 
 def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances):
@@ -39,7 +43,7 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
     highest_cost_op = operators[cost.index(max(cost))]
     print('Operator with highest cost is ' + highest_cost_op)
 
-    with open(id_prefix + '.csv', 'a') as csvfile:
+    with open(stats_folder + id_prefix + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
 
         row = []
@@ -51,10 +55,53 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
             row.append(str(cost[index]))
             index += 1
         writer.writerow(row)
-        
+
     instances[highest_cost_op] += 1
 
     return instances
+
+
+def create_op_graph_time_value(x, y, title, x_label, y_label, outFile):
+    rcParams.update({'figure.autolayout': True})
+    pp = PdfPages(outFile)
+
+    f = plt.figure()
+    ax = plt.gca()
+
+    plt.plot(x, y)
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.grid(True)
+    plt.close()
+
+    pp.savefig(f)
+    pp.close()
+
+    return
+
+
+def create_graphs(stats_folder, id, operators, instances, spout_op, sink_op):
+    columns = defaultdict(list)  # each value in each column is appended to a list
+
+    with open(stats_folder + id + '.csv') as f:
+        reader = csv.DictReader(f)  # read rows into a dictionary format
+        for row in reader:  # read a row as {column1: value1, column2: value2,...}
+            for (k, v) in row.items():  # go over each column name and value
+                columns[k].append(v)  # append the value into the appropriate list
+                # based on column name k
+
+    threads = [0] * len(columns[spout_op + '_throughput'])
+    for i in range(0, len(columns[spout_op + '_throughput'])):
+        for o in operators:
+            threads[i] += int(columns[o + '_instances'][i])
+    create_op_graph_time_value(threads, columns[spout_op + '_throughput'], 'Throughput', 'Threads', 'Throughput (t/s)',
+                               stats_folder + id + '_throughput.pdf')
+    create_op_graph_time_value(threads, columns[sink_op + '_latency'], 'Latency', 'Threads', 'Latency (ms)',
+                               stats_folder + id + '_latency.pdf')
+
+    return
 
 
 parser = OptionParser()
@@ -73,21 +120,35 @@ parser.add_option("-r", "--repetitions", dest="repetitions",
 
 (options, args) = parser.parse_args()
 
-stats_folder = '/home/vincenzo/storm_experiments/understanding_storm/results/'
-jar = '/home/vincenzo/Viper/target/Viper-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
-main = 'usecases.debs2015.MergerTestNonDeterministic'
-id_prefix = 'mtnd'
-duration = 60
-repetitions = 1
+# stats_folder = '/home/vincenzo/storm_experiments/understanding_storm/results/'
+# jar = '/home/vincenzo/Viper/target/Viper-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
+# main = 'usecases.debs2015.MergerTestNonDeterministic'
+# id_prefix = 'mtnd'
+# duration = 60
+# repetitions = 1
 
 operators = ['spout', 'op', 'sink']
 instances = {'spout': 1, 'op': 1, 'sink': 1}
 
 available_threads = 10
 
-instances = find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances)
+with open(options.stats_folder + options.id + '.csv', 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',')
+    row = []
+    for o in operators:
+        row.append(o + '_instances')
+        row.append(o + '_throughput')
+        row.append(o + '_latency')
+        row.append(o + '_cost')
+    writer.writerow(row)
+
+instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id, options.duration,
+                                   options.repetitions, operators, instances)
 available_threads -= 1
 
 while available_threads > 0:
-    instances = find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances)
+    instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id, options.duration,
+                                       options.repetitions, operators, instances)
     available_threads -= 1
+
+create_graphs(options.stats_folder, options.id, operators, instances, 'spout', 'sink')
