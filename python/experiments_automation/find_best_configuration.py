@@ -5,6 +5,7 @@ import csv
 from optparse import OptionParser
 from collections import defaultdict
 import matplotlib
+
 matplotlib.use('Agg')
 from matplotlib import rcParams
 from matplotlib.backends.backend_pdf import PdfPages
@@ -20,7 +21,7 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
         exp_id += str(selectivity) + '_' + id_prefix
 
         command = '/home/vincenzo/storm/apache-storm-0.9.5/bin/storm jar ' + jar + ' ' + main + ' false true ' + \
-                  stats_folder + ' ' + exp_id.replace('.','-') + ' ' + str(duration) + ' '
+                  stats_folder + ' ' + exp_id.replace('.', '-') + ' ' + str(duration) + ' '
         for o in operators:
             command += str(instances[o]) + ' '
         command += str(selectivity)
@@ -30,13 +31,14 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
         os.system(command)
         time.sleep(duration + 60)
         print('Killing topology')
-        os.system('/home/vincenzo/storm/apache-storm-0.9.5/bin/storm kill ' + exp_id.replace('.','-'))
+        os.system('/home/vincenzo/storm/apache-storm-0.9.5/bin/storm kill ' + exp_id.replace('.', '-'))
         time.sleep(10)
 
     return
 
 
-def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances, selectivity):
+def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances,
+                           selectivity):
     run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances, selectivity)
 
     [throughput, latency, cost] = \
@@ -85,7 +87,7 @@ def create_op_graph_time_value(x, y, title, x_label, y_label, outFile):
     return
 
 
-def create_graphs(stats_folder, id, operators, instances, spout_op, sink_op):
+def create_graphs(stats_folder, id, selectivity, operators, spout_op, sink_op):
     columns = defaultdict(list)  # each value in each column is appended to a list
 
     with open(stats_folder + id + '.csv') as f:
@@ -100,9 +102,9 @@ def create_graphs(stats_folder, id, operators, instances, spout_op, sink_op):
         for o in operators:
             threads[i] += int(columns[o + '_instances'][i])
     create_op_graph_time_value(threads, columns[spout_op + '_throughput'], 'Throughput', 'Threads', 'Throughput (t/s)',
-                               stats_folder + id + '_throughput.pdf')
+                               stats_folder + id + str(selectivity).replace('.', '-') + '_throughput.pdf')
     create_op_graph_time_value(threads, columns[sink_op + '_latency'], 'Latency', 'Threads', 'Latency (ms)',
-                               stats_folder + id + '_latency.pdf')
+                               stats_folder + id + str(selectivity).replace('.', '-') + '_latency.pdf')
 
     return
 
@@ -159,4 +161,4 @@ while available_threads > 0:
                                        int(options.repetitions), operators, instances, float(options.selectivity))
     available_threads -= 1
 
-create_graphs(options.stats_folder, options.id, operators, instances, 'spout', 'sink')
+create_graphs(options.stats_folder, options.id, float(options.selectivity), operators, 'spout', 'sink')
