@@ -26,7 +26,7 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
             command += str(instances[o]) + ' '
         command += str(selectivity)
 
-        print('Executing command ' + command)
+        print('\n\nExecuting command ' + command)
 
         os.system(command)
         time.sleep(duration + 60)
@@ -46,7 +46,7 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
                                                           id_prefix, selectivity)
 
     highest_cost_op = operators[cost.index(max(cost))]
-    print('Operator with highest cost is ' + highest_cost_op)
+    print('Operator with highest cost is ' + highest_cost_op + '\n\n')
 
     with open(stats_folder + id_prefix + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
