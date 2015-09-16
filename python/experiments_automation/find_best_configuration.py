@@ -90,7 +90,7 @@ def create_op_graph_time_value(x, y, title, x_label, y_label, outFile):
 def create_graphs(stats_folder, id, selectivity, operators, spout_op, sink_op):
     columns = defaultdict(list)  # each value in each column is appended to a list
 
-    with open(stats_folder + id + '.csv') as f:
+    with open(stats_folder + id + str(selectivity).replace('.', '-') + '.csv') as f:
         reader = csv.DictReader(f)  # read rows into a dictionary format
         for row in reader:  # read a row as {column1: value1, column2: value2,...}
             for (k, v) in row.items():  # go over each column name and value
@@ -141,7 +141,7 @@ instances = {'spout': 1, 'op': 1, 'sink': 1}
 
 available_threads = int(options.threads)
 
-with open(options.stats_folder + options.id + '.csv', 'w') as csvfile:
+with open(options.stats_folder + options.id + str(options.selectivity).replace('.', '-') + '.csv', 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
     row = []
     for o in operators:
