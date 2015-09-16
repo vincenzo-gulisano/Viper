@@ -48,7 +48,7 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
     highest_cost_op = operators[cost.index(max(cost))]
     print('Operator with highest cost is ' + highest_cost_op + '\n\n')
 
-    with open(stats_folder + id_prefix + '.csv', 'a') as csvfile:
+    with open(stats_folder + id_prefix + str(selectivity).replace('.', '-') + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
 
         row = []
