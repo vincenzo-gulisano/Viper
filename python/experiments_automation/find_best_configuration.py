@@ -53,8 +53,9 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
         if c > threshold:
             operators_above_threshold += 1
             rightmost_operator_above_threshold = index
-    index += 1
-
+            print('Operator ' + operators[index] + ' is above threshold')
+        index += 1
+    
     highest_cost_op = operators[cost.index(max(cost))]
     print('Operator with highest cost is ' + highest_cost_op)
     if operators_above_threshold > 0:
