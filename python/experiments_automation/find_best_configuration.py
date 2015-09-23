@@ -45,8 +45,24 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
         analyze_topology_results.analyze_topology_results(operators, instances, duration, repetitions, stats_folder,
                                                           id_prefix, selectivity)
 
+    threshold = 0.9
+    operators_above_threshold = 0
+    rightmost_operator_above_threshold = 0
+    index = 0
+    for c in cost:
+        if c > threshold:
+            operators_above_threshold += 1
+            rightmost_operator_above_threshold = index
+    index += 1
+
     highest_cost_op = operators[cost.index(max(cost))]
-    print('Operator with highest cost is ' + highest_cost_op + '\n\n')
+    print('Operator with highest cost is ' + highest_cost_op)
+    if operators_above_threshold > 0:
+        print('But, since there is at least one operator above threshold ' + str(threshold) + '...')
+        highest_cost_op = operators[rightmost_operator_above_threshold]
+        print('The thread goes to ' + highest_cost_op)
+
+    print('\n\n')
 
     with open(stats_folder + id_prefix + str(selectivity).replace('.', '-') + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
