@@ -39,6 +39,8 @@ public class MergerTestNonDeterministic {
 		final int sink_parallelism = Integer.valueOf(args[7]);
 		final double selectivity = Double.valueOf(args[8]);
 
+		final int workers = Integer.valueOf(args[9]);
+
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
 		builder.setSpout("spout", new ViperSpout(new SpoutFunction() {
@@ -110,7 +112,7 @@ public class MergerTestNonDeterministic {
 		// conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE, 16384);
 
 		if (!local) {
-			conf.setNumWorkers(1);
+			conf.setNumWorkers(workers);
 			StormSubmitter.submitTopologyWithProgressBar(topologyName, conf,
 					builder.createTopology());
 		} else {
