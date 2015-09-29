@@ -55,7 +55,7 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
             rightmost_operator_above_threshold = index
             print('Operator ' + operators[index] + ' is above threshold')
         index += 1
-    
+
     highest_cost_op = operators[cost.index(max(cost))]
     print('Operator with highest cost is ' + highest_cost_op)
     if operators_above_threshold > 0:
@@ -83,7 +83,7 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
     return instances
 
 
-def create_op_graph_time_value(x, y, title, x_label, y_label, outFile):
+def create_graph_time_value(x, y, title, x_label, y_label, outFile):
     rcParams.update({'figure.autolayout': True})
     pp = PdfPages(outFile)
 
@@ -118,64 +118,134 @@ def create_graphs(stats_folder, id, selectivity, operators, spout_op, sink_op):
     for i in range(0, len(columns[spout_op + '_throughput'])):
         for o in operators:
             threads[i] += int(columns[o + '_instances'][i])
-    create_op_graph_time_value(threads, columns[spout_op + '_throughput'], 'Throughput', 'Threads', 'Throughput (t/s)',
-                               stats_folder + id + str(selectivity).replace('.', '-') + '_throughput.pdf')
-    create_op_graph_time_value(threads, columns[sink_op + '_latency'], 'Latency', 'Threads', 'Latency (ms)',
-                               stats_folder + id + str(selectivity).replace('.', '-') + '_latency.pdf')
+    create_graph_time_value(threads, columns[spout_op + '_throughput'], 'Throughput', 'Threads', 'Throughput (t/s)',
+                            stats_folder + id + str(selectivity).replace('.', '-') + '_throughput.pdf')
+    create_graph_time_value(threads, columns[sink_op + '_latency'], 'Latency', 'Threads', 'Latency (ms)',
+                            stats_folder + id + str(selectivity).replace('.', '-') + '_latency.pdf')
 
     return
 
 
-parser = OptionParser()
-parser.add_option("-s", "--statsfolder", dest="stats_folder",
-                  help="folder to which experiment results are written", metavar="STATSFOLDER")
-parser.add_option("-j", "--jar", dest="jar",
-                  help="Jar to submit to Storm", metavar="JAR")
-parser.add_option("-m", "--main", dest="main",
-                  help="Mina class in jar", metavar="MAIN")
-parser.add_option("-i", "--id", dest="id",
-                  help="id prefix for the experiment", metavar="ID")
-parser.add_option("-d", "--duration", dest="duration",
-                  help="experiment duration", metavar="DURATION")
-parser.add_option("-r", "--repetitions", dest="repetitions",
-                  help="experiment repetitions", metavar="REPETITIONS")
-parser.add_option("-x", "--selectivity", dest="selectivity",
-                  help="selectivity for operator", metavar="SELECTIVITY")
-parser.add_option("-t", "--threads", dest="threads",
-                  help="available threads", metavar="THREADS")
+def create_graph_multiple_time_value(xs, ys, title, x_label, y_label, outFile):
+    rcParams.update({'figure.autolayout': True})
+    pp = PdfPages(outFile)
 
-(options, args) = parser.parse_args()
+    f = plt.figure()
+    ax = plt.gca()
 
-# stats_folder = '/home/vincenzo/storm_experiments/understanding_storm/results/'
-# jar = '/home/vincenzo/Viper/target/Viper-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
-# main = 'usecases.debs2015.MergerTestNonDeterministic'
-# id_prefix = 'mtnd'
-# duration = 60
-# repetitions = 1
+    for key in xs.keys():
+        plt.plot(xs[key], ys[key], label=key)
 
-operators = ['spout', 'op', 'sink']
-instances = {'spout': 1, 'op': 1, 'sink': 1}
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.grid(True)
+    plt.legend(loc='upper left')
+    plt.close()
 
-available_threads = int(options.threads)
+    pp.savefig(f)
+    pp.close()
 
-with open(options.stats_folder + options.id + str(options.selectivity).replace('.', '-') + '.csv', 'w') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',')
-    row = []
-    for o in operators:
-        row.append(o + '_instances')
-        row.append(o + '_throughput')
-        row.append(o + '_latency')
-        row.append(o + '_cost')
-    writer.writerow(row)
+    return
 
-instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id, int(options.duration),
-                                   int(options.repetitions), operators, instances, float(options.selectivity))
-available_threads -= 1
 
-while available_threads > 0:
-    instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id,
-                                       int(options.duration),
-                                       int(options.repetitions), operators, instances, float(options.selectivity))
-    available_threads -= 1
+################################
 
-create_graphs(options.stats_folder, options.id, float(options.selectivity), operators, 'spout', 'sink')
+def read_csv(file):
+    columns = defaultdict(list)  # each value in each column is appended to a list
+
+    with open(file) as f:
+        reader = csv.DictReader(f)  # read rows into a dictionary format
+        for row in reader:  # read a row as {column1: value1, column2: value2,...}
+            for (k, v) in row.items():  # go over each column name and value
+                columns[k].append(v)  # append the value into the appropriate list
+                # based on column name k
+
+    return columns
+
+
+################################
+
+def read_float_csv(file):
+    columns = defaultdict(list)  # each value in each column is appended to a list
+
+    with open(file) as f:
+        reader = csv.DictReader(f)  # read rows into a dictionary format
+        for row in reader:  # read a row as {column1: value1, column2: value2,...}
+            for (k, v) in row.items():  # go over each column name and value
+                columns[k].append(float(v))  # append the value into the appropriate list
+                # based on column name k
+
+    return columns
+
+################################
+
+def create_comparison_graph(stats_folder, id1, id2, selectivity, operators, spout_op, sink_op):
+    columns1 = read_csv(stats_folder + id1 + str(selectivity).replace('.', '-') + '.csv')
+    columns2 = read_csv(stats_folder + id2 + str(selectivity).replace('.', '-') + '.csv')
+
+    threads = [0] * len(columns1[spout_op + '_throughput'])
+    for i in range(0, len(columns1[spout_op + '_throughput'])):
+        for o in operators:
+            threads[i] += int(columns1[o + '_instances'][i])
+
+    create_graph_multiple_time_value({id1: threads, id2: threads},
+                            {id1: columns1[spout_op + '_throughput'], id2: columns2[spout_op + '_throughput']},
+                            'Throughput', 'Threads', 'Throughput (t/s)',
+                            stats_folder + id1 + '_vs_' + id2 + str(selectivity).replace('.', '-') + '_throughput.pdf')
+    create_graph_multiple_time_value({id1: threads, id2: threads},
+                            {id1: columns1[sink_op + '_latency'], id2: columns2[sink_op + '_latency']}, 'Latency',
+                            'Threads', 'Latency (ms)',
+                            stats_folder + id1 + '_vs_' + id2 + str(selectivity).replace('.', '-') + '_latency.pdf')
+
+    return
+
+
+################################
+#
+# parser = OptionParser()
+# parser.add_option("-s", "--statsfolder", dest="stats_folder",
+#                   help="folder to which experiment results are written", metavar="STATSFOLDER")
+# parser.add_option("-j", "--jar", dest="jar",
+#                   help="Jar to submit to Storm", metavar="JAR")
+# parser.add_option("-m", "--main", dest="main",
+#                   help="Mina class in jar", metavar="MAIN")
+# parser.add_option("-i", "--id", dest="id",
+#                   help="id prefix for the experiment", metavar="ID")
+# parser.add_option("-d", "--duration", dest="duration",
+#                   help="experiment duration", metavar="DURATION")
+# parser.add_option("-r", "--repetitions", dest="repetitions",
+#                   help="experiment repetitions", metavar="REPETITIONS")
+# parser.add_option("-x", "--selectivity", dest="selectivity",
+#                   help="selectivity for operator", metavar="SELECTIVITY")
+# parser.add_option("-t", "--threads", dest="threads",
+#                   help="available threads", metavar="THREADS")
+#
+# (options, args) = parser.parse_args()
+#
+# operators = ['spout', 'op', 'sink']
+# instances = {'spout': 1, 'op': 1, 'sink': 1}
+#
+# available_threads = int(options.threads)
+#
+# with open(options.stats_folder + options.id + str(options.selectivity).replace('.', '-') + '.csv', 'w') as csvfile:
+#     writer = csv.writer(csvfile, delimiter=',')
+#     row = []
+#     for o in operators:
+#         row.append(o + '_instances')
+#         row.append(o + '_throughput')
+#         row.append(o + '_latency')
+#         row.append(o + '_cost')
+#     writer.writerow(row)
+#
+# instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id, int(options.duration),
+#                                    int(options.repetitions), operators, instances, float(options.selectivity))
+# available_threads -= 1
+#
+# while available_threads > 0:
+#     instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id,
+#                                        int(options.duration),
+#                                        int(options.repetitions), operators, instances, float(options.selectivity))
+#     available_threads -= 1
+#
+# create_graphs(options.stats_folder, options.id, float(options.selectivity), operators, 'spout', 'sink')
