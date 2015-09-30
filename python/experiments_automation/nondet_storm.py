@@ -4,6 +4,20 @@ import csv
 import os
 import time
 import analyze_topology_results
+import sys
+
+class Logger(object):
+    def __init__(self, logfile):
+        self.terminal = sys.stdout
+        self.log = open(logfile, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+def get_stats_file_name(exp_id, selectivity, workers):
+    id = exp_id + '_' + str(selectivity) + '_' + str(workers)
+    return id.replace('.', '-')
 
 
 def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances, selectivity, workers):
@@ -33,7 +47,6 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
 
 def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances,
                            selectivity, workers):
-
     suffix = str(selectivity) + '_' + str(workers) + '_'
 
     run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances, selectivity, workers)
@@ -62,7 +75,7 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
 
     print('\n\n')
 
-    with open(stats_folder + id_prefix + suffix + '.csv', 'a') as csvfile:
+    with open(stats_folder + get_stats_file_name(id_prefix, selectivity, workers) + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
 
         row = []
@@ -88,7 +101,7 @@ parser.add_option("-s", "--statsfolder", dest="stats_folder",
 parser.add_option("-j", "--jar", dest="jar",
                   help="Jar to submit to Storm", metavar="JAR")
 parser.add_option("-m", "--main", dest="main",
-                  help="Mina class in jar", metavar="MAIN")
+                  help="Main class in jar", metavar="MAIN")
 parser.add_option("-i", "--id", dest="id",
                   help="id prefix for the experiment", metavar="ID")
 parser.add_option("-d", "--duration", dest="duration",
@@ -101,17 +114,25 @@ parser.add_option("-w", "--workers", dest="workers",
                   help="number of workers", metavar="WORKERS")
 parser.add_option("-t", "--threads", dest="threads",
                   help="available threads", metavar="THREADS")
+parser.add_option("-l", "--logfile", dest="logfile",
+                  help="log file", metavar="LOG")
 
 (options, args) = parser.parse_args()
 
 operators = ['spout', 'op', 'sink']
 instances = {'spout': 1, 'op': 1, 'sink': 1}
 
+original_stderr = sys.stderr
+original_stdout = sys.stdout
+sys.stderr = Logger(options.logfile)
+sys.stdout = Logger(options.logfile)
+
 available_threads = int(options.threads)
 
 suffix = '_' + str(options.selectivity) + '_' + str(options.workers)
 
-with open(options.stats_folder + options.id + suffix.replace('.', '-') + '.csv', 'w') as csvfile:
+with open(options.stats_folder + get_stats_file_name(options.id, options.selectivity, options.workers) + '.csv',
+          'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
     row = []
     for o in operators:
@@ -134,3 +155,7 @@ while available_threads > 0:
     available_threads -= 1
 
 # create_graphs(options.stats_folder, options.id, float(options.selectivity), operators, 'spout', 'sink')
+
+
+sys.stderr = original_stderr
+sys.stdout = original_stdout
