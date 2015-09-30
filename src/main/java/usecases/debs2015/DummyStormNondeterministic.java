@@ -65,7 +65,7 @@ public class DummyStormNondeterministic {
 			@Override
 			public Values getTuple() {
 				counter++;
-				if (counter%1000==0)
+				if (counter%10==0)
 					Utils.sleep(1);
 				return new Values(rand.nextInt(), rand.nextInt(), rand
 						.nextInt());
