@@ -95,7 +95,7 @@ public class DummyStormNondeterministic {
 							}
 						}), op_parallelism).shuffleGrouping("spout");
 
-		builder.setBolt("sink", new Sink(), sink_parallelism).shuffleGrouping("spout");
+		builder.setBolt("sink", new Sink(), sink_parallelism).shuffleGrouping("op");
 
 		Config conf = new Config();
 		conf.setDebug(false);
