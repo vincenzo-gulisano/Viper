@@ -6,9 +6,18 @@ import time
 import analyze_topology_results
 import sys
 
-class Logger(object):
+class LoggerOut(object):
     def __init__(self, logfile):
         self.terminal = sys.stdout
+        self.log = open(logfile, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+class LoggerErr(object):
+    def __init__(self, logfile):
+        self.terminal = sys.stderr
         self.log = open(logfile, "a")
 
     def write(self, message):
@@ -124,8 +133,8 @@ instances = {'spout': 1, 'op': 1, 'sink': 1}
 
 original_stderr = sys.stderr
 original_stdout = sys.stdout
-sys.stderr = Logger(options.logfile)
-sys.stdout = Logger(options.logfile)
+sys.stderr = LoggerOut(options.logfile)
+sys.stdout = LoggerErr(options.logfile)
 
 available_threads = int(options.threads)
 

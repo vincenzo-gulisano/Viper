@@ -101,7 +101,7 @@ public class MergerTestNonDeterministic {
 
 		Config conf = new Config();
 		conf.setDebug(false);
-		conf.registerMetricsConsumer(LoggingMetricsConsumer.class, 1);
+		//conf.registerMetricsConsumer(LoggingMetricsConsumer.class, 1);
 
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
