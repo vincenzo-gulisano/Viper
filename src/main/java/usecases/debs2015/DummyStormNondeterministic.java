@@ -22,6 +22,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 
 public class DummyStormNondeterministic {
 
@@ -47,6 +48,7 @@ public class DummyStormNondeterministic {
 
 			private long startTimestamp;
 			private Random rand;
+			private long counter = 0;
 
 			@SuppressWarnings("rawtypes")
 			@Override
@@ -62,6 +64,9 @@ public class DummyStormNondeterministic {
 
 			@Override
 			public Values getTuple() {
+				counter++;
+				if (counter%1000==0)
+					Utils.sleep(1);
 				return new Values(rand.nextInt(), rand.nextInt(), rand
 						.nextInt());
 			}
