@@ -145,9 +145,10 @@ if options.logfile is not None:
 
 available_threads = int(options.threads)
 
-suffix = '_' + str(options.selectivity) + '_' + str(options.workers)
+suffix = '_' + str(options.selectivity) + '_' + str(options.load) + '_' + str(options.workers)
 
-with open(options.stats_folder + get_stats_file_name(options.id, options.selectivity, options.workers) + '.csv',
+with open(options.stats_folder + get_stats_file_name(options.id, options.selectivity, options.load,
+                                                     options.workers) + '.csv',
           'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
     row = []
