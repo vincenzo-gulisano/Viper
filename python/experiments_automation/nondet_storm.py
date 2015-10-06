@@ -6,6 +6,7 @@ import time
 import analyze_topology_results
 import sys
 
+
 class LoggerOut(object):
     def __init__(self, logfile):
         self.terminal = sys.stdout
@@ -14,6 +15,7 @@ class LoggerOut(object):
     def write(self, message):
         self.terminal.write(message)
         self.log.write(message)
+
 
 class LoggerErr(object):
     def __init__(self, logfile):
@@ -24,24 +26,26 @@ class LoggerErr(object):
         self.terminal.write(message)
         self.log.write(message)
 
-def get_stats_file_name(exp_id, selectivity, workers):
-    id = exp_id + '_' + str(selectivity) + '_' + str(workers)
+
+def get_stats_file_name(exp_id, selectivity, load, workers):
+    id = exp_id + '_' + str(selectivity) + '_' + str(load) + '_' + str(workers)
     return id.replace('.', '-')
 
 
-def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances, selectivity, workers):
+def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances, selectivity, load,
+            workers):
     for r in range(0, repetitions):
 
         exp_id = str(r) + '_'
         for o in operators:
             exp_id += str(instances[o]) + '_'
-        exp_id += str(selectivity) + '_' + str(workers) + '_' + id_prefix
+        exp_id += str(selectivity) + '_' + str(load) + '_' + str(workers) + '_' + id_prefix
 
         command = '/home/vincenzo/storm/apache-storm-0.9.5/bin/storm jar ' + jar + ' ' + main + ' false true ' + \
                   stats_folder + ' ' + exp_id.replace('.', '-') + ' ' + str(duration) + ' '
         for o in operators:
             command += str(instances[o]) + ' '
-        command += str(selectivity) + ' ' + str(workers)
+        command += str(selectivity) + ' ' + str(load) + ' ' + str(workers)
 
         print('\n\nExecuting command ' + command)
 
@@ -55,10 +59,10 @@ def run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators
 
 
 def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances,
-                           selectivity, workers):
-    suffix = str(selectivity) + '_' + str(workers) + '_'
+                           selectivity, load, workers):
+    suffix = str(selectivity) + '_' + str(load) + '_' + str(workers) + '_'
 
-    run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances, selectivity, workers)
+    run_exp(stats_folder, jar, main, id_prefix, duration, repetitions, operators, instances, selectivity, load, workers)
 
     [throughput, latency, cost] = \
         analyze_topology_results.analyze_topology_results(operators, instances, duration, repetitions, stats_folder,
@@ -84,7 +88,7 @@ def find_most_expensive_op(stats_folder, jar, main, id_prefix, duration, repetit
 
     print('\n\n')
 
-    with open(stats_folder + get_stats_file_name(id_prefix, selectivity, workers) + '.csv', 'a') as csvfile:
+    with open(stats_folder + get_stats_file_name(id_prefix, selectivity, load, workers) + '.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
 
         row = []
@@ -119,6 +123,8 @@ parser.add_option("-r", "--repetitions", dest="repetitions",
                   help="experiment repetitions", metavar="REPETITIONS")
 parser.add_option("-x", "--selectivity", dest="selectivity",
                   help="selectivity for operator", metavar="SELECTIVITY")
+parser.add_option("-o", "--load", dest="load",
+                  help="load for operator", metavar="LOAD")
 parser.add_option("-w", "--workers", dest="workers",
                   help="number of workers", metavar="WORKERS")
 parser.add_option("-t", "--threads", dest="threads",
@@ -153,6 +159,7 @@ with open(options.stats_folder + get_stats_file_name(options.id, options.selecti
 
 instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id, int(options.duration),
                                    int(options.repetitions), operators, instances, float(options.selectivity),
+                                   float(options.load),
                                    int(options.workers))
 available_threads -= 1
 
@@ -160,6 +167,7 @@ while available_threads > 0:
     instances = find_most_expensive_op(options.stats_folder, options.jar, options.main, options.id,
                                        int(options.duration),
                                        int(options.repetitions), operators, instances, float(options.selectivity),
+                                       float(options.load),
                                        int(options.workers))
     available_threads -= 1
 
