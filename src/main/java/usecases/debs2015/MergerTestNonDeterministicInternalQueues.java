@@ -22,6 +22,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 
 public class MergerTestNonDeterministicInternalQueues {
 
@@ -38,6 +39,7 @@ public class MergerTestNonDeterministicInternalQueues {
 		final int op_parallelism = Integer.valueOf(args[6]);
 		final int sink_parallelism = Integer.valueOf(args[7]);
 		final double selectivity = Double.valueOf(args[8]);
+		final double load = Double.valueOf(args[9]);
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -82,6 +84,11 @@ public class MergerTestNonDeterministicInternalQueues {
 
 							@Override
 							public List<Values> process(Tuple t) {
+								
+								if (rand.nextDouble() < load) {
+									Utils.sleep(1);
+								}
+								
 								List<Values> result = new ArrayList<Values>();
 								if (rand.nextDouble() < selectivity) {
 									result.add(new Values(t
