@@ -137,10 +137,11 @@ parser.add_option("-l", "--logfile", dest="logfile",
 operators = ['spout', 'op', 'sink']
 instances = {'spout': 1, 'op': 1, 'sink': 1}
 
-original_stderr = sys.stderr
-original_stdout = sys.stdout
-sys.stderr = LoggerOut(options.logfile)
-sys.stdout = LoggerErr(options.logfile)
+if options.logfile is not None:
+    original_stderr = sys.stderr
+    original_stdout = sys.stdout
+    sys.stderr = LoggerOut(options.logfile)
+    sys.stdout = LoggerErr(options.logfile)
 
 available_threads = int(options.threads)
 
@@ -174,5 +175,6 @@ while available_threads > 0:
 # create_graphs(options.stats_folder, options.id, float(options.selectivity), operators, 'spout', 'sink')
 
 
-sys.stderr = original_stderr
-sys.stdout = original_stdout
+if options.logfile is not None:
+    sys.stderr = original_stderr
+    sys.stdout = original_stdout
