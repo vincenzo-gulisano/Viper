@@ -122,7 +122,8 @@ public class AggregateCore<T extends AggregateWindow> implements BoltFunction {
 					// TODO should add here entryGroupby and timestamp before
 					// the
 					// values
-					result.add(new ViperValues(window.getAggregatedResult()));
+					result.add(new ViperValues(window.getAggregatedResult(
+							earliestTimestamp, entryGroupby)));
 				}
 				windows.remove(earliestTimestamp);
 			}

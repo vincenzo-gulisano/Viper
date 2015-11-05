@@ -15,7 +15,7 @@ public interface AggregateWindow {
 	
 	public void update(Tuple t);
 
-	public List<Object> getAggregatedResult();
+	public List<Object> getAggregatedResult(long ts, String key);
 
 	
 }

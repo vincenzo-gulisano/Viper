@@ -7,10 +7,10 @@ public class ViperAggregate<T extends AggregateWindow> extends ViperBolt {
 
 	private static final long serialVersionUID = -912367983226248473L;
 
-	public ViperAggregate(String timestampFieldID, String groupbyFieldID,
-			long windowSize, long windowAdvance, T win) {
-		super(new Fields(), new AggregateCore<T>(timestampFieldID,
-				groupbyFieldID, windowSize, windowAdvance, win));
+	public ViperAggregate(Fields outFields, String timestampFieldID,
+			String groupbyFieldID, long windowSize, long windowAdvance, T win) {
+		super(outFields, new AggregateCore<T>(timestampFieldID, groupbyFieldID,
+				windowSize, windowAdvance, win));
 	}
 
 }

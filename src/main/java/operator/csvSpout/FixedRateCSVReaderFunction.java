@@ -2,7 +2,11 @@ package operator.csvSpout;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import operator.viperSpout.SpoutFunction;
+import operator.viperSpout.ViperSpout;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
@@ -12,6 +16,8 @@ public class FixedRateCSVReaderFunction implements SpoutFunction {
 	private static final long serialVersionUID = 2612121254607940790L;
 	private CSVFileReader reader;
 	private String filePath;
+	public static Logger LOG = LoggerFactory
+			.getLogger(FixedRateCSVReaderFunction.class);
 
 	boolean firstInvocation = true;
 	long firstTimestamp;
@@ -37,6 +43,8 @@ public class FixedRateCSVReaderFunction implements SpoutFunction {
 				+ context.getThisTaskIndex() + ".filepath");
 		reader.setup(filePath);
 		hasNext = reader.hasNext();
+		LOG.info("Setting sleepPeriod, desiredRate: " + desiredRate
+				+ " checkRateThreshold:" + checkRateThreshold);
 		sleepPeriod = 1000 / (desiredRate / checkRateThreshold);
 	}
 
@@ -62,6 +70,9 @@ public class FixedRateCSVReaderFunction implements SpoutFunction {
 				&& (System.currentTimeMillis() - firstTimestamp) > maxDuration * 1000) {
 			hasNext = false;
 		}
+		
+		if (!hasNext)
+			System.out.println("Last line read");
 
 		return reader.getNextTuple();
 	}
