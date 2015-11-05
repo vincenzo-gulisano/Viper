@@ -16,9 +16,9 @@ def schedule_job(repetition, spout_parallelism, op_parallelism, sink_parallelism
 
     os.system('echo " " >> pyjob.sh')
     os.system('echo kill_id=' + exp_id + '`date +%Y%m%d%H%M` >> pyjob.sh')
-    os.system('echo command=""usecases.debs2015.MergerTestNonDeterministic false true $LOGDIR $kill_id ' + str(
+    os.system('echo command=\"usecases.debs2015.MergerTestNonDeterministic false true $LOGDIR $kill_id ' + str(
         duration) + ' ' + str(spout_parallelism) + ' ' + str(op_parallelism) + ' ' + str(sink_parallelism) + ' ' + str(
-        selectivity) + ' ' + str(load) + ' 1"" >> pyjob.sh')
+        selectivity) + ' ' + str(load) + ' 1\" >> pyjob.sh')
     os.system('echo KILLDURATION=365 >> pyjob.sh')
     os.system('echo SAMPLEDURATION=365 >> pyjob.sh')
     os.system('echo sleep_time=90 >> pyjob.sh')
