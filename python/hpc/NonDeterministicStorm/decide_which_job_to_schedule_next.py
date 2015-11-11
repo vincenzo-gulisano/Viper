@@ -1,56 +1,38 @@
 __author__ = 'vinmas'
 import json
-import os
+from scipy import stats as scipystat
 
 
-def schedule_job(repetition, spout_parallelism, op_parallelism, sink_parallelism, selectivity, load, duration):
-    # Cat the head part of the file
-    os.system('cat head.sh > pyjob.sh')
+def decide_which_job_to_schedule_next(results_file, state_file, operators, instances):
 
-    #  Create the name of the job
-    exp_id = str(repetition) + '_' + str(spout_parallelism) + '_' + str(op_parallelism) + '_' + str(
-        sink_parallelism) + '_' + str(selectivity) + '_' + str(load) + '_NonDeterministicStorm'
-    exp_id = exp_id.replace('.', '-')
+    # Read the results json file and check to which operator the thread should be assigned
 
-    # add the lines that need to be added
+    results_json = json.load(open(results_file, 'r'))
 
-    os.system('echo " " >> pyjob.sh')
-    os.system('echo kill_id=' + exp_id + '`date +%Y%m%d%H%M` >> pyjob.sh')
-    os.system('echo command=\\"usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
-        duration) + ' ' + str(spout_parallelism) + ' ' + str(op_parallelism) + ' ' + str(sink_parallelism) + ' ' + str(
-        selectivity) + ' ' + str(load) + ' 1\\" >> pyjob.sh')
-    os.system('echo KILLDURATION=365 >> pyjob.sh')
-    os.system('echo SAMPLEDURATION=365 >> pyjob.sh')
-    os.system('echo sleep_time=90 >> pyjob.sh')
-    os.system('echo " " >> pyjob.sh')
+    state_json = json.load(open(state_file, 'r'))
 
-    # Cat the body part of the file
-    os.system('cat tail.sh >> pyjob.sh')
+    start_ts = state_json['duration'] * 0.1
+    end_ts = state_json['duration'] * 0.9
+
+    # Compute average throughput, latency and cost
+
+    throughput = []
+    latency = []
+    cost = []
+    print('')
+    for o in operators:
+
+        throughput.append(scipystat.trim_mean(results_json[o + "_rate_value"][start_ts:end_ts], 0.05))
+        if len(scipystat.trim_mean(results_json[o + "_latency_value"][start_ts:end_ts], 0.05)) > 0:
+            latency.append(scipystat.trim_mean(results_json[o + "_latency_value"][start_ts:end_ts], 0.05))
+        else:
+            latency.append(0.0)
+        cost.append(scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0.05) * scipystat.trim_mean(
+            results_json[o + "_invocations_value"][start_ts:end_ts], 0.05) / instances[o] / pow(10, 9))
+
+        print(o + ': T ' + str(throughput[-1]) + ' L ' + str(latency[-1])
+              + ' C ' + str(cost[-1]))
+
+    print('')
 
     return
-
-
-def decide_which_job_to_schedule_next():
-    # Read parameters
-    parameters = json.load(open("params.txt"))
-
-    # Decide which experiment to run next
-    if int(parameters['experiment_number']) == 0:
-        parameters['experiment_number'] = 1
-        json.dump(parameters, open("params.txt", 'w'))
-        schedule_job(0, 1, 1, 1, 1, 0, 300)
-    else:
-        parameters['experiment_number'] = int(parameters['experiment_number']) + 1
-        parameters['remaining_threads_to_assign'] = int(parameters['remaining_threads_to_assign']) - 1
-        json.dump(parameters, open("params.txt", 'w'))
-        # if parameters['remaining_threads_to_assign'] > 0:
-        #
-        #     # Find the most expensive operator, schedule the next job
-        #     # TODO
-        #
-        #     schedule_job(2, 1, 1)
-
-
-parameters = {'experiment_number': 0, 'remaining_threads_to_assign': 10}
-json.dump(parameters, open("params.txt", 'w'))
-decide_which_job_to_schedule_next()
