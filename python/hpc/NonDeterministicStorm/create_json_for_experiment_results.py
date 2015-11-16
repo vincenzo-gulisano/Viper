@@ -1,8 +1,8 @@
 __author__ = 'vinmas'
 import os.path
 import numpy as np
-from NonDeterministicStorm.interpolation import interpolate_and_sum
-from NonDeterministicStorm.interpolation import interpolate_and_avg
+from interpolation import interpolate_and_sum
+from interpolation import interpolate_and_avg
 import json
 
 def read_parallel_op_data_time_value(files, interpolation_type):

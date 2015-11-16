@@ -1,5 +1,5 @@
 __author__ = 'vinmas'
-from NonDeterministicStorm.create_json_for_experiment_results import read_topology_parallel_op_data_and_store_json
+from create_json_for_experiment_results import read_topology_parallel_op_data_and_store_json
 import json
 from scipy import stats as scipystat
 from optparse import OptionParser
@@ -23,9 +23,6 @@ if options.statefolder is None:
     exit(-1)
 
 data = json.load(open(options.statefolder + 'state.json', 'r'))
-
-data['exp_id'] = '0_1_1_1_1_0_NonDeterministicStorm201511061749'
-# data['command'] = command
 
 print(data)
 
