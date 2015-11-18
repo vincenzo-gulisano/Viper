@@ -9,7 +9,7 @@ def create_script_and_schedule_job(scriptsfolder, header, body, script, id, comm
 
     print('Adding lines specific for the experiment')
     os.system('echo " " >> ' + script)
-    os.system('echo kill_id=' + id + '`date +%Y%m%d%H%M` >> ' + script)
+    os.system('echo kill_id=' + id + ' >> ' + script)
     os.system('echo command=\\"' + command + '\\" >> ' + script)
     os.system('echo KILLDURATION=365 >> ' + script)
     os.system('echo SAMPLEDURATION=365 >> ' + script)
