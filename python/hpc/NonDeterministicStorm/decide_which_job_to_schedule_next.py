@@ -4,6 +4,8 @@ import json
 from scipy import stats as scipystat
 from optparse import OptionParser
 from create_script_and_schedule_job import create_script_and_schedule_job
+import sys
+sys.path.append('/nas_home/goud/.local/lib64/python2.6/site-packages/')
 
 parser = OptionParser()
 parser.add_option("-r", "--resultsfolder", dest="resultsfolder",
