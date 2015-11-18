@@ -66,6 +66,11 @@ data['max_load'] = "1.0"
 data['min_load'] = "0.0"
 data['load_step'] = "0.1"
 data['load'] = "1.0"
+data['scriptsfolder'] = options.scriptsfolder
+data['header'] = options.header
+data['body'] = options.body
+data['script'] = options.script
+data['runner'] = options.script
 
 exp_id = data['repetition'] + '_' + data['spout_parallelism'] + '_' + data['op_parallelism'] + '_' + data[
     'sink_parallelism'] + '_' + data['selectivity'] + '_' + data['load'] + '_NonDeterministicStorm'

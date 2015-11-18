@@ -28,9 +28,9 @@ print(data)
 
 read_topology_parallel_op_data_and_store_json(
     options.resultsfolder + data['exp_id'] + '_',
-    ['spout', 'op', 'sink'], [int(data['spout_parallelism']), int(data['op_parallelism']), int(data['sink_parallelism'])],
+    ['spout', 'op', 'sink'],
+    [int(data['spout_parallelism']), int(data['op_parallelism']), int(data['sink_parallelism'])],
     options.resultsfolder + 'exp_result.json')
-
 
 results_json = json.load(open(options.resultsfolder + 'exp_result.json', 'r'))
 
@@ -75,11 +75,26 @@ if operators_above_threshold > 0:
     highest_cost_op = operators[rightmost_operator_above_threshold]
     print('The thread goes to ' + highest_cost_op)
 
+# Keep some stats...
+data[data['experiment_number'] + '_spout_throughput'] = str(throughput[0])
+data[data['experiment_number'] + '_spout_latency'] = str(latency[0])
+data[data['experiment_number'] + '_spout_cost'] = str(cost[0])
+data[data['experiment_number'] + '_op_throughput'] = str(throughput[1])
+data[data['experiment_number'] + '_op_latency'] = str(latency[1])
+data[data['experiment_number'] + '_op_cost'] = str(cost[1])
+data[data['experiment_number'] + '_sink_throughput'] = str(throughput[2])
+data[data['experiment_number'] + '_sink_latency'] = str(latency[2])
+data[data['experiment_number'] + '_sink_cost'] = str(cost[2])
+data[data['experiment_number'] + '_highest_cost_op'] = highest_cost_op
+data[data['experiment_number'] + '_exp_id'] = data['exp_id']
+data[data['experiment_number'] + '_command'] = data['_command']
+
 print('\n\n')
 
 if int(data['available_threads']) > 0:
-    data['available_threads'] = str(int(data['available_threads'])-1)
-    data[highest_cost_op+'_parallelism'] = str(int(data[highest_cost_op+'_parallelism'])+1)
+    data['available_threads'] = str(int(data['available_threads']) - 1)
+    data['experiment_number'] = str(int(data['experiment_number']) + 1)
+    data[highest_cost_op + '_parallelism'] = str(int(data[highest_cost_op + '_parallelism']) + 1)
 
     exp_id = data['repetition'] + '_' + data['spout_parallelism'] + '_' + data['op_parallelism'] + '_' + data[
         'sink_parallelism'] + '_' + data['selectivity'] + '_' + data['load'] + '_NonDeterministicStorm'
@@ -88,10 +103,10 @@ if int(data['available_threads']) > 0:
     command = 'usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
         data['duration']) + ' ' + str(data['spout_parallelism']) + ' ' + str(data['op_parallelism']) + ' ' + str(
         data['sink_parallelism']) + ' ' + str(data['selectivity']) + ' ' + str(data['load']) + ' 1'
-    
+
     data['exp_id'] = exp_id
     data['command'] = command
 
     json.dump(data, open(options.statefolder + '/state.json', 'w'))
-    create_script_and_schedule_job(options.scriptsfolder, options.header, options.body,
-                                                              options.script, exp_id, command, options.runner)
+    create_script_and_schedule_job(data['scriptsfolder'], data['header'], data['body'],
+                                   data['script'], exp_id, command, data['runner'])
