@@ -70,7 +70,7 @@ data['scriptsfolder'] = options.scriptsfolder
 data['header'] = options.header
 data['body'] = options.body
 data['script'] = options.script
-data['runner'] = options.script
+data['runner'] = options.runner
 
 exp_id = data['repetition'] + '_' + data['spout_parallelism'] + '_' + data['op_parallelism'] + '_' + data[
     'sink_parallelism'] + '_' + data['selectivity'] + '_' + data['load'] + '_NonDeterministicStorm'
