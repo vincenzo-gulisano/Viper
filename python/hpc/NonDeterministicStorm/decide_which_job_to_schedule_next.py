@@ -91,6 +91,7 @@ data[data['experiment_number'] + '_sink_cost'] = str(cost[2])
 data[data['experiment_number'] + '_highest_cost_op'] = highest_cost_op
 data[data['experiment_number'] + '_exp_id'] = data['exp_id']
 data[data['experiment_number'] + '_command'] = data['command']
+data[data['experiment_number'] + '_results_folder'] = options.resultsfolder
 
 print('\n\n')
 
