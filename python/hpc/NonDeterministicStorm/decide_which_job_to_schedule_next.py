@@ -2,7 +2,9 @@ __author__ = 'vinmas'
 
 import sys
 
-sys.path.append('/nas_home/goud/.local/lib64/python2.6/site-packages/')
+# sys.path.append('/nas_home/goud/.local/lib64/python2.6/site-packages/')
+sys.path.insert(0, '/nas_home/goud/.local/lib64/python2.6/site-packages/')
+
 from create_json_for_experiment_results import read_topology_parallel_op_data_and_store_json
 import json
 from scipy import stats as scipystat
@@ -104,7 +106,7 @@ prev_exp_num = exp_num
 exp_num = str(int(exp_num) + 1)
 data['experiment_number'] = exp_num
 
-if str('exp_'+exp_num+'_config_next') in data.keys():
+if str('exp_' + exp_num + '_config_next') in data.keys():
     if configure_next_exp_parallelim:
         # if int(data['available_threads']) > 0:
         #     data['available_threads'] = str(int(data['available_threads']) - 1)
@@ -118,7 +120,8 @@ if str('exp_'+exp_num+'_config_next') in data.keys():
         # Update exp_id and command
         exp_id = data['exp_' + exp_num + '_rep'] + '_' + data['exp_' + exp_num + '_spout_parallelism'] + '_' + data[
             'exp_' + exp_num + '_op_parallelism'] + '_' + data['exp_' + exp_num + '_sink_parallelism'] + '_' + data[
-                     'exp_' + exp_num + '_selectivity'] + '_' + data['exp_' + exp_num + '_load'] + '_NonDeterministicStorm'
+                     'exp_' + exp_num + '_selectivity'] + '_' + data[
+                     'exp_' + exp_num + '_load'] + '_NonDeterministicStorm'
         exp_id = exp_id.replace('.', '-')
 
         command = 'usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
