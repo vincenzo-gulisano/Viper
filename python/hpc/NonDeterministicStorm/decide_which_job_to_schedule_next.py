@@ -36,7 +36,7 @@ exp_num = data['experiment_number']
 configure_next_exp_parallelim = bool(data['exp_' + exp_num + '_config_next'])
 
 read_topology_parallel_op_data_and_store_json(
-    options.resultsfolder + data['exp_' + exp_num + '_exp_id'] + '_',
+    options.resultsfolder + data['exp_' + exp_num + '_id'] + '_',
     ['spout', 'op', 'sink'],
     [int(data['exp_' + exp_num + '_spout_parallelism']), int(data['exp_' + exp_num + '_op_parallelism']),
      int(data['exp_' + exp_num + '_sink_parallelism'])], options.resultsfolder + 'exp_result.json')
