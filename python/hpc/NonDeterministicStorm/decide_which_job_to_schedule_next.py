@@ -117,21 +117,21 @@ if configure_next_exp_parallelim:
     data['exp_' + exp_num + '_' + highest_cost_op + '_parallelism'] = str(
         int(data['exp_' + prev_exp_num + '_' + highest_cost_op + '_parallelism']) + 1)
 
-    # Update exp_id and command
-    exp_id = data['exp_' + exp_num + '_rep'] + '_' + data['exp_' + exp_num + '_spout_parallelism'] + '_' + data[
-        'exp_' + exp_num + '_op_parallelism'] + '_' + data['exp_' + exp_num + '_sink_parallelism'] + '_' + data[
-                 'exp_' + exp_num + '_selectivity'] + '_' + data[
-                 'exp_' + exp_num + '_load'] + '_NonDeterministicStorm'
-    exp_id = exp_id.replace('.', '-')
+# Update exp_id and command
+exp_id = data['exp_' + exp_num + '_rep'] + '_' + data['exp_' + exp_num + '_spout_parallelism'] + '_' + data[
+    'exp_' + exp_num + '_op_parallelism'] + '_' + data['exp_' + exp_num + '_sink_parallelism'] + '_' + data[
+             'exp_' + exp_num + '_selectivity'] + '_' + data[
+             'exp_' + exp_num + '_load'] + '_NonDeterministicStorm'
+exp_id = exp_id.replace('.', '-')
 
-    command = 'usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
-        data['duration']) + ' ' + str(data['exp_' + exp_num + '_spout_parallelism']) + ' ' + str(
-        data['exp_' + exp_num + '_op_parallelism']) + ' ' + str(
-        data['exp_' + exp_num + '_sink_parallelism']) + ' ' + str(
-        data['exp_' + exp_num + '_selectivity']) + ' ' + str(data['exp_' + exp_num + '_load']) + ' 1'
+command = 'usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
+    data['duration']) + ' ' + str(data['exp_' + exp_num + '_spout_parallelism']) + ' ' + str(
+    data['exp_' + exp_num + '_op_parallelism']) + ' ' + str(
+    data['exp_' + exp_num + '_sink_parallelism']) + ' ' + str(
+    data['exp_' + exp_num + '_selectivity']) + ' ' + str(data['exp_' + exp_num + '_load']) + ' 1'
 
-    data['exp_' + exp_num + '_id'] = exp_id
-    data['exp_' + exp_num + '_command'] = command
+data['exp_' + exp_num + '_id'] = exp_id
+data['exp_' + exp_num + '_command'] = command
 
 json.dump(data, open(options.statefolder + '/state.json', 'w'))
 create_script_and_schedule_job(data['scriptsfolder'], data['header'], data['body'],
