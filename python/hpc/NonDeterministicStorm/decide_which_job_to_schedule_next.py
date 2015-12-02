@@ -106,33 +106,33 @@ prev_exp_num = exp_num
 exp_num = str(int(exp_num) + 1)
 data['experiment_number'] = exp_num
 
-if str('exp_' + exp_num + '_config_next') in data.keys():
-    if configure_next_exp_parallelim:
-        # if int(data['available_threads']) > 0:
-        #     data['available_threads'] = str(int(data['available_threads']) - 1)
-        #     data['experiment_number'] = str(int(data['experiment_number']) + 1)
-        # data[highest_cost_op + '_parallelism'] = str(int(data[highest_cost_op + '_parallelism']) + 1)
+# if str('exp_' + exp_num + '_config_next') in data.keys():
+if configure_next_exp_parallelim:
+    # if int(data['available_threads']) > 0:
+    #     data['available_threads'] = str(int(data['available_threads']) - 1)
+    #     data['experiment_number'] = str(int(data['experiment_number']) + 1)
+    # data[highest_cost_op + '_parallelism'] = str(int(data[highest_cost_op + '_parallelism']) + 1)
 
-        # Update parallelism
-        data['exp_' + exp_num + '_' + highest_cost_op + '_parallelism'] = str(
-            int(data['exp_' + prev_exp_num + '_' + highest_cost_op + '_parallelism']) + 1)
+    # Update parallelism
+    data['exp_' + exp_num + '_' + highest_cost_op + '_parallelism'] = str(
+        int(data['exp_' + prev_exp_num + '_' + highest_cost_op + '_parallelism']) + 1)
 
-        # Update exp_id and command
-        exp_id = data['exp_' + exp_num + '_rep'] + '_' + data['exp_' + exp_num + '_spout_parallelism'] + '_' + data[
-            'exp_' + exp_num + '_op_parallelism'] + '_' + data['exp_' + exp_num + '_sink_parallelism'] + '_' + data[
-                     'exp_' + exp_num + '_selectivity'] + '_' + data[
-                     'exp_' + exp_num + '_load'] + '_NonDeterministicStorm'
-        exp_id = exp_id.replace('.', '-')
+    # Update exp_id and command
+    exp_id = data['exp_' + exp_num + '_rep'] + '_' + data['exp_' + exp_num + '_spout_parallelism'] + '_' + data[
+        'exp_' + exp_num + '_op_parallelism'] + '_' + data['exp_' + exp_num + '_sink_parallelism'] + '_' + data[
+                 'exp_' + exp_num + '_selectivity'] + '_' + data[
+                 'exp_' + exp_num + '_load'] + '_NonDeterministicStorm'
+    exp_id = exp_id.replace('.', '-')
 
-        command = 'usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
-            data['duration']) + ' ' + str(data['exp_' + exp_num + '_spout_parallelism']) + ' ' + str(
-            data['exp_' + exp_num + '_op_parallelism']) + ' ' + str(
-            data['exp_' + exp_num + '_sink_parallelism']) + ' ' + str(
-            data['exp_' + exp_num + '_selectivity']) + ' ' + str(data['exp_' + exp_num + '_load']) + ' 1'
+    command = 'usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
+        data['duration']) + ' ' + str(data['exp_' + exp_num + '_spout_parallelism']) + ' ' + str(
+        data['exp_' + exp_num + '_op_parallelism']) + ' ' + str(
+        data['exp_' + exp_num + '_sink_parallelism']) + ' ' + str(
+        data['exp_' + exp_num + '_selectivity']) + ' ' + str(data['exp_' + exp_num + '_load']) + ' 1'
 
-        data['exp_' + exp_num + '_id'] = exp_id
-        data['exp_' + exp_num + '_command'] = command
+    data['exp_' + exp_num + '_id'] = exp_id
+    data['exp_' + exp_num + '_command'] = command
 
-    json.dump(data, open(options.statefolder + '/state.json', 'w'))
-    create_script_and_schedule_job(data['scriptsfolder'], data['header'], data['body'],
-                                   data['script'], exp_id, command, data['runner'])
+json.dump(data, open(options.statefolder + '/state.json', 'w'))
+create_script_and_schedule_job(data['scriptsfolder'], data['header'], data['body'],
+                               data['script'], exp_id, command, data['runner'])

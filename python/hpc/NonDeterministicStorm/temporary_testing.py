@@ -29,10 +29,11 @@ from create_script_and_schedule_job import create_script_and_schedule_job
 # data = json.dump(data,open('/Users/vinmas/Downloads/ImprovedParallelStorm_2015-11-06_17.49/state.json', 'w'))
 
 data = json.load(open('/Users/vinmas/repositories/viper_experiments/151202/state.json', 'r'))
-for exp_num in range(1, 36):
+for exp_num in range(1, 37):
     configure_next_exp_parallelim = data['exp_' + str(exp_num) + '_config_next'] in ['True']
     print('exp_' + str(exp_num) + '_config_next: ' + data['exp_' + str(exp_num) + '_config_next'] + ' --> ' + str(
         configure_next_exp_parallelim))
+    print('exp_' + str(exp_num) + '_results_folder: ' + data['exp_' + str(exp_num) + '_results_folder'])
     #
     # parser = OptionParser()
     # parser.add_option("-r", "--resultsfolder", dest="resultsfolder",

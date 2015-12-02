@@ -31,6 +31,27 @@ def create_graph_time_value(x, y, title, x_label, y_label, outFile):
 
     return
 
+def create_graph_multiple_time_value(xs, ys, title, x_label, y_label, outFile):
+    rcParams.update({'figure.autolayout': True})
+    pp = PdfPages(outFile)
+
+    f = plt.figure()
+    ax = plt.gca()
+
+    for key in xs.keys():
+        plt.plot(xs[key], ys[key], label=key)
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.grid(True)
+    plt.legend(loc='upper left')
+    plt.close()
+
+    pp.savefig(f)
+    pp.close()
+
+    return
 
 def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_parallelim, op_parallelism,
                              sink_parallelism):
