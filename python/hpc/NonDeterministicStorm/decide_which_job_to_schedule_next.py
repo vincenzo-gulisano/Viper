@@ -33,7 +33,7 @@ data = json.load(open(options.statefolder + 'state.json', 'r'))
 # print(data)
 
 exp_num = data['experiment_number']
-configure_next_exp_parallelim = bool(data['exp_' + exp_num + '_config_next'])
+configure_next_exp_parallelim = data['exp_' + exp_num + '_config_next'] in ['True']
 
 read_topology_parallel_op_data_and_store_json(
     options.resultsfolder + data['exp_' + exp_num + '_id'] + '_',
@@ -124,7 +124,7 @@ if str('exp_' + exp_num + '_config_next') in data.keys():
                      'exp_' + exp_num + '_load'] + '_NonDeterministicStorm'
         exp_id = exp_id.replace('.', '-')
 
-        command = 'usecases.debs2015.MergerTestNonDeterministicInternalQueues false true \$LOGDIR \$kill_id ' + str(
+        command = 'usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
             data['duration']) + ' ' + str(data['exp_' + exp_num + '_spout_parallelism']) + ' ' + str(
             data['exp_' + exp_num + '_op_parallelism']) + ' ' + str(
             data['exp_' + exp_num + '_sink_parallelism']) + ' ' + str(

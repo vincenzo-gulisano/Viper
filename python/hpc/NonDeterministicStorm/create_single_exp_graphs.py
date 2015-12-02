@@ -130,8 +130,10 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     # consumption_ts[:] = [x - earliest_ts for x in consumption_ts]
     consumption_start_ts = int(consumption_ts[-1] * 0.1)
     consumption_end_ts = int(consumption_ts[-1] * 0.9)
-    create_graph_time_value(consumption_ts[consumption_start_ts:consumption_end_ts],
-                            consumption_value[consumption_start_ts:consumption_end_ts], 'Consumption', 'time (seconds)',
+    consumption_start_ts_index = [ n for n,i in enumerate(consumption_ts) if i>consumption_start_ts ][0]
+    consumption_end_ts_index = [ n for n,i in enumerate(consumption_ts) if i<consumption_end_ts ][-1]
+    create_graph_time_value(consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
+                            consumption_value[consumption_start_ts_index:consumption_end_ts_index], 'Consumption', 'time (seconds)',
                             'Consumption (watts) ', results_folder + 'consumption.pdf')
 
     throughput = scipystat.trim_mean(results['spout_rate_value'][start_ts:end_ts], 0.05)
