@@ -106,7 +106,7 @@ exp_id = data['exp_' + data['experiment_number'] + '_rep'] + '_' + data[
              'exp_' + data['experiment_number'] + '_load'] + '_NonDeterministicStorm'
 exp_id = exp_id.replace('.', '-')
 
-command = 'usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
+command = 'usecases.debs2015.MergerTestNonDeterministicInternalQueues false true \$LOGDIR \$kill_id ' + str(
     data['duration']) + ' ' + str(
     data['exp_' + data['experiment_number'] + '_spout_parallelism']) + ' ' + str(
     data['exp_' + data['experiment_number'] + '_op_parallelism']) + ' ' + str(
