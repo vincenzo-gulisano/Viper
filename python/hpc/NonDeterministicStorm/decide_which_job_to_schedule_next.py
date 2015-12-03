@@ -113,9 +113,13 @@ if configure_next_exp_parallelim:
     #     data['experiment_number'] = str(int(data['experiment_number']) + 1)
     # data[highest_cost_op + '_parallelism'] = str(int(data[highest_cost_op + '_parallelism']) + 1)
 
+    # copy previous parallelism
+    data['exp_' + exp_num + '_spout_parallelism'] = data['exp_' + prev_exp_num + '_spout_parallelism']
+    data['exp_' + exp_num + '_op_parallelism'] = data['exp_' + prev_exp_num + '_op_parallelism']
+    data['exp_' + exp_num + '_sink_parallelism'] = data['exp_' + prev_exp_num + '_sink_parallelism']
     # Update parallelism
     data['exp_' + exp_num + '_' + highest_cost_op + '_parallelism'] = str(
-        int(data['exp_' + prev_exp_num + '_' + highest_cost_op + '_parallelism']) + 1)
+        int(data['exp_' + exp_num + '_' + highest_cost_op + '_parallelism']) + 1)
 
 # Update exp_id and command
 exp_id = data['exp_' + exp_num + '_rep'] + '_' + data['exp_' + exp_num + '_spout_parallelism'] + '_' + data[

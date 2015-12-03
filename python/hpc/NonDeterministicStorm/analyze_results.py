@@ -4,8 +4,8 @@ from NonDeterministicStorm.create_single_exp_graphs import create_graph_multiple
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/151202_3/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/151202_3'
+state_folder = '/Users/vinmas/repositories/viper_experiments/151203/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/151203'
 
 threads = dict()
 throughput_avg = dict()
