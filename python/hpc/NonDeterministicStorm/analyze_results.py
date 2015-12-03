@@ -4,21 +4,25 @@ from NonDeterministicStorm.create_single_exp_graphs import create_graph_multiple
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/151203/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/151203'
-
-threads = dict()
-throughput_avg = dict()
-latency_avg = dict()
-consumption_avg = dict()
+state_folder = '/Users/vinmas/repositories/viper_experiments/151203_2/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/151203_2'
 
 state = json.load(open(state_folder + 'state.json', 'r'))
 
 exp_num = 1
 for load in [1.0, 0.1, 0]:
+
+    keys = []
+
+    threads = dict()
+    throughput_avg = dict()
+    latency_avg = dict()
+    consumption_avg = dict()
+
     for selectivity in [1.0, 0.1, 0.01]:
 
         id = 'L' + str(load) + 'S' + str(selectivity)
+        keys.append(id)
         threads[id] = []
         throughput_avg[id] = []
         latency_avg[id] = []
@@ -47,12 +51,12 @@ for load in [1.0, 0.1, 0]:
 
                 exp_num += 1
 
-create_graph_multiple_time_value(threads, throughput_avg, 'Throughput', 'Threads', 'Throughput (t/s)',
-                                 results_base_folder + '/throughput.pdf')
-create_graph_multiple_time_value(threads, latency_avg, 'Latency', 'Threads', 'Latency (?)',
-                                 results_base_folder + '/latency.pdf')
-create_graph_multiple_time_value(threads, consumption_avg, 'Consumption', 'Threads', 'Consumption (?)',
-                                 results_base_folder + '/consumption.pdf')
+    create_graph_multiple_time_value(threads, throughput_avg, keys, 'Throughput', 'Threads', 'Throughput (t/s)',
+                                     results_base_folder + '/L' + str(load) + 'throughput.pdf')
+    create_graph_multiple_time_value(threads, latency_avg, keys, 'Latency', 'Threads', 'Latency (ms)',
+                                     results_base_folder + '/L' + str(load) + 'latency.pdf')
+    create_graph_multiple_time_value(threads, consumption_avg, keys, 'Consumption', 'Threads', 'Consumption (W/t)',
+                                     results_base_folder + '/L' + str(load) + 'consumption.pdf')
 
 # for exp_num in range(1, 37):
 #     result_path = state['exp_' + str(exp_num) + '_results_folder']

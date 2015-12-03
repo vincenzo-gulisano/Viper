@@ -31,14 +31,14 @@ def create_graph_time_value(x, y, title, x_label, y_label, outFile):
 
     return
 
-def create_graph_multiple_time_value(xs, ys, title, x_label, y_label, outFile):
+def create_graph_multiple_time_value(xs, ys, keys, title, x_label, y_label, outFile):
     rcParams.update({'figure.autolayout': True})
     pp = PdfPages(outFile)
 
     f = plt.figure()
     ax = plt.gca()
 
-    for key in xs.keys():
+    for key in keys:
         plt.plot(xs[key], ys[key], label=key)
 
     plt.xlabel(x_label)
@@ -155,10 +155,10 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     consumption_end_ts_index = [ n for n,i in enumerate(consumption_ts) if i<consumption_end_ts ][-1]
     create_graph_time_value(consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
                             consumption_value[consumption_start_ts_index:consumption_end_ts_index], 'Consumption', 'time (seconds)',
-                            'Consumption (watts) ', results_folder + 'consumption.pdf')
+                            'Consumption (watts/second) ', results_folder + 'consumption.pdf')
 
     throughput = scipystat.trim_mean(results['spout_rate_value'][start_ts:end_ts], 0.05)
     latency = scipystat.trim_mean(results['sink_latency_value'][start_ts:end_ts], 0.05)
-    consumption = scipystat.trim_mean(consumption_value[start_ts:end_ts], 0.05)
+    consumption = scipystat.trim_mean(consumption_value[start_ts:end_ts], 0.05)/throughput
 
     return [throughput, latency, consumption]

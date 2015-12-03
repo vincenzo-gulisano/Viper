@@ -53,7 +53,7 @@ data = dict()
 exp_num = 1
 for load in [1.0, 0.1, 0]:
     for selectivity in [1.0, 0.1, 0.01]:
-        for thread in range(0, 3):
+        for thread in range(0, 10):
             for repetition in range(0, 1):
                 # data['exp_' + str(exp_num) + '_num'] = str(exp_num)
                 data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
@@ -106,7 +106,7 @@ exp_id = data['exp_' + data['experiment_number'] + '_rep'] + '_' + data[
              'exp_' + data['experiment_number'] + '_load'] + '_NonDeterministicStorm'
 exp_id = exp_id.replace('.', '-')
 
-command = 'usecases.debs2015.MergerTestNonDeterministicInternalQueues false true \$LOGDIR \$kill_id ' + str(
+command = 'usecases.debs2015.MergerTestNonDeterministic false true \$LOGDIR \$kill_id ' + str(
     data['duration']) + ' ' + str(
     data['exp_' + data['experiment_number'] + '_spout_parallelism']) + ' ' + str(
     data['exp_' + data['experiment_number'] + '_op_parallelism']) + ' ' + str(
