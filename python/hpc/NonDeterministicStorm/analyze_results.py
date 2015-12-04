@@ -4,8 +4,9 @@ from NonDeterministicStorm.create_single_exp_graphs import create_graph_multiple
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/151203_2/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/151203_2'
+state_folder = '/Users/vinmas/repositories/viper_experiments/experiments99/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/experiments99'
+main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
 
@@ -28,7 +29,7 @@ for load in [1.0, 0.1, 0]:
         latency_avg[id] = []
         consumption_avg[id] = []
 
-        for thread in range(0, 4):
+        for thread in range(0, 11):
             for repetition in range(0, 1):
                 result_path = state['exp_' + str(exp_num) + '_results_folder']
                 result_path = result_path.split('/')[-2]
@@ -51,11 +52,11 @@ for load in [1.0, 0.1, 0]:
 
                 exp_num += 1
 
-    create_graph_multiple_time_value(threads, throughput_avg, keys, 'Throughput', 'Threads', 'Throughput (t/s)',
+    create_graph_multiple_time_value(threads, throughput_avg, keys, main_title + 'Throughput', 'Threads', 'Throughput (t/s)',
                                      results_base_folder + '/L' + str(load) + 'throughput.pdf')
-    create_graph_multiple_time_value(threads, latency_avg, keys, 'Latency', 'Threads', 'Latency (ms)',
+    create_graph_multiple_time_value(threads, latency_avg, keys, main_title + 'Latency', 'Threads', 'Latency (ms)',
                                      results_base_folder + '/L' + str(load) + 'latency.pdf')
-    create_graph_multiple_time_value(threads, consumption_avg, keys, 'Consumption', 'Threads', 'Consumption (W/t)',
+    create_graph_multiple_time_value(threads, consumption_avg, keys, main_title + 'Consumption', 'Threads', 'Consumption (W/t)',
                                      results_base_folder + '/L' + str(load) + 'consumption.pdf')
 
 # for exp_num in range(1, 37):

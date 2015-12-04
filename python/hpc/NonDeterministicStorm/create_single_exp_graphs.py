@@ -46,6 +46,10 @@ def create_graph_multiple_time_value(xs, ys, keys, title, x_label, y_label, outF
     plt.title(title)
     plt.grid(True)
     plt.legend(loc='upper left')
+
+    ymin, ymax = plt.ylim()
+    plt.ylim(0,ymax)
+
     plt.close()
 
     pp.savefig(f)
