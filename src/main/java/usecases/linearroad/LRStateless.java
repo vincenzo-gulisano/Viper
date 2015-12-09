@@ -54,7 +54,7 @@ public class LRStateless {
 		builder.setSpout("spout", new ViperSpout(new SpoutFunction() {
 
 			private long startTimestamp;
-			private List<LRTuple> input_tuples;
+			private ArrayList<LRTuple> input_tuples;
 			int index = 0;
 
 			@SuppressWarnings("rawtypes")
@@ -62,7 +62,7 @@ public class LRStateless {
 			public void prepare(Map stormConf, TopologyContext context) {
 				startTimestamp = System.currentTimeMillis();
 
-				input_tuples = new LinkedList<LRTuple>();
+				input_tuples = new ArrayList<LRTuple>();
 
 				// Read input data
 				try {
