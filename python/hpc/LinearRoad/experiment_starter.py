@@ -66,11 +66,10 @@ for type in ['storm', 'viper']:
             data['exp_' + str(exp_num) + '_rep'] = str(repetition)
             data['exp_' + str(exp_num) + '_config_next'] = "True"
             data['exp_' + str(exp_num) + '_type'] = type
-            if type == 'storm':
+            if type in 'storm':
                 data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
-            elif type == 'viper':
+            elif type in 'viper':
                 data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
-
             exp_num += 1
     for repetition in range(0, 1):
         data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
@@ -79,11 +78,11 @@ for type in ['storm', 'viper']:
         data['exp_' + str(exp_num) + '_rep'] = str(repetition)
         data['exp_' + str(exp_num) + '_config_next'] = "False"
         data['exp_' + str(exp_num) + '_type'] = type
-        if type == 'storm':
+        if type in 'storm':
             data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
-        elif type == 'viper':
+        elif type in 'viper':
             data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
-    exp_num += 1
+        exp_num += 1
 
 data['experiment_number'] = "1"
 data['duration'] = "300"
