@@ -130,7 +130,7 @@ exp_id = data['exp_' + data['experiment_number'] + '_rep'] + '_' + data[
              'exp_' + data['experiment_number'] + '_type']
 exp_id = exp_id.replace('.', '-')
 
-command = 'usecases.linearroad.LRStatelessConvertingToo false true \$LOGDIR \$kill_id ' + str(
+command = 'usecases.linearroad.LRStatelessConvertingFilteringToo false true \$LOGDIR \$kill_id ' + str(
     data['duration']) + ' ' + str(
     data['exp_' + data['experiment_number'] + '_spout_parallelism']) + ' ' + str(
     data['exp_' + data['experiment_number'] + '_op_parallelism']) + ' ' + str(
