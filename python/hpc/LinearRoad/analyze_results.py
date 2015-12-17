@@ -1,11 +1,11 @@
 import json
-from NonDeterministicStorm.create_single_exp_graphs import create_single_exp_graphs
-from NonDeterministicStorm.create_single_exp_graphs import create_graph_multiple_time_value
+from LinearRoad.create_single_exp_graphs import create_single_exp_graphs
+from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/lrfilter/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/lrfilter'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/lrfilter_convertingtoo/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/lrfilter_convertingtoo'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
@@ -18,6 +18,8 @@ threads = dict()
 throughput_avg = dict()
 latency_avg = dict()
 consumption_avg = dict()
+op_cost_avg = dict()
+selectivity_avg = dict()
 
 exp_num = 1
 for type in ['storm', 'viper']:
@@ -28,12 +30,14 @@ for type in ['storm', 'viper']:
     throughput_avg[id] = []
     latency_avg[id] = []
     consumption_avg[id] = []
+    op_cost_avg[id] = []
+    selectivity_avg[id] = []
 
     for thread in range(0, 21):
         for repetition in range(0, 1):
 
             if exp_num == 42:
-                x=2
+                x = 2
             result_path = state['exp_' + str(exp_num) + '_results_folder']
             result_path = result_path.split('/')[-2]
             exp_id = state['exp_' + str(exp_num) + '_id']
@@ -43,10 +47,12 @@ for type in ['storm', 'viper']:
             results_folder = results_base_folder + '/' + result_path + '/'
             onlyfiles = [f for f in listdir(results_folder) if isfile(join(results_folder, f)) and 'RAPL' in f]
             print('Analyzing result folder ' + results_folder + ' (experiment ' + str(exp_num) + ')')
-            [throughput, latency, consumption] = create_single_exp_graphs(state_folder, results_folder,
-                                                                          onlyfiles[0],
-                                                                          spout_parallelism, op_parallelism,
-                                                                          sink_parallelism)
+            [throughput, latency, consumption, op_cost, selectivity] = create_single_exp_graphs(state_folder,
+                                                                                                results_folder,
+                                                                                                onlyfiles[0],
+                                                                                                spout_parallelism,
+                                                                                                op_parallelism,
+                                                                                                sink_parallelism)
 
             stats_data[
                 id + '_thread_' + str(thread) + '_repetition_' + str(
@@ -61,11 +67,17 @@ for type in ['storm', 'viper']:
                 repetition) + '_latency'] = latency
             stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
                 repetition) + '_consumption'] = consumption
+            stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
+                repetition) + '_op_cost'] = op_cost
+            stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
+                repetition) + '_selectivity'] = selectivity
 
             threads[id].append(spout_parallelism + op_parallelism + sink_parallelism)
             throughput_avg[id].append(throughput)
             latency_avg[id].append(latency)
             consumption_avg[id].append(consumption)
+            op_cost_avg[id].append(op_cost)
+            selectivity_avg[id].append(selectivity)
 
             exp_num += 1
 
@@ -75,5 +87,9 @@ create_graph_multiple_time_value(threads, latency_avg, keys, main_title + 'Laten
                                  results_base_folder + '/latency.pdf')
 create_graph_multiple_time_value(threads, consumption_avg, keys, main_title + 'Consumption', 'Threads',
                                  'Consumption (W/t)', results_base_folder + '/consumption.pdf')
+create_graph_multiple_time_value(threads, op_cost_avg, keys, main_title + 'Operator Cost', 'Threads',
+                                 'Cost (nanoseconds)', results_base_folder + '/opcost.pdf')
+create_graph_multiple_time_value(threads, selectivity_avg, keys, main_title + 'Operator Selectivity', 'Threads',
+                                 'Selectivity', results_base_folder + '/selectivity.pdf')
 
 json.dump(stats_data, open(results_base_folder + '/stats_data.json', 'w'))
