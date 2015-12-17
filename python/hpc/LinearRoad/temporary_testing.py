@@ -30,32 +30,40 @@ from create_script_and_schedule_job import create_script_and_schedule_job
 #
 # data = json.dump(data,open('/Users/vinmas/Downloads/ImprovedParallelStorm_2015-11-06_17.49/state.json', 'w'))
 
-# data = dict()
+data = dict()
 #
-# exp_num = 1
-# for load in [1.0, 0.1, 0]:
-#     for selectivity in [1.0, 0.1, 0.01]:
-#         for thread in range(0, 10):
-#             for repetition in range(0, 1):
-#                 # data['exp_' + str(exp_num) + '_num'] = str(exp_num)
-#                 data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
-#                 data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
-#                 data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
-#                 data['exp_' + str(exp_num) + '_load'] = str(load)
-#                 data['exp_' + str(exp_num) + '_selectivity'] = str(selectivity)
-#                 data['exp_' + str(exp_num) + '_rep'] = str(repetition)
-#                 data['exp_' + str(exp_num) + '_config_next'] = "True"
-#                 exp_num += 1
-#         for repetition in range(0, 1):
-#             # data['exp_' + str(exp_num) + '_num'] = str(exp_num)
-#             data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
-#             data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
-#             data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
-#             data['exp_' + str(exp_num) + '_load'] = str(load)
-#             data['exp_' + str(exp_num) + '_selectivity'] = str(selectivity)
-#             data['exp_' + str(exp_num) + '_rep'] = str(repetition)
-#             data['exp_' + str(exp_num) + '_config_next'] = "False"
-#             exp_num += 1
+exp_num = 1
+for type in ['storm', 'viper']:
+    for main_class in ['LRStateless', 'LRStatelessConvertingToo', 'LRStatelessConvertingFilteringToo']:
+        for thread in range(0, 20):
+            for repetition in range(0, 1):
+                data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
+                data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
+                data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
+                data['exp_' + str(exp_num) + '_rep'] = str(repetition)
+                data['exp_' + str(exp_num) + '_config_next'] = "True"
+                data['exp_' + str(exp_num) + '_main_class'] = main_class
+                data['exp_' + str(exp_num) + '_type'] = type
+                if type in 'storm':
+                    data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
+                elif type in 'viper':
+                    data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
+                exp_num += 1
+        for repetition in range(0, 1):
+            data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
+            data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
+            data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
+            data['exp_' + str(exp_num) + '_rep'] = str(repetition)
+            data['exp_' + str(exp_num) + '_config_next'] = "False"
+            data['exp_' + str(exp_num) + '_main_class'] = main_class
+            data['exp_' + str(exp_num) + '_type'] = type
+            if type in 'storm':
+                data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
+            elif type in 'viper':
+                data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
+            exp_num += 1
+
+print(str(exp_num))
 
 real_folders = [f for f in listdir('/Users/vinmas/repositories/viper_experiments/experiments1215/') if
              not isfile(join('/Users/vinmas/repositories/viper_experiments/experiments1215/', f))]

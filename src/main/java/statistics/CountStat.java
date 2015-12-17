@@ -28,7 +28,7 @@ public class CountStat extends Thread implements Serializable {
 		this.countStats = new TreeMap<Long, Long>();
 		this.stop = false;
 		this.sleepms = 1000;
-		this.immediateWrite = immediateWrite;
+		this.immediateWrite = true;//immediateWrite;
 
 		FileWriter outFile;
 		try {

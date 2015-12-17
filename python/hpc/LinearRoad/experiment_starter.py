@@ -58,31 +58,34 @@ data = dict()
 
 exp_num = 1
 for type in ['storm', 'viper']:
-    for thread in range(0, 20):
+    for main_class in ['LRStateless', 'LRStatelessConvertingToo', 'LRStatelessConvertingFilteringToo']:
+        for thread in range(0, 20):
+            for repetition in range(0, 1):
+                data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
+                data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
+                data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
+                data['exp_' + str(exp_num) + '_rep'] = str(repetition)
+                data['exp_' + str(exp_num) + '_config_next'] = "True"
+                data['exp_' + str(exp_num) + '_main_class'] = main_class
+                data['exp_' + str(exp_num) + '_type'] = type
+                if type in 'storm':
+                    data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
+                elif type in 'viper':
+                    data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
+                exp_num += 1
         for repetition in range(0, 1):
             data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
             data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
             data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
             data['exp_' + str(exp_num) + '_rep'] = str(repetition)
-            data['exp_' + str(exp_num) + '_config_next'] = "True"
+            data['exp_' + str(exp_num) + '_config_next'] = "False"
+            data['exp_' + str(exp_num) + '_main_class'] = main_class
             data['exp_' + str(exp_num) + '_type'] = type
             if type in 'storm':
                 data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
             elif type in 'viper':
                 data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
             exp_num += 1
-    for repetition in range(0, 1):
-        data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
-        data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
-        data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
-        data['exp_' + str(exp_num) + '_rep'] = str(repetition)
-        data['exp_' + str(exp_num) + '_config_next'] = "False"
-        data['exp_' + str(exp_num) + '_type'] = type
-        if type in 'storm':
-            data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
-        elif type in 'viper':
-            data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
-        exp_num += 1
 
 data['experiment_number'] = "1"
 data['duration'] = "300"
@@ -101,7 +104,8 @@ exp_id = data['exp_' + data['experiment_number'] + '_rep'] + '_' + data[
              'exp_' + data['experiment_number'] + '_type']
 exp_id = exp_id.replace('.', '-')
 
-command = 'usecases.linearroad.LRStatelessCostsAndSelectivities false true \$LOGDIR \$kill_id ' + str(
+command = 'usecases.linearroad.' + data[
+    'exp_' + data['experiment_number'] + '_main_class'] + ' false true \$LOGDIR \$kill_id ' + str(
     data['duration']) + ' ' + str(
     data['exp_' + data['experiment_number'] + '_spout_parallelism']) + ' ' + str(
     data['exp_' + data['experiment_number'] + '_op_parallelism']) + ' ' + str(
