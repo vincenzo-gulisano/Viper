@@ -173,10 +173,10 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     consumption = scipystat.trim_mean(consumption_value[start_ts:end_ts], 0.05) / throughput
 
     # This is the average processing tuple cost (in nanoseconds)
-    op_cost = scipystat.trim_mean(results['op_cost_value'][start_ts:end_ts], 0.05)
+    # op_cost = scipystat.trim_mean(results['op_cost_value'][start_ts:end_ts], 0.05)
 
     # This is the average selectivity
-    selectivity_tmp = [results['op_rate_value'][i] / results['spout_rate_value'][i] for i in range(start_ts, end_ts)]
-    selectivity = scipystat.trim_mean(selectivity_tmp[start_ts:end_ts], 0.05)
+    # selectivity_tmp = [results['op_rate_value'][i] / results['spout_rate_value'][i] for i in range(start_ts, end_ts)]
+    # selectivity = scipystat.trim_mean(selectivity_tmp[start_ts:end_ts], 0.05)
 
-    return [throughput, latency, consumption, op_cost, selectivity]
+    return [throughput, latency, consumption] # , op_cost, selectivity]

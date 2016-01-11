@@ -57,7 +57,8 @@ if options.inputfile is None:
 data = dict()
 
 exp_num = 1
-for type in ['storm', 'viper']:
+#for type in ['storm', 'viper']:
+for type in ['viper']:
     for main_class in ['LRStateless', 'LRStatelessConvertingToo', 'LRStatelessConvertingFilteringToo']:
         for thread in range(0, 20):
             for repetition in range(0, 1):
