@@ -37,6 +37,7 @@ public class SharedQueues {
 			// throw new IllegalArgumentException(
 			// "Cannot get from queue for task " + id + " not registered!");
 			return queues.get(id).poll();
+		System.out.println("Someone called pollNextTuple with unkown id!!! Returning NULL!!!");
 		return null;
 	}
 
@@ -45,6 +46,7 @@ public class SharedQueues {
 			// throw new IllegalArgumentException(
 			// "Cannot get from queue for task " + id + " not registered!");
 			return queues.get(id).peek();
+		System.out.println("Someone called peekNextTuple with unkown id!!! Returning NULL!!!");
 		return null;
 	}
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.storm.curator.utils.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +45,8 @@ public class ViperBolt extends BaseRichBolt {
 	private int counter = 0;
 	private boolean useInternalQueues;
 
+	private boolean stillNeedToConfigure = true;
+	
 	TopologyContext context;
 	String streamId;
 
@@ -100,7 +103,9 @@ public class ViperBolt extends BaseRichBolt {
 		f.prepare(stormConf, context);
 
 		childPrepare(stormConf, context, collector);
-
+		
+		stillNeedToConfigure = false;
+		
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -150,6 +155,13 @@ public class ViperBolt extends BaseRichBolt {
 
 	public void execute(Tuple input) {
 
+		if (stillNeedToConfigure) {
+			LOG.info("!!! Calling execute on a bolt that still needs to complete configuration !!!");
+			while (stillNeedToConfigure) {
+				Utils.sleep(100);
+			}
+		}
+		
 		long start = System.nanoTime();
 		if (keepStats)
 			invocationsStat.increase(1);
