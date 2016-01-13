@@ -1,7 +1,7 @@
 package topology;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /*
@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class SharedQueues {
 
-	private static HashMap<String, ConcurrentLinkedQueue<List<Object>>> queues = new HashMap<String, ConcurrentLinkedQueue<List<Object>>>();
+	private static ConcurrentHashMap<String, ConcurrentLinkedQueue<List<Object>>> queues = new ConcurrentHashMap<String, ConcurrentLinkedQueue<List<Object>>>();
 
 	public SharedQueues() {
 		// TODO Auto-generated constructor stub

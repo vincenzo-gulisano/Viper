@@ -38,6 +38,8 @@ public class ViperSpout extends BaseRichSpout {
 	private String id;
 	private long counter = 0;
 
+	private boolean veryFirstTuple = true;
+
 	// private long ackGap = 0;
 
 	public ViperSpout(SpoutFunction udf, Fields outFields) {
@@ -48,6 +50,12 @@ public class ViperSpout extends BaseRichSpout {
 	}
 
 	public void nextTuple() {
+
+		if (veryFirstTuple) {
+			LOG.info("veryFirstTuple for spout " + id + " Sleeping 10 seconds");
+			Utils.sleep(10000);
+			veryFirstTuple = false;
+		}
 
 		long start = System.nanoTime();
 		if (keepStats) {
