@@ -182,7 +182,7 @@ public class StatefulVehicleEnteringNewSegment {
 					new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
 							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
 							"lr_seg", "lr_pos", "new_seg"),
-							new CheckNewSegment())).fieldsGrouping("spout",
+							new CheckNewSegment()), op_parallelism).fieldsGrouping("spout",
 					new Fields("lr_vid"));
 
 		} else if (spout_parallelism > 1) {
