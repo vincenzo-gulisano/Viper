@@ -82,6 +82,13 @@ for o in operators:
     print(o + ': T ' + str(throughput[-1]) + ' L ' + str(latency[-1])
           + ' C ' + str(cost[-1]))
 
+
+print('Operators: ' + str(operators))
+print('throughput: ' + str(throughput))
+print('latency: ' + str(latency))
+print('cost: ' + str(cost))
+print('')
+
 threshold = 0.9
 operators_above_threshold = 0
 rightmost_operator_above_threshold = 0
