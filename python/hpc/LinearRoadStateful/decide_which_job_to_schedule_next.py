@@ -75,13 +75,24 @@ for o in operators:
         latency.append(scipystat.trim_mean(results_json[o + "_latency_value"][start_ts:end_ts], 0.05))
     else:
         latency.append(0.0)
+
+    # CHANGE SPECIFIC TO STATEFUL OPERATORS
+    # In order to compute the cost, we need the parallelism for the given operator. Nevertheless, the state file does
+    # not contain the parallelism for mergers. If this operator is a merger, take the parallelism as the parallelism of
+    # its respective operator.
+    this_op_parallelism = 0;
+    if o == 'op_merger':
+        this_op_parallelism = data['exp_' + exp_num + '_op_parallelism']
+    elif o == 'sink_merger':
+        this_op_parallelism = data['exp_' + exp_num + '_sink_parallelism']
+    else:
+        this_op_parallelism = data['exp_' + exp_num + '_' + o + '_parallelism']
+
     cost.append(scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0.05) * scipystat.trim_mean(
-        results_json[o + "_invocations_value"][start_ts:end_ts], 0.05) / int(
-        data['exp_' + exp_num + '_' + o + '_parallelism']) / pow(10, 9))
+            results_json[o + "_invocations_value"][start_ts:end_ts], 0.05) / int(this_op_parallelism) / pow(10, 9))
 
     print(o + ': T ' + str(throughput[-1]) + ' L ' + str(latency[-1])
           + ' C ' + str(cost[-1]))
-
 
 print('Operators: ' + str(operators))
 print('throughput: ' + str(throughput))
@@ -165,7 +176,7 @@ if configure_next_exp_parallelim:
     data['exp_' + exp_num + '_sink_parallelism'] = data['exp_' + prev_exp_num + '_sink_parallelism']
     # Update parallelism
     data['exp_' + exp_num + '_' + highest_cost_op + '_parallelism'] = str(
-        int(data['exp_' + exp_num + '_' + highest_cost_op + '_parallelism']) + 1)
+            int(data['exp_' + exp_num + '_' + highest_cost_op + '_parallelism']) + 1)
 
 # Update exp_id and command
 exp_id = data['exp_' + data['experiment_number'] + '_rep'] + '_' + data[
@@ -178,11 +189,11 @@ exp_id = exp_id.replace('.', '-')
 
 command = 'usecases.linearroad.' + data[
     'exp_' + data['experiment_number'] + '_main_class'] + ' false true \$LOGDIR \$kill_id ' + str(
-    data['duration']) + ' ' + str(
-    data['exp_' + data['experiment_number'] + '_spout_parallelism']) + ' ' + str(
-    data['exp_' + data['experiment_number'] + '_op_parallelism']) + ' ' + str(
-    data['exp_' + data['experiment_number'] + '_sink_parallelism']) + ' ' + str(
-    data['input_file']) + ' ' + str(data['exp_' + data['experiment_number'] + '_useoptimizedqueues']) + ' 1'
+        data['duration']) + ' ' + str(
+        data['exp_' + data['experiment_number'] + '_spout_parallelism']) + ' ' + str(
+        data['exp_' + data['experiment_number'] + '_op_parallelism']) + ' ' + str(
+        data['exp_' + data['experiment_number'] + '_sink_parallelism']) + ' ' + str(
+        data['input_file']) + ' ' + str(data['exp_' + data['experiment_number'] + '_useoptimizedqueues']) + ' 1'
 
 data['exp_' + exp_num + '_id'] = exp_id
 data['exp_' + exp_num + '_command'] = command
