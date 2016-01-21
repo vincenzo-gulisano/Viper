@@ -67,7 +67,7 @@ throughput = []
 latency = []
 cost = []
 print('')
-operators = ['spout', 'op', 'sink']
+
 for o in operators:
 
     throughput.append(scipystat.trim_mean(results_json[o + "_rate_value"][start_ts:end_ts], 0.05))
