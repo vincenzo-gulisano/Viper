@@ -60,7 +60,7 @@ public class MergerSequential implements Merger {
 				}
 			}
 
-			Utils.sleep(10000);
+			//Utils.sleep(10000);
 		}
 
 		queues.get(ids.get(id)).add(e);
