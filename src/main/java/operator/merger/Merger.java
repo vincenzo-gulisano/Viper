@@ -1,9 +1,10 @@
 package operator.merger;
 
-import backtype.storm.tuple.Tuple;
 
 public interface Merger {
-
+	
+	static final long maxPendingFromStream = 50000L;
+	
 	public void add(String id,MergerEntry e);
 	
 	public MergerEntry getNextReady();

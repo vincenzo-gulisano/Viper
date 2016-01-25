@@ -64,11 +64,22 @@ public class ViperMergerFunction implements BoltFunction {
 	@Override
 	public List<Values> process(Tuple t) {
 		List<Values> result = new LinkedList<Values>();
+		
+		//System.out.println(id + " adding " + t.toString());
+		
 		merger.add(t.getSourceComponent() + ":" + t.getSourceTask(),
 				new MergerEntry(t.getLongByField(tsField), t));
+		
 		MergerEntry me = merger.getNextReady();
-		if (me != null)
+		while (me != null) {
+			
+
+			//System.out.println(id + " next ready: " + me.getO());
+			
 			result.add(new ViperValues((Tuple) me.getO()));
+			me = merger.getNextReady();
+		}
+		
 		return result;
 	}
 

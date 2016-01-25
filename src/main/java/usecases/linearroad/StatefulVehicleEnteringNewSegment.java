@@ -25,6 +25,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 
 public class StatefulVehicleEnteringNewSegment {
 
@@ -67,7 +68,7 @@ public class StatefulVehicleEnteringNewSegment {
 				input_tuples = new ArrayList<LRTuple>();
 
 				int taskIndex = context.getThisTaskIndex();
-				System.out.println(taskIndex);
+				// System.out.println(taskIndex);
 
 				// Read input data
 				try {
@@ -119,7 +120,8 @@ public class StatefulVehicleEnteringNewSegment {
 				// tuples.
 				if (index == 0)
 					repetition++;
-
+				// System.out.println("Spout " + index + " adding " + result);
+				// Utils.sleep(100);
 				return result;
 			}
 
@@ -149,6 +151,8 @@ public class StatefulVehicleEnteringNewSegment {
 									arg0.getIntegerByField("lr_xway"),
 									arg0.getIntegerByField("lr_seg"),
 									arg0.getIntegerByField("lr_vid"))));
+					// System.out.println(results);
+
 				}
 				return results;
 			}
@@ -182,8 +186,8 @@ public class StatefulVehicleEnteringNewSegment {
 					new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
 							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
 							"lr_seg", "lr_pos", "new_seg"),
-							new CheckNewSegment()), op_parallelism).fieldsGrouping("spout",
-					new Fields("lr_vid"));
+							new CheckNewSegment()), op_parallelism)
+					.fieldsGrouping("spout", new Fields("lr_vid"));
 
 		} else if (spout_parallelism > 1) {
 
@@ -192,7 +196,9 @@ public class StatefulVehicleEnteringNewSegment {
 					new ViperMerger(new Fields("lr_type", "lr_time", "lr_vid",
 							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
 							"lr_seg", "lr_pos"), "lr_time"), op_parallelism)
-					.fieldsGrouping("spout", new Fields("lr_vid"));
+					.fieldsGrouping("spout", new Fields("lr_seg"));
+			// NOTICE THAT YOU NEED TO HASH A DIFFERENT FIELD, IF YOU HASH ON
+			// VEHICLE YOU GET 1 TO 1!
 
 			builder.setBolt(
 					"op",
@@ -232,8 +238,8 @@ public class StatefulVehicleEnteringNewSegment {
 					new ViperMerger(new Fields("lr_type", "lr_time", "lr_vid",
 							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
 							"lr_seg", "lr_pos", "new_seg"), "lr_time"),
-					sink_parallelism).fieldsGrouping("op",
-					new Fields("lr_vid"));
+					sink_parallelism)
+					.fieldsGrouping("op", new Fields("lr_vid"));
 
 			builder.setBolt("sink", new Sink(), sink_parallelism)
 					.directGrouping("sink_merger");

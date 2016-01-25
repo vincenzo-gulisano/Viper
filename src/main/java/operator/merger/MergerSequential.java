@@ -7,6 +7,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import backtype.storm.utils.Utils;
+
 public class MergerSequential implements Merger {
 
 	public static Logger LOG = LoggerFactory.getLogger(MergerSequential.class);
@@ -40,6 +42,27 @@ public class MergerSequential implements Merger {
 					+ " from id " + id
 					+ ": decreasing timestamp! (latest entry: "
 					+ queues.get(ids.get(id)).peek() + ")");
+
+		if (queues.get(ids.get(id)).size() >= Merger.maxPendingFromStream) {
+			Utils.sleep(1);
+			LOG.info("Merger " + mergerId + " queue for " + id
+					+ " size exceeded " + Merger.maxPendingFromStream);
+
+			for (String key : ids.keySet()) {
+				LOG.info("Queue " + mergerId + " " + key + " (number "
+						+ ids.get(key) + ") has "
+						+ queues.get(ids.get(key)).size() + " tuples.");
+				if (!queues.get(ids.get(key)).isEmpty()) {
+					LOG.info("\t" + mergerId + " First tuple is "
+							+ queues.get(ids.get(key)).peekFirst().toString());
+					LOG.info("\t" + mergerId + " Last tuple is "
+							+ queues.get(ids.get(key)).peekLast().toString());
+				}
+			}
+
+			Utils.sleep(10000);
+		}
+
 		queues.get(ids.get(id)).add(e);
 		latestInputTs.set(ids.get(id), e.getTs());
 	}
