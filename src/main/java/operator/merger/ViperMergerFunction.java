@@ -56,7 +56,21 @@ public class ViperMergerFunction implements BoltFunction {
 			idsFlushed.add(id.get_componentId() + ":" + i);
 		}
 
-		merger = new MergerSequential(ids, this.id);
+		Object temp = stormConf.get("merger.type");
+		String mergerType = temp != null ? (String) temp : "";
+
+		if (!mergerType.equals("")) {
+			if (mergerType.equals("MergerSequential")) {
+				merger = new MergerSequential(ids, this.id);
+			} else if (mergerType.equals("MergerScaleGate")) {
+				merger = new MergerScaleGate(ids, this.id);
+			} else {
+				throw new RuntimeException("Unknown merger type: " + merger);
+			}
+		} else {
+			merger = new MergerSequential(ids, this.id);
+		}
+
 		// flushedResults = new LinkedList<Values>();
 
 	}
@@ -64,22 +78,21 @@ public class ViperMergerFunction implements BoltFunction {
 	@Override
 	public List<Values> process(Tuple t) {
 		List<Values> result = new LinkedList<Values>();
-		
-		//System.out.println(id + " adding " + t.toString());
-		
+
+		// System.out.println(id + " adding " + t.toString());
+
 		merger.add(t.getSourceComponent() + ":" + t.getSourceTask(),
 				new MergerEntry(t.getLongByField(tsField), t));
-		
+
 		MergerEntry me = merger.getNextReady();
 		while (me != null) {
-			
 
-			//System.out.println(id + " next ready: " + me.getO());
-			
+			// System.out.println(id + " next ready: " + me.getO());
+
 			result.add(new ViperValues((Tuple) me.getO()));
 			me = merger.getNextReady();
 		}
-		
+
 		return result;
 	}
 

@@ -1,6 +1,7 @@
 package usecases.linearroad;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -9,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import operator.csvSink.CSVFileWriter;
+import operator.csvSink.CSVSink;
 import operator.merger.ViperMerger;
 import operator.sink.Sink;
 import operator.viperBolt.BoltFunction;
@@ -45,6 +48,8 @@ public class StatefulVehicleEnteringNewSegment {
 
 		boolean useOptimizedQueues = Boolean.valueOf(args[9]);
 		final int workers = Integer.valueOf(args[10]);
+
+		boolean logOut = false; // Boolean.valueOf(args[11]);
 
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
@@ -121,7 +126,7 @@ public class StatefulVehicleEnteringNewSegment {
 				if (index == 0)
 					repetition++;
 				// System.out.println("Spout " + index + " adding " + result);
-				// Utils.sleep(100);
+				Utils.sleep(100);
 				return result;
 			}
 
@@ -228,8 +233,30 @@ public class StatefulVehicleEnteringNewSegment {
 		if (op_parallelism == 1) {
 
 			// In this case, no need for merger.
-			builder.setBolt("sink", new Sink(), sink_parallelism)
-					.fieldsGrouping("op", new Fields("lr_vid"));
+
+			if (logOut) {
+				builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+
+					@Override
+					protected String convertTupleToLine(Tuple t) {
+						return t.getIntegerByField("lr_type") + ";"
+								+ t.getLongByField("lr_time") + ";"
+								+ t.getIntegerByField("lr_vid") + ";"
+								+ t.getIntegerByField("lr_speed") + ";"
+								+ t.getIntegerByField("lr_xway") + ";"
+								+ t.getIntegerByField("lr_lane") + ";"
+								+ t.getIntegerByField("lr_dir") + ";"
+								+ t.getIntegerByField("lr_seg") + ";"
+								+ t.getIntegerByField("lr_pos") + ";"
+								+ t.getBooleanByField("new_seg");
+					}
+
+				}), sink_parallelism)
+						.fieldsGrouping("op", new Fields("lr_vid"));
+			} else {
+				builder.setBolt("sink", new Sink(), sink_parallelism)
+						.fieldsGrouping("op", new Fields("lr_vid"));
+			}
 
 		} else if (op_parallelism > 1) {
 
@@ -241,8 +268,28 @@ public class StatefulVehicleEnteringNewSegment {
 					sink_parallelism)
 					.fieldsGrouping("op", new Fields("lr_vid"));
 
-			builder.setBolt("sink", new Sink(), sink_parallelism)
-					.directGrouping("sink_merger");
+			if (logOut) {
+				builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+
+					@Override
+					protected String convertTupleToLine(Tuple t) {
+						return t.getIntegerByField("lr_type") + ";"
+								+ t.getLongByField("lr_time") + ";"
+								+ t.getIntegerByField("lr_vid") + ";"
+								+ t.getIntegerByField("lr_speed") + ";"
+								+ t.getIntegerByField("lr_xway") + ";"
+								+ t.getIntegerByField("lr_lane") + ";"
+								+ t.getIntegerByField("lr_dir") + ";"
+								+ t.getIntegerByField("lr_seg") + ";"
+								+ t.getIntegerByField("lr_pos") + ";"
+								+ t.getBooleanByField("new_seg");
+					}
+
+				}), sink_parallelism).directGrouping("sink_merger");
+			} else {
+				builder.setBolt("sink", new Sink(), sink_parallelism)
+						.directGrouping("sink_merger");
+			}
 
 		} else {
 			throw new RuntimeException(
@@ -256,6 +303,14 @@ public class StatefulVehicleEnteringNewSegment {
 
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
+		conf.put("merger.type", "MergerScaleGate");
+
+		if (logOut) {
+			for (int i = 0; i < sink_parallelism; i++) {
+				conf.put("sink." + i + ".filepath", statsPath + File.separator
+						+ topologyName + "_out" + i + ".csv");
+			}
+		}
 
 		conf.put("internal.queues", useOptimizedQueues);
 

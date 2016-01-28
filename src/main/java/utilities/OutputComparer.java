@@ -99,7 +99,7 @@ public class OutputComparer {
 
 					@Override
 					public long getTS(String line) {
-						return Long.valueOf(line.split(";")[3]);
+						return Long.valueOf(line.split(";")[1]);
 					}
 
 					@Override
@@ -111,7 +111,7 @@ public class OutputComparer {
 
 					@Override
 					public long getTS(String line) {
-						return Long.valueOf(line.split(";")[3]);
+						return Long.valueOf(line.split(";")[1]);
 					}
 
 					@Override
@@ -119,8 +119,8 @@ public class OutputComparer {
 						return line;
 					}
 				},
-				"/Users/vinmas/repositories/viper_experiments/debs2015/sm2_result.csv",
-				"/Users/vinmas/repositories/viper_experiments/debs2015/sn4_result.csv");
+				"/Users/vinmas/repositories/viper_experiments/linear_road/local_results/checknewseg_3_3_1_out0.csv",
+				"/Users/vinmas/repositories/viper_experiments/linear_road/local_results/checknewseg_3_5_1_out0.csv");
 		oc.compareFiles();
 
 	}
