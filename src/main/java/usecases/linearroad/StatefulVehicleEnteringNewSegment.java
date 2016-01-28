@@ -201,7 +201,7 @@ public class StatefulVehicleEnteringNewSegment {
 					new ViperMerger(new Fields("lr_type", "lr_time", "lr_vid",
 							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
 							"lr_seg", "lr_pos"), "lr_time"), op_parallelism)
-					.fieldsGrouping("spout", new Fields("lr_seg"));
+					.fieldsGrouping("spout", new Fields("lr_vid"));
 			// NOTICE THAT YOU NEED TO HASH A DIFFERENT FIELD, IF YOU HASH ON
 			// VEHICLE YOU GET 1 TO 1!
 
@@ -252,10 +252,10 @@ public class StatefulVehicleEnteringNewSegment {
 					}
 
 				}), sink_parallelism)
-						.fieldsGrouping("op", new Fields("lr_vid"));
+						.fieldsGrouping("op", new Fields("lr_seg"));
 			} else {
 				builder.setBolt("sink", new Sink(), sink_parallelism)
-						.fieldsGrouping("op", new Fields("lr_vid"));
+						.fieldsGrouping("op", new Fields("lr_seg"));
 			}
 
 		} else if (op_parallelism > 1) {
@@ -266,7 +266,7 @@ public class StatefulVehicleEnteringNewSegment {
 							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
 							"lr_seg", "lr_pos", "new_seg"), "lr_time"),
 					sink_parallelism)
-					.fieldsGrouping("op", new Fields("lr_vid"));
+					.fieldsGrouping("op", new Fields("lr_seg"));
 
 			if (logOut) {
 				builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
