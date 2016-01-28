@@ -84,13 +84,15 @@ public class ViperMergerFunction implements BoltFunction {
 		merger.add(t.getSourceComponent() + ":" + t.getSourceTask(),
 				new MergerEntry(t.getLongByField(tsField), t));
 
+		long temp_count = 0;
 		MergerEntry me = merger.getNextReady();
-		while (me != null) {
+		while (me != null && temp_count < Merger.maxConsecutiveReadyTuples) {
 
 			// System.out.println(id + " next ready: " + me.getO());
 
 			result.add(new ViperValues((Tuple) me.getO()));
 			me = merger.getNextReady();
+			temp_count++;
 		}
 
 		return result;

@@ -60,6 +60,7 @@ public class StatefulVehicleEnteringNewSegment {
 			private long startTimestamp;
 			private ArrayList<LRTuple> input_tuples;
 			int index = 0;
+			long counter = 0;
 
 			// Force time to increase even if we are looping on input tuples.
 			long repetition = 0;
@@ -115,10 +116,11 @@ public class StatefulVehicleEnteringNewSegment {
 
 				// Force time to increase even if we are looping on input
 				// tuples.
-				t.time += repetition * timeStep;
+				//t.time += repetition * timeStep;
 
-				Values result = new Values(t.type, t.time, t.vid, t.speed,
-						t.xway, t.lane, t.dir, t.seg, t.pos);
+				Values result = new Values(t.type, t.time + repetition
+						* timeStep, t.vid, t.speed, t.xway, t.lane, t.dir,
+						t.seg, t.pos);
 				index = (index + 1) % input_tuples.size();
 
 				// Force time to increase even if we are looping on input
@@ -126,7 +128,11 @@ public class StatefulVehicleEnteringNewSegment {
 				if (index == 0)
 					repetition++;
 				// System.out.println("Spout " + index + " adding " + result);
-				//Utils.sleep(100);
+				// Utils.sleep(100);
+				if (counter % 1000 == 0)
+					Utils.sleep(5);
+
+				counter++;
 				return result;
 			}
 
@@ -251,11 +257,10 @@ public class StatefulVehicleEnteringNewSegment {
 								+ t.getBooleanByField("new_seg");
 					}
 
-				}), sink_parallelism)
-						.fieldsGrouping("op", new Fields("lr_seg"));
+				}), sink_parallelism).shuffleGrouping("op");
 			} else {
 				builder.setBolt("sink", new Sink(), sink_parallelism)
-						.fieldsGrouping("op", new Fields("lr_seg"));
+						.shuffleGrouping("op");
 			}
 
 		} else if (op_parallelism > 1) {
@@ -265,8 +270,7 @@ public class StatefulVehicleEnteringNewSegment {
 					new ViperMerger(new Fields("lr_type", "lr_time", "lr_vid",
 							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
 							"lr_seg", "lr_pos", "new_seg"), "lr_time"),
-					sink_parallelism)
-					.fieldsGrouping("op", new Fields("lr_seg"));
+					sink_parallelism).shuffleGrouping("op");
 
 			if (logOut) {
 				builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
@@ -303,7 +307,7 @@ public class StatefulVehicleEnteringNewSegment {
 
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
-		conf.put("merger.type", "MergerScaleGate");
+		// conf.put("merger.type", "MergerScaleGate");
 
 		if (logOut) {
 			for (int i = 0; i < sink_parallelism; i++) {
