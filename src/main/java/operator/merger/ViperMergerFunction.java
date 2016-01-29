@@ -95,6 +95,9 @@ public class ViperMergerFunction implements BoltFunction {
 			temp_count++;
 		}
 
+//		if (result.size() > 10)
+//			LOG.info(id + " return size is " + result.size());
+
 		return result;
 	}
 

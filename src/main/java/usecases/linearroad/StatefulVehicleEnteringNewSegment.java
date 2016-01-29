@@ -116,7 +116,7 @@ public class StatefulVehicleEnteringNewSegment {
 
 				// Force time to increase even if we are looping on input
 				// tuples.
-				//t.time += repetition * timeStep;
+				// t.time += repetition * timeStep;
 
 				Values result = new Values(t.type, t.time + repetition
 						* timeStep, t.vid, t.speed, t.xway, t.lane, t.dir,
@@ -129,8 +129,8 @@ public class StatefulVehicleEnteringNewSegment {
 					repetition++;
 				// System.out.println("Spout " + index + " adding " + result);
 				// Utils.sleep(100);
-				if (counter % 1000 == 0)
-					Utils.sleep(5);
+				if (counter % 100 == 0)
+					Utils.sleep(1);
 
 				counter++;
 				return result;
@@ -208,8 +208,6 @@ public class StatefulVehicleEnteringNewSegment {
 							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
 							"lr_seg", "lr_pos"), "lr_time"), op_parallelism)
 					.fieldsGrouping("spout", new Fields("lr_vid"));
-			// NOTICE THAT YOU NEED TO HASH A DIFFERENT FIELD, IF YOU HASH ON
-			// VEHICLE YOU GET 1 TO 1!
 
 			builder.setBolt(
 					"op",

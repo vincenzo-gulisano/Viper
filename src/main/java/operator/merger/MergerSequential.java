@@ -41,24 +41,25 @@ public class MergerSequential implements Merger {
 					+ ": decreasing timestamp! (latest entry: "
 					+ queues.get(ids.get(id)).peek() + ")");
 
-		if (queues.get(ids.get(id)).size() % Merger.maxPendingFromStream == 0) {
-			// Utils.sleep(1);
-			LOG.info("Merger " + mergerId + " queue for " + id
-					+ " size exceeded " + Merger.maxPendingFromStream);
-
-			for (String key : ids.keySet()) {
-				LOG.info("Queue " + mergerId + " " + key + " (number "
-						+ ids.get(key) + ") has "
-						+ queues.get(ids.get(key)).size() + " tuples.");
-				// if (!queues.get(ids.get(key)).isEmpty()) {
-				// LOG.info("\t" + mergerId + " First tuple is "
-				// + queues.get(ids.get(key)).peekFirst().toString());
-				// LOG.info("\t" + mergerId + " Last tuple is "
-				// + queues.get(ids.get(key)).peekLast().toString());
-				// }
-			}
-			// Utils.sleep(1000);
-		}
+//		if (queues.get(ids.get(id)).size() > 0
+//				&& queues.get(ids.get(id)).size() % Merger.maxPendingFromStream == 0) {
+//			// Utils.sleep(1);
+//			LOG.info("Merger " + mergerId + " queue for " + id
+//					+ " size exceeded " + Merger.maxPendingFromStream);
+//
+//			for (String key : ids.keySet()) {
+//				LOG.info("Queue " + mergerId + " " + key + " (number "
+//						+ ids.get(key) + ") has "
+//						+ queues.get(ids.get(key)).size() + " tuples.");
+//				// if (!queues.get(ids.get(key)).isEmpty()) {
+//				// LOG.info("\t" + mergerId + " First tuple is "
+//				// + queues.get(ids.get(key)).peekFirst().toString());
+//				// LOG.info("\t" + mergerId + " Last tuple is "
+//				// + queues.get(ids.get(key)).peekLast().toString());
+//				// }
+//			}
+//			// Utils.sleep(1000);
+//		}
 
 		queues.get(ids.get(id)).add(e);
 		latestInputTs.set(ids.get(id), e.getTs());
