@@ -7,7 +7,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import backtype.storm.utils.Utils;
 import scalegate.SGTuple;
 import scalegate.ScaleGate;
 import scalegate.ScaleGateAArrImpl;
@@ -21,7 +20,7 @@ public class MergerScaleGate implements Merger {
 	String mergerId;
 	ScaleGate scaleGate;
 
-	private long size = 0;
+	//private long size = 0;
 
 	public MergerScaleGate(List<String> ids, String mergerId) {
 		this.mergerId = mergerId;
@@ -55,19 +54,19 @@ public class MergerScaleGate implements Merger {
 		individualCounts
 				.set(ids.get(id), individualCounts.get(ids.get(id)) + 1);
 		latestInputTs.set(ids.get(id), e.getTs());
-		size++;
-
-		if (size % 1000 == 0) {
-			Utils.sleep(1);
-		}
-		if (size % 10000 == 0) {
-			LOG.info("Size of ScaleGate at " + mergerId + ": " + size);
-			for (String i : ids.keySet()) {
-				LOG.info("Size of ScaleGate at " + mergerId + " "
-						+ individualCounts.get(ids.get(i)) + " from " + i
-						+ " latest ts: " + latestInputTs.get(ids.get(i)));
-			}
-		}
+//		size++;
+//
+//		if (size % 1000 == 0) {
+//			Utils.sleep(1);
+//		}
+//		if (size % 10000 == 0) {
+//			LOG.info("Size of ScaleGate at " + mergerId + ": " + size);
+//			for (String i : ids.keySet()) {
+//				LOG.info("Size of ScaleGate at " + mergerId + " "
+//						+ individualCounts.get(ids.get(i)) + " from " + i
+//						+ " latest ts: " + latestInputTs.get(ids.get(i)));
+//			}
+//		}
 	}
 
 	public MergerEntry getNextReady() {
@@ -75,7 +74,7 @@ public class MergerScaleGate implements Merger {
 		SGTuple t = scaleGate.getNextReadyTuple(0);
 
 		if (t != null) {
-			size--;
+//			size--;
 			return ((SGTupleContainer) t).getME();
 		}
 

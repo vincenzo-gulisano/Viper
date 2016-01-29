@@ -28,7 +28,6 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-import backtype.storm.utils.Utils;
 
 public class StatefulVehicleEnteringNewSegment {
 
@@ -60,7 +59,7 @@ public class StatefulVehicleEnteringNewSegment {
 			private long startTimestamp;
 			private ArrayList<LRTuple> input_tuples;
 			int index = 0;
-			long counter = 0;
+//			long counter = 0;
 
 			// Force time to increase even if we are looping on input tuples.
 			long repetition = 0;
@@ -132,7 +131,7 @@ public class StatefulVehicleEnteringNewSegment {
 //				if (counter % 100 == 0)
 //					Utils.sleep(1);
 
-				counter++;
+//				counter++;
 				return result;
 			}
 
@@ -305,7 +304,7 @@ public class StatefulVehicleEnteringNewSegment {
 
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
-		// conf.put("merger.type", "MergerScaleGate");
+		conf.put("merger.type", "MergerScaleGate");
 
 		if (logOut) {
 			for (int i = 0; i < sink_parallelism; i++) {
