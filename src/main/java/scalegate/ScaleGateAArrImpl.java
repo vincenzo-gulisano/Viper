@@ -60,6 +60,8 @@ public class ScaleGateAArrImpl implements ScaleGate {
 	for (int i=0; i< numberOfReaders; i++) {
 	    readertld[i] = new ReaderThreadLocalData(head);
 	}
+	
+	head = null;
     }
     @Override
     /*
