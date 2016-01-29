@@ -129,8 +129,8 @@ public class StatefulVehicleEnteringNewSegment {
 					repetition++;
 				// System.out.println("Spout " + index + " adding " + result);
 				// Utils.sleep(100);
-				if (counter % 100 == 0)
-					Utils.sleep(1);
+//				if (counter % 100 == 0)
+//					Utils.sleep(1);
 
 				counter++;
 				return result;
