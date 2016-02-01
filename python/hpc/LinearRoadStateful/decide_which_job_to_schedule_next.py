@@ -39,16 +39,26 @@ spout_instances = int(data['exp_' + exp_num + '_spout_parallelism'])
 op_instances = int(data['exp_' + exp_num + '_op_parallelism'])
 sink_instances = int(data['exp_' + exp_num + '_sink_parallelism'])
 
+exp_type = data['exp_' + exp_num + '_useoptimizedqueues']
+
 operators = ['spout']
 instances = [spout_instances]
-if spout_instances > 1:
-    operators.append('op_merger')
-    instances.append(op_instances)
+if 'storm' in exp_type:
+    print('This experiment is standard storm... checking if we should have a merger')
+    if spout_instances > 1:
+        operators.append('op_merger')
+        instances.append(op_instances)
+elif 'viper' in exp_type:
+    print('This experiment is viper... not checking if we should have a merger')
 operators.append('op')
 instances.append(op_instances)
-if op_instances > 1:
-    operators.append('sink_merger')
-    instances.append(sink_instances)
+if 'storm' in exp_type:
+    print('This experiment is standard storm... checking if we should have a merger')
+    if op_instances > 1:
+        operators.append('sink_merger')
+        instances.append(sink_instances)
+elif 'viper' in exp_type:
+    print('This experiment is viper... not checking if we should have a merger')
 operators.append('sink')
 instances.append(sink_instances)
 
