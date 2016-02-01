@@ -167,7 +167,8 @@ public class ViperBolt extends BaseRichBolt {
 		collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
 	}
 
-	private void process(Tuple t) {
+	// startTS is for cost estimation
+	private void process(long startTS, Tuple t) {
 		counter++;
 		List<Values> result = f.process(t);
 		if (result != null)
@@ -175,12 +176,13 @@ public class ViperBolt extends BaseRichBolt {
 				emit(t, out);
 				if (keepStats) {
 					countStat.increase(1);
+					costStat.add((System.nanoTime() - startTS));
 				}
 			}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void takeFromInternalBuffer(Tuple input) {
+	private void takeFromInternalBuffer(long startTS, Tuple input) {
 
 		MergerEntry nextReady = sharedChannels.getNextReadyObj("" + thisTask,
 				channelID);
@@ -191,8 +193,9 @@ public class ViperBolt extends BaseRichBolt {
 			// input.getSourceTask(), input.getSourceStreamId());
 			// LOG.info("ViperBolt " + id + " received tuple: " + t);
 
-			process(new TupleImpl(context, (List<Object>) nextReady.getO(),
-					input.getSourceTask(), input.getSourceStreamId()));
+			process(startTS,
+					new TupleImpl(context, (List<Object>) nextReady.getO(),
+							input.getSourceTask(), input.getSourceStreamId()));
 			nextReady = sharedChannels
 					.getNextReadyObj("" + thisTask, channelID);
 		}
@@ -213,7 +216,7 @@ public class ViperBolt extends BaseRichBolt {
 			invocationsStat.increase(1);
 
 		if (useInternalQueues)
-			takeFromInternalBuffer(input);
+			takeFromInternalBuffer(start, input);
 
 		TupleType ttype = (TupleType) input.getValueByField("type");
 
@@ -221,10 +224,7 @@ public class ViperBolt extends BaseRichBolt {
 			emitDummy(input);
 		} else if (ttype.equals(TupleType.REGULAR)) {
 
-			process(input);
-
-			if (keepStats)
-				costStat.add((System.nanoTime() - start));
+			process(start, input);
 
 		} else if (ttype.equals(TupleType.FLUSH)) {
 
