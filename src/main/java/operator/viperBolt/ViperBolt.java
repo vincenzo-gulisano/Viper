@@ -176,9 +176,11 @@ public class ViperBolt extends BaseRichBolt {
 				emit(t, out);
 				if (keepStats) {
 					countStat.increase(1);
-					costStat.add((System.nanoTime() - startTS));
 				}
 			}
+		if (keepStats) {
+			costStat.add((System.nanoTime() - startTS));
+		}
 	}
 
 	@SuppressWarnings("unchecked")

@@ -79,6 +79,7 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 			sharedChannels.addObj("" + taskId,
 					destinationChannelsIDs.get(targetTasks.get(index)),
 					new MergerEntry((Long) values.get(tsIndex), values));
+//			LOG.info(taskId + " - Adding ts " + ((Long) values.get(tsIndex)) + " values: " + values);
 			index = (index + 1) % targetTasks.size();
 			counter++;
 			return result;
