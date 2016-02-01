@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scalegate.SGTuple;
+import scalegate.SGTupleContainer;
 import scalegate.ScaleGate;
 import scalegate.ScaleGateAArrImpl;
 

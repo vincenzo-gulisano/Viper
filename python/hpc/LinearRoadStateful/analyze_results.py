@@ -4,8 +4,8 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/temp-remove/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/temp-remove'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/160125/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/160125'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
@@ -13,7 +13,7 @@ state = json.load(open(state_folder + 'state.json', 'r'))
 
 exp_num = 1
 # for type in ['storm', 'viper']:
-for type in ['viper']:
+for type in ['storm']:
 
     # Having stats data since we keep different fiels for storm and viper
     stats_data = dict()
@@ -27,7 +27,7 @@ for type in ['viper']:
     op_cost_avg = dict()
     selectivity_avg = dict()
 
-    for main_class in ['LRStateless', 'LRStatelessConvertingToo', 'LRStatelessConvertingFilteringToo']:
+    for main_class in ['StatefulVehicleEnteringNewSegment']:
 
         id = main_class + '_' + type
         keys.append(id)
@@ -38,7 +38,7 @@ for type in ['viper']:
         op_cost_avg[id] = []
         selectivity_avg[id] = []
 
-        for thread in range(0, 21):
+        for thread in range(0, 20):
             for repetition in range(0, 1):
                 result_path = state['exp_' + str(exp_num) + '_results_folder']
                 result_path = result_path.split('/')[-2]
@@ -74,7 +74,13 @@ for type in ['viper']:
                 # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
                 #     repetition) + '_selectivity'] = selectivity
 
-                threads[id].append(spout_parallelism + op_parallelism + sink_parallelism)
+                number_of_threads = spout_parallelism + op_parallelism + sink_parallelism
+                if spout_parallelism > 1:
+                    number_of_threads+=op_parallelism
+                if op_parallelism > 1:
+                    number_of_threads+=sink_parallelism
+
+                threads[id].append(number_of_threads)
                 throughput_avg[id].append(throughput)
                 latency_avg[id].append(latency)
                 consumption_avg[id].append(consumption)
@@ -83,12 +89,12 @@ for type in ['viper']:
 
                 exp_num += 1
 
-                # create_graph_multiple_time_value(threads, throughput_avg, keys, main_title + 'Throughput', 'Threads',
-                #                                  'Throughput (t/s)', results_base_folder + '/' + id + '_throughput.pdf')
-                # create_graph_multiple_time_value(threads, latency_avg, keys, main_title + 'Latency', 'Threads', 'Latency (ms)',
-                #                                  results_base_folder + '/' + id + '_latency.pdf')
-                # create_graph_multiple_time_value(threads, consumption_avg, keys, main_title + 'Consumption', 'Threads',
-                #                                  'Consumption (W/t)', results_base_folder + '/' + id + '_consumption.pdf')
+                create_graph_multiple_time_value(threads, throughput_avg, keys, main_title + 'Throughput', 'Threads',
+                                                 'Throughput (t/s)', results_base_folder + '/' + id + '_throughput.pdf')
+                create_graph_multiple_time_value(threads, latency_avg, keys, main_title + 'Latency', 'Threads', 'Latency (ms)',
+                                                 results_base_folder + '/' + id + '_latency.pdf')
+                create_graph_multiple_time_value(threads, consumption_avg, keys, main_title + 'Consumption', 'Threads',
+                                                 'Consumption (W/t)', results_base_folder + '/' + id + '_consumption.pdf')
                 # create_graph_multiple_time_value(threads, op_cost_avg, keys, main_title + 'Operator Cost', 'Threads',
                 #                                  'Cost (nanoseconds)', results_base_folder + '/' + id + '_opcost.pdf')
                 # create_graph_multiple_time_value(threads, selectivity_avg, keys, main_title + 'Operator Selectivity', 'Threads',

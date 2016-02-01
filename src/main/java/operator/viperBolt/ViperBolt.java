@@ -1,17 +1,20 @@
 package operator.viperBolt;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.storm.curator.utils.ThreadUtils;
+import operator.merger.MergerEntry;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import statistics.AvgStat;
 import statistics.CountStat;
-import topology.SharedQueues;
+import topology.SharedChannelsScaleGate;
 import backtype.storm.Config;
+import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -43,12 +46,15 @@ public class ViperBolt extends BaseRichBolt {
 	protected int thisTask;
 	protected String id;
 	private int counter = 0;
-	private boolean useInternalQueues;
 
 	private boolean stillNeedToConfigure = true;
-	
+
 	TopologyContext context;
 	String streamId;
+
+	private boolean useInternalQueues;
+	private SharedChannelsScaleGate sharedChannels;
+	private String channelID;
 
 	// temp
 	// private Values lastEmit;
@@ -103,9 +109,41 @@ public class ViperBolt extends BaseRichBolt {
 		f.prepare(stormConf, context);
 
 		childPrepare(stormConf, context, collector);
-		
+
+		if (this.useInternalQueues) {
+
+			LOG.info("Bolt " + id + " starting internal queues setup");
+
+			sharedChannels = SharedChannelsScaleGate.factory();
+
+			// TODO Should check whether there's only 1 source!!!
+			GlobalStreamId globalStreamId = (GlobalStreamId) context
+					.getThisSources().keySet().toArray()[0];
+			List<Integer> componentIds = context
+					.getComponentTasks(globalStreamId.get_componentId());
+
+			LinkedList<String> sources = new LinkedList<String>();
+			LinkedList<String> destinations = new LinkedList<String>();
+
+			channelID = "" + thisTask;
+
+			destinations.add(channelID);
+			LOG.info("Bolt " + id + " is fed by:");
+
+			for (Integer i : componentIds) {
+				LOG.info("" + i);
+				sources.add("" + i);
+				channelID += "_" + i;
+			}
+
+			sharedChannels.registerQueue(sources, destinations, channelID);
+
+			LOG.info("Bolt " + id + " internal queues setup completed");
+
+		}
+
 		stillNeedToConfigure = false;
-		
+
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -125,7 +163,12 @@ public class ViperBolt extends BaseRichBolt {
 		collector.emit(ViperUtils.getFlushTuple(this.outFields.size() - 2));
 	}
 
+	protected void emitDummy(Tuple t) {
+		collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
+	}
+
 	private void process(Tuple t) {
+		counter++;
 		List<Values> result = f.process(t);
 		if (result != null)
 			for (Values out : result) {
@@ -136,21 +179,24 @@ public class ViperBolt extends BaseRichBolt {
 			}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void takeFromInternalBuffer(Tuple input) {
-		// TODO id is already used...
-		String id = input.getSourceTask() + ":" + thisTask;
-		while (SharedQueues.peekNextTuple(id) != null) {
-			// TODO Should avoid to create two tuple instances every time!
-			Tuple t = new TupleImpl(context, SharedQueues.peekNextTuple(id),
-					input.getSourceTask(), input.getSourceStreamId());
-			if (t.getLongByField("ts") <= input.getLongByField("ts")) {
-				t = new TupleImpl(context, SharedQueues.pollNextTuple(id),
-						input.getSourceTask(), input.getSourceStreamId());
-				counter++;
-				process(t);
-			} else
-				break;
+
+		MergerEntry nextReady = sharedChannels.getNextReadyObj("" + thisTask,
+				channelID);
+		while (nextReady != null) {
+			// LOG.info("ViperBolt " + id
+			// + " received tuple from internal channel");
+			// Tuple t = new TupleImpl(context, (List<Object>) nextReady.getO(),
+			// input.getSourceTask(), input.getSourceStreamId());
+			// LOG.info("ViperBolt " + id + " received tuple: " + t);
+
+			process(new TupleImpl(context, (List<Object>) nextReady.getO(),
+					input.getSourceTask(), input.getSourceStreamId()));
+			nextReady = sharedChannels
+					.getNextReadyObj("" + thisTask, channelID);
 		}
+
 	}
 
 	public void execute(Tuple input) {
@@ -161,7 +207,7 @@ public class ViperBolt extends BaseRichBolt {
 				Utils.sleep(100);
 			}
 		}
-		
+
 		long start = System.nanoTime();
 		if (keepStats)
 			invocationsStat.increase(1);
@@ -170,9 +216,11 @@ public class ViperBolt extends BaseRichBolt {
 			takeFromInternalBuffer(input);
 
 		TupleType ttype = (TupleType) input.getValueByField("type");
-		if (ttype.equals(TupleType.REGULAR)) {
 
-			counter++;
+		if (ttype.equals(TupleType.SHAREDQUEUEDUMMY)) {
+			emitDummy(input);
+		} else if (ttype.equals(TupleType.REGULAR)) {
+
 			process(input);
 
 			if (keepStats)

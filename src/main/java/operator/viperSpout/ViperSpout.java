@@ -2,6 +2,7 @@ package operator.viperSpout;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,8 @@ public class ViperSpout extends BaseRichSpout {
 	private boolean veryFirstTuple = true;
 
 	// private long ackGap = 0;
+	private Random r = new Random(System.nanoTime());
+	private double dummyProb = 0.001;
 
 	public ViperSpout(SpoutFunction udf, Fields outFields) {
 
@@ -61,7 +64,15 @@ public class ViperSpout extends BaseRichSpout {
 		if (keepStats) {
 			invocationsStat.increase(1);
 		}
-		if (udf.hasNext()) {
+		if (r.nextDouble() <= dummyProb && !flushSent) {
+
+			collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
+
+			// remove this
+			// LOG.info("Spout " + id + " sending DUMMY tuple, " + counter
+			// + " tuples sent");
+
+		} else if (udf.hasNext()) {
 
 			// if (ackGap < 1000) {
 

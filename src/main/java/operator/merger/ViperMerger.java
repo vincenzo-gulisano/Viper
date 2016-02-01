@@ -59,6 +59,10 @@ public class ViperMerger extends ViperBolt {
 		collector.emitDirect(nextBoltTaskIndex, input.getValues());
 	}
 
+	protected void emitDummy(Tuple input) {
+		collector.emitDirect(nextBoltTaskIndex, input.getValues());
+	}
+
 	protected void emitWriteLog(Tuple input) {
 		collector.emitDirect(nextBoltTaskIndex, input.getValues());
 	}

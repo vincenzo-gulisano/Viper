@@ -18,6 +18,8 @@ import operator.viperBolt.BoltFunction;
 import operator.viperBolt.ViperBolt;
 import operator.viperSpout.SpoutFunction;
 import operator.viperSpout.ViperSpout;
+import topology.ViperFieldsSharedChannels;
+import topology.ViperShuffleSharedChannels;
 import topology.ViperTopologyBuilder;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -59,7 +61,7 @@ public class StatefulVehicleEnteringNewSegment {
 			private long startTimestamp;
 			private ArrayList<LRTuple> input_tuples;
 			int index = 0;
-//			long counter = 0;
+			// long counter = 0;
 
 			// Force time to increase even if we are looping on input tuples.
 			long repetition = 0;
@@ -128,10 +130,10 @@ public class StatefulVehicleEnteringNewSegment {
 					repetition++;
 				// System.out.println("Spout " + index + " adding " + result);
 				// Utils.sleep(100);
-//				if (counter % 100 == 0)
-//					Utils.sleep(1);
+				// if (counter % 100 == 0)
+				// Utils.sleep(1);
 
-//				counter++;
+				// counter++;
 				return result;
 			}
 
@@ -184,41 +186,49 @@ public class StatefulVehicleEnteringNewSegment {
 		 */
 
 		if (useOptimizedQueues) {
-			throw new RuntimeException(
-					"Optimized queues for stateless not ready yet!");
-		}
-
-		if (spout_parallelism == 1) {
-
-			// In this case, no need for merger.
 			builder.setBolt(
 					"op",
 					new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
 							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
 							"lr_seg", "lr_pos", "new_seg"),
 							new CheckNewSegment()), op_parallelism)
-					.fieldsGrouping("spout", new Fields("lr_vid"));
-
-		} else if (spout_parallelism > 1) {
-
-			builder.setBolt(
-					"op_merger",
-					new ViperMerger(new Fields("lr_type", "lr_time", "lr_vid",
-							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
-							"lr_seg", "lr_pos"), "lr_time"), op_parallelism)
-					.fieldsGrouping("spout", new Fields("lr_vid"));
-
-			builder.setBolt(
-					"op",
-					new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
-							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
-							"lr_seg", "lr_pos", "new_seg"),
-							new CheckNewSegment()), op_parallelism)
-					.directGrouping("op_merger");
-
+					.customGrouping("spout",
+							new ViperFieldsSharedChannels(1, 2));
 		} else {
-			throw new RuntimeException(
-					"Spout parallelism seems to be negative...");
+
+			if (spout_parallelism == 1) {
+
+				// In this case, no need for merger.
+				builder.setBolt(
+						"op",
+						new ViperBolt(new Fields("lr_type", "lr_time",
+								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
+								"lr_dir", "lr_seg", "lr_pos", "new_seg"),
+								new CheckNewSegment()), op_parallelism)
+						.fieldsGrouping("spout", new Fields("lr_vid"));
+
+			} else if (spout_parallelism > 1) {
+
+				builder.setBolt(
+						"op_merger",
+						new ViperMerger(new Fields("lr_type", "lr_time",
+								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
+								"lr_dir", "lr_seg", "lr_pos"), "lr_time"),
+						op_parallelism).fieldsGrouping("spout",
+						new Fields("lr_vid"));
+
+				builder.setBolt(
+						"op",
+						new ViperBolt(new Fields("lr_type", "lr_time",
+								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
+								"lr_dir", "lr_seg", "lr_pos", "new_seg"),
+								new CheckNewSegment()), op_parallelism)
+						.directGrouping("op_merger");
+
+			} else {
+				throw new RuntimeException(
+						"Spout parallelism seems to be negative...");
+			}
 		}
 
 		// //////////////// SINK //////////////////////////
@@ -229,14 +239,6 @@ public class StatefulVehicleEnteringNewSegment {
 		 */
 
 		if (useOptimizedQueues) {
-			throw new RuntimeException(
-					"Optimized queues for stateless not ready yet!");
-		}
-
-		if (op_parallelism == 1) {
-
-			// In this case, no need for merger.
-
 			if (logOut) {
 				builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
 
@@ -254,47 +256,78 @@ public class StatefulVehicleEnteringNewSegment {
 								+ t.getBooleanByField("new_seg");
 					}
 
-				}), sink_parallelism).shuffleGrouping("op");
+				}), sink_parallelism).customGrouping("op",
+						new ViperShuffleSharedChannels(1));
 			} else {
 				builder.setBolt("sink", new Sink(), sink_parallelism)
-						.shuffleGrouping("op");
+						.customGrouping("op", new ViperShuffleSharedChannels(1));
 			}
-
-		} else if (op_parallelism > 1) {
-
-			builder.setBolt(
-					"sink_merger",
-					new ViperMerger(new Fields("lr_type", "lr_time", "lr_vid",
-							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
-							"lr_seg", "lr_pos", "new_seg"), "lr_time"),
-					sink_parallelism).shuffleGrouping("op");
-
-			if (logOut) {
-				builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
-
-					@Override
-					protected String convertTupleToLine(Tuple t) {
-						return t.getIntegerByField("lr_type") + ";"
-								+ t.getLongByField("lr_time") + ";"
-								+ t.getIntegerByField("lr_vid") + ";"
-								+ t.getIntegerByField("lr_speed") + ";"
-								+ t.getIntegerByField("lr_xway") + ";"
-								+ t.getIntegerByField("lr_lane") + ";"
-								+ t.getIntegerByField("lr_dir") + ";"
-								+ t.getIntegerByField("lr_seg") + ";"
-								+ t.getIntegerByField("lr_pos") + ";"
-								+ t.getBooleanByField("new_seg");
-					}
-
-				}), sink_parallelism).directGrouping("sink_merger");
-			} else {
-				builder.setBolt("sink", new Sink(), sink_parallelism)
-						.directGrouping("sink_merger");
-			}
-
 		} else {
-			throw new RuntimeException(
-					"Operator parallelism seems to be negative...");
+
+			if (op_parallelism == 1) {
+
+				// In this case, no need for merger.
+
+				if (logOut) {
+					builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+
+						@Override
+						protected String convertTupleToLine(Tuple t) {
+							return t.getIntegerByField("lr_type") + ";"
+									+ t.getLongByField("lr_time") + ";"
+									+ t.getIntegerByField("lr_vid") + ";"
+									+ t.getIntegerByField("lr_speed") + ";"
+									+ t.getIntegerByField("lr_xway") + ";"
+									+ t.getIntegerByField("lr_lane") + ";"
+									+ t.getIntegerByField("lr_dir") + ";"
+									+ t.getIntegerByField("lr_seg") + ";"
+									+ t.getIntegerByField("lr_pos") + ";"
+									+ t.getBooleanByField("new_seg");
+						}
+
+					}), sink_parallelism).shuffleGrouping("op");
+				} else {
+					builder.setBolt("sink", new Sink(), sink_parallelism)
+							.shuffleGrouping("op");
+				}
+
+			} else if (op_parallelism > 1) {
+
+				builder.setBolt(
+						"sink_merger",
+						new ViperMerger(new Fields("lr_type", "lr_time",
+								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
+								"lr_dir", "lr_seg", "lr_pos", "new_seg"),
+								"lr_time"), sink_parallelism).shuffleGrouping(
+						"op");
+
+				if (logOut) {
+					builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+
+						@Override
+						protected String convertTupleToLine(Tuple t) {
+							return t.getIntegerByField("lr_type") + ";"
+									+ t.getLongByField("lr_time") + ";"
+									+ t.getIntegerByField("lr_vid") + ";"
+									+ t.getIntegerByField("lr_speed") + ";"
+									+ t.getIntegerByField("lr_xway") + ";"
+									+ t.getIntegerByField("lr_lane") + ";"
+									+ t.getIntegerByField("lr_dir") + ";"
+									+ t.getIntegerByField("lr_seg") + ";"
+									+ t.getIntegerByField("lr_pos") + ";"
+									+ t.getBooleanByField("new_seg");
+						}
+
+					}), sink_parallelism).directGrouping("sink_merger");
+				} else {
+					builder.setBolt("sink", new Sink(), sink_parallelism)
+							.directGrouping("sink_merger");
+				}
+
+			} else {
+				throw new RuntimeException(
+						"Operator parallelism seems to be negative...");
+			}
 		}
 
 		// //////////////// CONFIGURATION //////////////////////////

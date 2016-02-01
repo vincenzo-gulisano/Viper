@@ -9,23 +9,23 @@ from matplotlib import rcParams
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import csv
-import plotly.plotly as py
-import plotly.graph_objs as go
+#import plotly.plotly as py
+#import plotly.graph_objs as go
 
 
-def create_bar_plot(traces, outFile):
-
-    layout = go.Layout(
-        barmode='group'
-    )
-
-    fig = go.Figure(data=traces, layout=layout)
-    plot_url = py.plot(fig, filename='grouped-bar')
-
-    py.image.save_as({'data': traces}, outFile)
-
-
-    return
+# def create_bar_plot(traces, outFile):
+#
+#     layout = go.Layout(
+#         barmode='group'
+#     )
+#
+#     fig = go.Figure(data=traces, layout=layout)
+#     plot_url = py.plot(fig, filename='grouped-bar')
+#
+#     py.image.save_as({'data': traces}, outFile)
+#
+#
+#     return
 
 
 def create_graph_time_value(x, y, title, x_label, y_label, outFile):

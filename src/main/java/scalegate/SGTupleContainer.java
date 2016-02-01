@@ -1,6 +1,6 @@
-package operator.merger;
+package scalegate;
 
-import scalegate.SGTuple;
+import operator.merger.MergerEntry;
 
 public class SGTupleContainer implements SGTuple {
 
