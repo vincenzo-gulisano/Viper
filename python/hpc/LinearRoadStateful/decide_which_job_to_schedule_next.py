@@ -143,22 +143,32 @@ data['exp_' + exp_num + '_spout_latency'] = str(latency[index])
 data['exp_' + exp_num + '_spout_cost'] = str(cost[index])
 index += 1
 
-if spout_instances > 1:
-    data['exp_' + exp_num + '_op_merger_throughput'] = str(throughput[index])
-    data['exp_' + exp_num + '_op_merger_latency'] = str(latency[index])
-    data['exp_' + exp_num + '_op_merger_cost'] = str(cost[index])
-    index += 1
+if 'storm' in exp_type:
+    print('This experiment is standard storm... keeping merger statistics')
+    if spout_instances > 1:
+        data['exp_' + exp_num + '_op_merger_throughput'] = str(throughput[index])
+        data['exp_' + exp_num + '_op_merger_latency'] = str(latency[index])
+        data['exp_' + exp_num + '_op_merger_cost'] = str(cost[index])
+        index += 1
+elif 'viper' in exp_type:
+    print('This experiment is viper... not keeping merger statistics')
+
+
 
 data['exp_' + exp_num + '_op_throughput'] = str(throughput[index])
 data['exp_' + exp_num + '_op_latency'] = str(latency[index])
 data['exp_' + exp_num + '_op_cost'] = str(cost[index])
 index += 1
 
-if op_instances > 1:
-    data['exp_' + exp_num + '_sink_merger_throughput'] = str(throughput[index])
-    data['exp_' + exp_num + '_sink_merger_latency'] = str(latency[index])
-    data['exp_' + exp_num + '_sink_merger_cost'] = str(cost[index])
-    index += 1
+if 'storm' in exp_type:
+    print('This experiment is standard storm... keeping merger statistics')
+    if op_instances > 1:
+        data['exp_' + exp_num + '_sink_merger_throughput'] = str(throughput[index])
+        data['exp_' + exp_num + '_sink_merger_latency'] = str(latency[index])
+        data['exp_' + exp_num + '_sink_merger_cost'] = str(cost[index])
+        index += 1
+elif 'viper' in exp_type:
+    print('This experiment is viper... not keeping merger statistics')
 
 data['exp_' + exp_num + '_sink_throughput'] = str(throughput[index])
 data['exp_' + exp_num + '_sink_latency'] = str(latency[index])
