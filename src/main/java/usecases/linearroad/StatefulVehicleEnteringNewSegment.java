@@ -186,14 +186,34 @@ public class StatefulVehicleEnteringNewSegment {
 		 */
 
 		if (useOptimizedQueues) {
-			builder.setBolt(
-					"op",
-					new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
-							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
-							"lr_seg", "lr_pos", "new_seg"),
-							new CheckNewSegment()), op_parallelism)
-					.customGrouping("spout",
-							new ViperFieldsSharedChannels(1, 2));
+			
+			if (spout_parallelism == 1) {
+
+				// In this case, no need for merger.
+				builder.setBolt(
+						"op",
+						new ViperBolt(new Fields("lr_type", "lr_time",
+								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
+								"lr_dir", "lr_seg", "lr_pos", "new_seg"),
+								new CheckNewSegment()), op_parallelism)
+						.fieldsGrouping("spout", new Fields("lr_vid"));
+
+			} else if (spout_parallelism > 1) {
+
+				builder.setBolt(
+						"op",
+						new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
+								"lr_speed", "lr_xway", "lr_lane", "lr_dir",
+								"lr_seg", "lr_pos", "new_seg"),
+								new CheckNewSegment()), op_parallelism)
+						.customGrouping("spout",
+								new ViperFieldsSharedChannels(1, 2));
+
+			} else {
+				throw new RuntimeException(
+						"Spout parallelism seems to be negative...");
+			}
+			
 		} else {
 
 			if (spout_parallelism == 1) {
@@ -239,29 +259,65 @@ public class StatefulVehicleEnteringNewSegment {
 		 */
 
 		if (useOptimizedQueues) {
-			if (logOut) {
-				builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+			
+			if (op_parallelism == 1) {
 
-					@Override
-					protected String convertTupleToLine(Tuple t) {
-						return t.getIntegerByField("lr_type") + ";"
-								+ t.getLongByField("lr_time") + ";"
-								+ t.getIntegerByField("lr_vid") + ";"
-								+ t.getIntegerByField("lr_speed") + ";"
-								+ t.getIntegerByField("lr_xway") + ";"
-								+ t.getIntegerByField("lr_lane") + ";"
-								+ t.getIntegerByField("lr_dir") + ";"
-								+ t.getIntegerByField("lr_seg") + ";"
-								+ t.getIntegerByField("lr_pos") + ";"
-								+ t.getBooleanByField("new_seg");
-					}
+				// In this case, no need for merger.
 
-				}), sink_parallelism).customGrouping("op",
-						new ViperShuffleSharedChannels(1));
+				if (logOut) {
+					builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+
+						@Override
+						protected String convertTupleToLine(Tuple t) {
+							return t.getIntegerByField("lr_type") + ";"
+									+ t.getLongByField("lr_time") + ";"
+									+ t.getIntegerByField("lr_vid") + ";"
+									+ t.getIntegerByField("lr_speed") + ";"
+									+ t.getIntegerByField("lr_xway") + ";"
+									+ t.getIntegerByField("lr_lane") + ";"
+									+ t.getIntegerByField("lr_dir") + ";"
+									+ t.getIntegerByField("lr_seg") + ";"
+									+ t.getIntegerByField("lr_pos") + ";"
+									+ t.getBooleanByField("new_seg");
+						}
+
+					}), sink_parallelism).shuffleGrouping("op");
+				} else {
+					builder.setBolt("sink", new Sink(), sink_parallelism)
+							.shuffleGrouping("op");
+				}
+
+			} else if (op_parallelism > 1) {
+
+				if (logOut) {
+					builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+
+						@Override
+						protected String convertTupleToLine(Tuple t) {
+							return t.getIntegerByField("lr_type") + ";"
+									+ t.getLongByField("lr_time") + ";"
+									+ t.getIntegerByField("lr_vid") + ";"
+									+ t.getIntegerByField("lr_speed") + ";"
+									+ t.getIntegerByField("lr_xway") + ";"
+									+ t.getIntegerByField("lr_lane") + ";"
+									+ t.getIntegerByField("lr_dir") + ";"
+									+ t.getIntegerByField("lr_seg") + ";"
+									+ t.getIntegerByField("lr_pos") + ";"
+									+ t.getBooleanByField("new_seg");
+						}
+
+					}), sink_parallelism).customGrouping("op",
+							new ViperShuffleSharedChannels(1));
+				} else {
+					builder.setBolt("sink", new Sink(), sink_parallelism)
+							.customGrouping("op", new ViperShuffleSharedChannels(1));
+				}
+
 			} else {
-				builder.setBolt("sink", new Sink(), sink_parallelism)
-						.customGrouping("op", new ViperShuffleSharedChannels(1));
+				throw new RuntimeException(
+						"Operator parallelism seems to be negative...");
 			}
+			
 		} else {
 
 			if (op_parallelism == 1) {
