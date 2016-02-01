@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.grouping.CustomStreamGrouping;
 import backtype.storm.task.WorkerTopologyContext;
+import backtype.storm.utils.Utils;
 import core.TupleType;
 
 public class ViperShuffleSharedChannels implements CustomStreamGrouping,
@@ -29,17 +30,21 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 	private SharedChannelsScaleGate sharedChannels;
 	Map<Integer, String> destinationChannelsIDs;
 
+	Map<Integer, Boolean> scheduledSleep;
+
 	private boolean firstTuple = true;
 	private int tsIndex;
 
 	public ViperShuffleSharedChannels() {
 		destinationChannelsIDs = new HashMap<Integer, String>();
+		scheduledSleep = new HashMap<Integer, Boolean>();
 		this.tsIndex = 1; // The user does not specify a timestamp, so we take
 							// the tuple one
 	}
 
 	public ViperShuffleSharedChannels(int tsIndex) {
 		destinationChannelsIDs = new HashMap<Integer, String>();
+		scheduledSleep = new HashMap<Integer, Boolean>();
 		this.tsIndex = tsIndex + 2; // The user specifies a timestamp, so we
 									// take that one
 	}
@@ -61,6 +66,7 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 			for (int i : targetTasks) {
 				destinationChannelsIDs.put(i,
 						sharedChannels.getChannelsID("" + i, "" + taskId));
+				scheduledSleep.put(i, false);
 				LOG.info("Channel from " + taskId + " to " + i + " is "
 						+ destinationChannelsIDs.get(i));
 			}
@@ -71,15 +77,30 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 		if (type.equals(TupleType.SHAREDQUEUEDUMMY)) {
 			// LOG.info("Forwarding SHAREDQUEUEDUMMY to all destinations (task "
 			// + taskId + ")");
+
+			// If the size of for the internal channel at the current index is
+			// greater than 50000, remember to sleep next time...
+			scheduledSleep.put(targetTasks.get(index),
+					sharedChannels.getSize(destinationChannelsIDs
+							.get(targetTasks.get(index))) > 50000);
+
 			return targetTasks;
 		} else if (type.equals(TupleType.REGULAR)) {
+
+			if (scheduledSleep.get(targetTasks.get(index))) {
+				scheduledSleep.put(targetTasks.get(index), false);
+//				LOG.info("Putting to sleep task " + taskId);
+				Utils.sleep(1);
+			}
 
 			// Notice that I am assuming the timestamp is alway in position 1,
 			// so it is the internal timestamp, not user defined one
 			sharedChannels.addObj("" + taskId,
 					destinationChannelsIDs.get(targetTasks.get(index)),
 					new MergerEntry((Long) values.get(tsIndex), values));
-//			LOG.info(taskId + " - Adding ts " + ((Long) values.get(tsIndex)) + " values: " + values);
+
+			// LOG.info(taskId + " - Adding ts " + ((Long) values.get(tsIndex))
+			// + " values: " + values);
 			index = (index + 1) % targetTasks.size();
 			counter++;
 			return result;

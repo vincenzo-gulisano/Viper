@@ -18,4 +18,6 @@ public interface SharedChannels {
 	// The following are support methods (because of Storm...)
 	public String getChannelsID(String destination, String source);
 
+	public int getSize(String id);
+	
 }
