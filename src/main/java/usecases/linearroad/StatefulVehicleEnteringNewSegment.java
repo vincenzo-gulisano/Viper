@@ -118,10 +118,10 @@ public class StatefulVehicleEnteringNewSegment {
 			@Override
 			public Values getTuple() {
 
-				// Do not send more than 250K t/s (less actually)
-				if (r.nextDouble() < 0.004) {
-					Utils.sleep(1);
-				}
+//				// Do not send more than 250K t/s (less actually)
+//				if (r.nextDouble() < 0.004) {
+//					Utils.sleep(1);
+//				}
 
 				LRTuple t = input_tuples.get(index);
 

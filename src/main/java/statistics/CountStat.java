@@ -11,6 +11,7 @@ public class CountStat extends Thread implements Serializable {
 
 	private static final long serialVersionUID = 2415520958777993198L;
 
+	private long latestCount;
 	private long count;
 	private TreeMap<Long, Long> countStats;
 
@@ -22,13 +23,18 @@ public class CountStat extends Thread implements Serializable {
 	PrintWriter out;
 	boolean immediateWrite;
 
+	public long getLatestCount() {
+		return latestCount;
+	}
+
 	public CountStat(String id, String outputFile, boolean immediateWrite) {
 		this.id = id;
+		this.latestCount = 0;
 		this.count = 0;
 		this.countStats = new TreeMap<Long, Long>();
 		this.stop = false;
 		this.sleepms = 1000;
-		this.immediateWrite = true;//immediateWrite;
+		this.immediateWrite = true;// immediateWrite;
 
 		FileWriter outFile;
 		try {
@@ -57,6 +63,7 @@ public class CountStat extends Thread implements Serializable {
 				this.countStats.put(time, count);
 			}
 
+			latestCount = count;
 			count = 0;
 
 			long stop = System.currentTimeMillis();

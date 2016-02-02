@@ -6,14 +6,15 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import operator.merger.MergerEntry;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import backtype.storm.utils.Utils;
-import operator.merger.MergerEntry;
 import scalegate.SGTupleContainer;
 import scalegate.ScaleGate;
 import scalegate.ScaleGateAArrImpl;
+import statistics.CountStat;
 
 public class SharedChannelsScaleGate implements SharedChannels {
 
@@ -27,6 +28,8 @@ public class SharedChannelsScaleGate implements SharedChannels {
 	private Map<String, Map<String, Integer>> channelsSourcesMap = new HashMap<String, Map<String, Integer>>();
 	private Map<String, Map<String, Integer>> channelsDestinationsMap = new HashMap<String, Map<String, Integer>>();
 	private Map<String, Integer> channelsSizes = new HashMap<String, Integer>();
+	private Map<String, CountStat> channelsInStat = new HashMap<String, CountStat>();
+	private Map<String, CountStat> channelsOutStat = new HashMap<String, CountStat>();
 
 	// For support method
 	private Map<String, Map<String, String>> destinationSouceMapping = new HashMap<String, Map<String, String>>();
@@ -101,6 +104,7 @@ public class SharedChannelsScaleGate implements SharedChannels {
 			}
 
 			channelsSizes.put(id, 0);
+//			channelsInStat.put(id, new CountStat(id, outputFile, immediateWrite))
 			channels.put(id, sg);
 
 		} finally {
@@ -118,9 +122,9 @@ public class SharedChannelsScaleGate implements SharedChannels {
 			throw new RuntimeException("Unknown source " + source
 					+ " adding to channel " + id);
 
-//		// TODO HARDCODED!
-//		if (getSize(id) > 1000)
-//			Utils.sleep(1);
+		// // TODO HARDCODED!
+		// if (getSize(id) > 1000)
+		// Utils.sleep(1);
 
 		this.channels.get(id).addTuple(new SGTupleContainer(me),
 				this.channelsSourcesMap.get(id).get(source));
