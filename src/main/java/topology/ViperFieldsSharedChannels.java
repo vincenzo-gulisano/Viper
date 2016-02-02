@@ -30,7 +30,9 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 	private SharedChannelsScaleGate sharedChannels;
 	Map<Integer, String> destinationChannelsIDs;
 
-	Map<Integer, Boolean> scheduledSleep;
+	// Map<Integer, Boolean> scheduledSleep;
+	Map<Integer, Long> backoffs;
+
 	int scheduleSleepIndex = 0;
 
 	private boolean firstTuple = true;
@@ -40,7 +42,8 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 	// TODO need to do something smarter for this!
 	public ViperFieldsSharedChannels(int fieldIndex) {
 		destinationChannelsIDs = new HashMap<Integer, String>();
-		scheduledSleep = new HashMap<Integer, Boolean>();
+		// scheduledSleep = new HashMap<Integer, Boolean>();
+		backoffs = new HashMap<Integer, Long>();
 		this.tsIndex = 1; // The user does not specify a timestamp, so we take
 							// the tuple one
 		this.fieldIndex = fieldIndex + 2;
@@ -48,7 +51,8 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 
 	public ViperFieldsSharedChannels(int tsIndex, int fieldIndex) {
 		destinationChannelsIDs = new HashMap<Integer, String>();
-		scheduledSleep = new HashMap<Integer, Boolean>();
+		// scheduledSleep = new HashMap<Integer, Boolean>();
+		backoffs = new HashMap<Integer, Long>();
 		this.tsIndex = tsIndex + 2; // The user specifies a timestamp, so we
 									// take that one
 		this.fieldIndex = fieldIndex + 2;
@@ -71,7 +75,8 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 			for (int i : targetTasks) {
 				destinationChannelsIDs.put(i,
 						sharedChannels.getChannelsID("" + i, "" + taskId));
-				scheduledSleep.put(i, false);
+				// scheduledSleep.put(i, false);
+				backoffs.put(i, 0L);
 				LOG.info("Channel from " + taskId + " to " + i + " is "
 						+ destinationChannelsIDs.get(i));
 			}
@@ -81,14 +86,26 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 		TupleType type = (TupleType) values.get(0);
 
 		if (type.equals(TupleType.SHAREDQUEUEDUMMY)) {
-			// LOG.info("Forwarding SHAREDQUEUEDUMMY to all destinations (task "
-			// + taskId + ")");
 
-			// If the size of for the internal channel at the current index is
-			// greater than 50000, remember to sleep next time...
-			scheduledSleep.put(targetTasks.get(scheduleSleepIndex),
-					sharedChannels.getSize(destinationChannelsIDs
-							.get(targetTasks.get(scheduleSleepIndex))) > 50000);
+			int backOffIndex = targetTasks.get(scheduleSleepIndex);
+
+			if (sharedChannels
+					.getSize(destinationChannelsIDs.get(backOffIndex)) > 50000) {
+				long currentBO = backoffs.get(backOffIndex);
+				if (currentBO == 0) {
+//					LOG.info("Back off for task " + taskId + " set to 1");
+					backoffs.put(backOffIndex, 1L);
+				} else {
+//					LOG.info("Back off for task " + taskId + " set to "
+//							+ currentBO * 2);
+					backoffs.put(backOffIndex, currentBO * 2);
+				}
+
+			} else {
+//				LOG.info("Back off for task " + taskId + " set to 0");
+				backoffs.put(backOffIndex, 0L);
+			}
+
 			scheduleSleepIndex = (scheduleSleepIndex + 1) % targetTasks.size();
 
 			return targetTasks;
@@ -96,10 +113,11 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 
 			int index = values.get(fieldIndex).hashCode() % targetTasks.size();
 
-			if (scheduledSleep.get(targetTasks.get(index))) {
-				scheduledSleep.put(targetTasks.get(index), false);
-//				LOG.info("Putting to sleep task " + taskId);
-				Utils.sleep(1);
+			if (backoffs.get(targetTasks.get(index)) > 0) {
+				// scheduledSleep.put(targetTasks.get(index), false);
+//				LOG.info("Task " + taskId + " going to sleep for "
+//						+ backoffs.get(targetTasks.get(index)));
+				Utils.sleep(backoffs.get(targetTasks.get(index)));
 			}
 
 			// Notice that I am assuming the timestamp is alway in position 1,
