@@ -31,7 +31,7 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 	Map<Integer, String> destinationChannelsIDs;
 
 	// Map<Integer, Boolean> scheduledSleep;
-	Map<Integer, Long> backoffs;
+//	Map<Integer, Long> backoffs;
 
 	int scheduleSleepIndex = 0;
 
@@ -43,7 +43,7 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 	public ViperFieldsSharedChannels(int fieldIndex) {
 		destinationChannelsIDs = new HashMap<Integer, String>();
 		// scheduledSleep = new HashMap<Integer, Boolean>();
-		backoffs = new HashMap<Integer, Long>();
+//		backoffs = new HashMap<Integer, Long>();
 		this.tsIndex = 1; // The user does not specify a timestamp, so we take
 							// the tuple one
 		this.fieldIndex = fieldIndex + 2;
@@ -52,7 +52,7 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 	public ViperFieldsSharedChannels(int tsIndex, int fieldIndex) {
 		destinationChannelsIDs = new HashMap<Integer, String>();
 		// scheduledSleep = new HashMap<Integer, Boolean>();
-		backoffs = new HashMap<Integer, Long>();
+//		backoffs = new HashMap<Integer, Long>();
 		this.tsIndex = tsIndex + 2; // The user specifies a timestamp, so we
 									// take that one
 		this.fieldIndex = fieldIndex + 2;
@@ -76,7 +76,7 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 				destinationChannelsIDs.put(i,
 						sharedChannels.getChannelsID("" + i, "" + taskId));
 				// scheduledSleep.put(i, false);
-				backoffs.put(i, 0L);
+//				backoffs.put(i, 0L);
 				LOG.info("Channel from " + taskId + " to " + i + " is "
 						+ destinationChannelsIDs.get(i));
 			}
@@ -87,38 +87,38 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 
 		if (type.equals(TupleType.SHAREDQUEUEDUMMY)) {
 
-			int backOffIndex = targetTasks.get(scheduleSleepIndex);
-
-			if (sharedChannels
-					.getSize(destinationChannelsIDs.get(backOffIndex)) > 50000) {
-				long currentBO = backoffs.get(backOffIndex);
-				if (currentBO == 0) {
-//					LOG.info("Back off for task " + taskId + " set to 1");
-					backoffs.put(backOffIndex, 1L);
-				} else {
-//					LOG.info("Back off for task " + taskId + " set to "
-//							+ currentBO * 2);
-					backoffs.put(backOffIndex, currentBO * 2);
-				}
-
-			} else {
-//				LOG.info("Back off for task " + taskId + " set to 0");
-				backoffs.put(backOffIndex, 0L);
-			}
-
-			scheduleSleepIndex = (scheduleSleepIndex + 1) % targetTasks.size();
+//			int backOffIndex = targetTasks.get(scheduleSleepIndex);
+//
+//			if (sharedChannels
+//					.getSize(destinationChannelsIDs.get(backOffIndex)) > 50000) {
+//				long currentBO = backoffs.get(backOffIndex);
+//				if (currentBO == 0) {
+////					LOG.info("Back off for task " + taskId + " set to 1");
+//					backoffs.put(backOffIndex, 1L);
+//				} else {
+////					LOG.info("Back off for task " + taskId + " set to "
+////							+ currentBO * 2);
+//					backoffs.put(backOffIndex, currentBO * 2);
+//				}
+//
+//			} else {
+////				LOG.info("Back off for task " + taskId + " set to 0");
+//				backoffs.put(backOffIndex, 0L);
+//			}
+//
+//			scheduleSleepIndex = (scheduleSleepIndex + 1) % targetTasks.size();
 
 			return targetTasks;
 		} else if (type.equals(TupleType.REGULAR)) {
 
 			int index = values.get(fieldIndex).hashCode() % targetTasks.size();
 
-			if (backoffs.get(targetTasks.get(index)) > 0) {
-				// scheduledSleep.put(targetTasks.get(index), false);
-//				LOG.info("Task " + taskId + " going to sleep for "
-//						+ backoffs.get(targetTasks.get(index)));
-				Utils.sleep(backoffs.get(targetTasks.get(index)));
-			}
+//			if (backoffs.get(targetTasks.get(index)) > 0) {
+//				// scheduledSleep.put(targetTasks.get(index), false);
+////				LOG.info("Task " + taskId + " going to sleep for "
+////						+ backoffs.get(targetTasks.get(index)));
+//				Utils.sleep(backoffs.get(targetTasks.get(index)));
+//			}
 
 			// Notice that I am assuming the timestamp is alway in position 1,
 			// so it is the internal timestamp, not user defined one

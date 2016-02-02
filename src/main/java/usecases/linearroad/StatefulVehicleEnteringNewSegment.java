@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import operator.csvSink.CSVFileWriter;
 import operator.csvSink.CSVSink;
@@ -30,6 +31,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 
 public class StatefulVehicleEnteringNewSegment {
 
@@ -66,6 +68,8 @@ public class StatefulVehicleEnteringNewSegment {
 			// Force time to increase even if we are looping on input tuples.
 			long repetition = 0;
 			long timeStep = 60 * 60 * 3;
+
+			Random r = new Random();
 
 			@SuppressWarnings("rawtypes")
 			@Override
@@ -113,6 +117,12 @@ public class StatefulVehicleEnteringNewSegment {
 
 			@Override
 			public Values getTuple() {
+
+				// Do not send more than 250K t/s (less actually)
+				if (r.nextDouble() < 0.004) {
+					Utils.sleep(1);
+				}
+
 				LRTuple t = input_tuples.get(index);
 
 				// Force time to increase even if we are looping on input
@@ -186,7 +196,7 @@ public class StatefulVehicleEnteringNewSegment {
 		 */
 
 		if (useOptimizedQueues) {
-			
+
 			if (spout_parallelism == 1) {
 
 				// In this case, no need for merger.
@@ -202,9 +212,9 @@ public class StatefulVehicleEnteringNewSegment {
 
 				builder.setBolt(
 						"op",
-						new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
-								"lr_speed", "lr_xway", "lr_lane", "lr_dir",
-								"lr_seg", "lr_pos", "new_seg"),
+						new ViperBolt(new Fields("lr_type", "lr_time",
+								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
+								"lr_dir", "lr_seg", "lr_pos", "new_seg"),
 								new CheckNewSegment()), op_parallelism)
 						.customGrouping("spout",
 								new ViperFieldsSharedChannels(1, 2));
@@ -213,7 +223,7 @@ public class StatefulVehicleEnteringNewSegment {
 				throw new RuntimeException(
 						"Spout parallelism seems to be negative...");
 			}
-			
+
 		} else {
 
 			if (spout_parallelism == 1) {
@@ -259,7 +269,7 @@ public class StatefulVehicleEnteringNewSegment {
 		 */
 
 		if (useOptimizedQueues) {
-			
+
 			if (op_parallelism == 1) {
 
 				// In this case, no need for merger.
@@ -310,14 +320,15 @@ public class StatefulVehicleEnteringNewSegment {
 							new ViperShuffleSharedChannels(1));
 				} else {
 					builder.setBolt("sink", new Sink(), sink_parallelism)
-							.customGrouping("op", new ViperShuffleSharedChannels(1));
+							.customGrouping("op",
+									new ViperShuffleSharedChannels(1));
 				}
 
 			} else {
 				throw new RuntimeException(
 						"Operator parallelism seems to be negative...");
 			}
-			
+
 		} else {
 
 			if (op_parallelism == 1) {
