@@ -1,5 +1,6 @@
 package topology;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import scalegate.SGTupleContainer;
 import scalegate.ScaleGate;
 import scalegate.ScaleGateAArrImpl;
 import statistics.CountStat;
+import backtype.storm.Config;
 
 public class SharedChannelsScaleGate implements SharedChannels {
 
@@ -27,9 +29,12 @@ public class SharedChannelsScaleGate implements SharedChannels {
 	private Map<String, ScaleGate> channels = new HashMap<String, ScaleGate>();
 	private Map<String, Map<String, Integer>> channelsSourcesMap = new HashMap<String, Map<String, Integer>>();
 	private Map<String, Map<String, Integer>> channelsDestinationsMap = new HashMap<String, Map<String, Integer>>();
-	private Map<String, Integer> channelsSizes = new HashMap<String, Integer>();
-	private Map<String, CountStat> channelsInStat = new HashMap<String, CountStat>();
-	private Map<String, CountStat> channelsOutStat = new HashMap<String, CountStat>();
+	// private Map<String, Integer> channelsSizes = new HashMap<String,
+	// Integer>();
+	private Map<String, CountStat> channelSize = new HashMap<String, CountStat>();
+	private boolean keepStats;
+	private String statsPath;
+	private String topologyName;
 
 	// For support method
 	private Map<String, Map<String, String>> destinationSouceMapping = new HashMap<String, Map<String, String>>();
@@ -37,11 +42,20 @@ public class SharedChannelsScaleGate implements SharedChannels {
 	private SharedChannelsScaleGate() {
 	}
 
-	public static SharedChannelsScaleGate factory() {
+	public static SharedChannelsScaleGate factory(boolean keepStats,
+			String statsPath, String topologyName) {
 		if (thisSharedChannels == null) {
 			l.lock();
+
 			try {
 				thisSharedChannels = new SharedChannelsScaleGate();
+
+				thisSharedChannels.keepStats = keepStats;
+
+				thisSharedChannels.statsPath = statsPath;
+
+				thisSharedChannels.topologyName = topologyName;
+
 			} finally {
 				l.unlock();
 			}
@@ -103,8 +117,13 @@ public class SharedChannelsScaleGate implements SharedChannels {
 				}
 			}
 
-			channelsSizes.put(id, 0);
-//			channelsInStat.put(id, new CountStat(id, outputFile, immediateWrite))
+			// channelsSizes.put(id, 0);
+			if (keepStats) {
+				channelSize.put(id, new CountStat("", statsPath
+						+ File.separator + topologyName + "_" + id
+						+ ".rate.csv", true));
+				channelSize.get(id).start();
+			}
 			channels.put(id, sg);
 
 		} finally {
@@ -129,7 +148,8 @@ public class SharedChannelsScaleGate implements SharedChannels {
 		this.channels.get(id).addTuple(new SGTupleContainer(me),
 				this.channelsSourcesMap.get(id).get(source));
 
-		channelsSizes.put(id, channelsSizes.get(id) + 1);
+		if (keepStats)
+			channelSize.get(id).increase(+1);
 
 	}
 
@@ -156,19 +176,21 @@ public class SharedChannelsScaleGate implements SharedChannels {
 		// nevertheless, this will create some extra latency only in the very
 		// beginning...
 
-		channelsSizes.put(id, channelsSizes.get(id) - 1);
+		if (keepStats)
+			channelSize.get(id).increase(-1);
+
 		return t.getME();
 
 	}
 
-	public int getSize(String id) {
-
-		if (!this.channels.containsKey(id))
-			throw new RuntimeException("Asking size of unkown channel " + id);
-
-		return channelsSizes.get(id);
-
-	}
+	// public int getSize(String id) {
+	//
+	// if (!this.channels.containsKey(id))
+	// throw new RuntimeException("Asking size of unkown channel " + id);
+	//
+	// return channelsSizes.get(id);
+	//
+	// }
 
 	@Override
 	public String getChannelsID(String destination, String source) {
@@ -179,6 +201,22 @@ public class SharedChannelsScaleGate implements SharedChannels {
 
 		throw new RuntimeException("Unkown channel for destination "
 				+ destination + " and source " + source);
+
+	}
+
+	@Override
+	public void turnOff() {
+		if (keepStats) {
+			for (String id : channels.keySet()) {
+				channelSize.get(id).stopStats();
+				try {
+					channelSize.get(id).join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				channelSize.get(id).writeStats();
+			}
+		}
 
 	}
 

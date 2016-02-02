@@ -43,7 +43,8 @@ public class ViperSpout extends BaseRichSpout {
 
 	// private long ackGap = 0;
 	private Random r = new Random(System.nanoTime());
-	private double dummyProb = 0.001;
+	private double dummyProb = 0.1;
+	private boolean useInternalQueues;
 
 	public ViperSpout(SpoutFunction udf, Fields outFields) {
 
@@ -64,7 +65,7 @@ public class ViperSpout extends BaseRichSpout {
 		if (keepStats) {
 			invocationsStat.increase(1);
 		}
-		if (r.nextDouble() <= dummyProb && !flushSent) {
+		if (useInternalQueues && !flushSent && r.nextDouble() <= dummyProb) {
 
 			collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
 
@@ -142,6 +143,9 @@ public class ViperSpout extends BaseRichSpout {
 
 		temp = arg0.get("log.statistics.path");
 		this.statsPath = temp != null ? (String) temp : "";
+
+		temp = arg0.get("internal.queues");
+		this.useInternalQueues = temp != null ? (Boolean) temp : false;
 
 		id = arg1.getThisComponentId() + "." + arg1.getThisTaskIndex();
 

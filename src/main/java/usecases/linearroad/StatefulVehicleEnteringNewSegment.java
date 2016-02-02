@@ -31,7 +31,6 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-import backtype.storm.utils.Utils;
 
 public class StatefulVehicleEnteringNewSegment {
 
@@ -118,10 +117,10 @@ public class StatefulVehicleEnteringNewSegment {
 			@Override
 			public Values getTuple() {
 
-//				// Do not send more than 250K t/s (less actually)
-//				if (r.nextDouble() < 0.004) {
-//					Utils.sleep(1);
-//				}
+				// // Do not send more than 250K t/s (less actually)
+				// if (r.nextDouble() < 0.004) {
+				// Utils.sleep(1);
+				// }
 
 				LRTuple t = input_tuples.get(index);
 
@@ -197,32 +196,34 @@ public class StatefulVehicleEnteringNewSegment {
 
 		if (useOptimizedQueues) {
 
-			if (spout_parallelism == 1) {
+			// if (spout_parallelism == 1) {
+			//
+			// // In this case, no need for merger.
+			// builder.setBolt(
+			// "op",
+			// new ViperBolt(new Fields("lr_type", "lr_time",
+			// "lr_vid", "lr_speed", "lr_xway", "lr_lane",
+			// "lr_dir", "lr_seg", "lr_pos", "new_seg"),
+			// new CheckNewSegment()), op_parallelism)
+			// .fieldsGrouping("spout", new Fields("lr_vid"));
+			//
+			// } else if (spout_parallelism > 1) {
 
-				// In this case, no need for merger.
-				builder.setBolt(
-						"op",
-						new ViperBolt(new Fields("lr_type", "lr_time",
-								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
-								"lr_dir", "lr_seg", "lr_pos", "new_seg"),
-								new CheckNewSegment()), op_parallelism)
-						.fieldsGrouping("spout", new Fields("lr_vid"));
+			builder.setBolt(
+					"op",
+					new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
+							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
+							"lr_seg", "lr_pos", "new_seg"),
+							new CheckNewSegment()), op_parallelism)
+					.customGrouping(
+							"spout",
+							new ViperFieldsSharedChannels(logStats, statsPath,
+									topologyName, 1, 2));
 
-			} else if (spout_parallelism > 1) {
-
-				builder.setBolt(
-						"op",
-						new ViperBolt(new Fields("lr_type", "lr_time",
-								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
-								"lr_dir", "lr_seg", "lr_pos", "new_seg"),
-								new CheckNewSegment()), op_parallelism)
-						.customGrouping("spout",
-								new ViperFieldsSharedChannels(1, 2));
-
-			} else {
-				throw new RuntimeException(
-						"Spout parallelism seems to be negative...");
-			}
+			// } else {
+			// throw new RuntimeException(
+			// "Spout parallelism seems to be negative...");
+			// }
 
 		} else {
 
@@ -270,64 +271,68 @@ public class StatefulVehicleEnteringNewSegment {
 
 		if (useOptimizedQueues) {
 
-			if (op_parallelism == 1) {
+			// if (op_parallelism == 1) {
+			//
+			// // In this case, no need for merger.
+			//
+			// if (logOut) {
+			// builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+			//
+			// @Override
+			// protected String convertTupleToLine(Tuple t) {
+			// return t.getIntegerByField("lr_type") + ";"
+			// + t.getLongByField("lr_time") + ";"
+			// + t.getIntegerByField("lr_vid") + ";"
+			// + t.getIntegerByField("lr_speed") + ";"
+			// + t.getIntegerByField("lr_xway") + ";"
+			// + t.getIntegerByField("lr_lane") + ";"
+			// + t.getIntegerByField("lr_dir") + ";"
+			// + t.getIntegerByField("lr_seg") + ";"
+			// + t.getIntegerByField("lr_pos") + ";"
+			// + t.getBooleanByField("new_seg");
+			// }
+			//
+			// }), sink_parallelism).shuffleGrouping("op");
+			// } else {
+			// builder.setBolt("sink", new Sink(), sink_parallelism)
+			// .shuffleGrouping("op");
+			// }
+			//
+			// } else if (op_parallelism > 1) {
 
-				// In this case, no need for merger.
+			if (logOut) {
+				builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
 
-				if (logOut) {
-					builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+					@Override
+					protected String convertTupleToLine(Tuple t) {
+						return t.getIntegerByField("lr_type") + ";"
+								+ t.getLongByField("lr_time") + ";"
+								+ t.getIntegerByField("lr_vid") + ";"
+								+ t.getIntegerByField("lr_speed") + ";"
+								+ t.getIntegerByField("lr_xway") + ";"
+								+ t.getIntegerByField("lr_lane") + ";"
+								+ t.getIntegerByField("lr_dir") + ";"
+								+ t.getIntegerByField("lr_seg") + ";"
+								+ t.getIntegerByField("lr_pos") + ";"
+								+ t.getBooleanByField("new_seg");
+					}
 
-						@Override
-						protected String convertTupleToLine(Tuple t) {
-							return t.getIntegerByField("lr_type") + ";"
-									+ t.getLongByField("lr_time") + ";"
-									+ t.getIntegerByField("lr_vid") + ";"
-									+ t.getIntegerByField("lr_speed") + ";"
-									+ t.getIntegerByField("lr_xway") + ";"
-									+ t.getIntegerByField("lr_lane") + ";"
-									+ t.getIntegerByField("lr_dir") + ";"
-									+ t.getIntegerByField("lr_seg") + ";"
-									+ t.getIntegerByField("lr_pos") + ";"
-									+ t.getBooleanByField("new_seg");
-						}
-
-					}), sink_parallelism).shuffleGrouping("op");
-				} else {
-					builder.setBolt("sink", new Sink(), sink_parallelism)
-							.shuffleGrouping("op");
-				}
-
-			} else if (op_parallelism > 1) {
-
-				if (logOut) {
-					builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
-
-						@Override
-						protected String convertTupleToLine(Tuple t) {
-							return t.getIntegerByField("lr_type") + ";"
-									+ t.getLongByField("lr_time") + ";"
-									+ t.getIntegerByField("lr_vid") + ";"
-									+ t.getIntegerByField("lr_speed") + ";"
-									+ t.getIntegerByField("lr_xway") + ";"
-									+ t.getIntegerByField("lr_lane") + ";"
-									+ t.getIntegerByField("lr_dir") + ";"
-									+ t.getIntegerByField("lr_seg") + ";"
-									+ t.getIntegerByField("lr_pos") + ";"
-									+ t.getBooleanByField("new_seg");
-						}
-
-					}), sink_parallelism).customGrouping("op",
-							new ViperShuffleSharedChannels(1));
-				} else {
-					builder.setBolt("sink", new Sink(), sink_parallelism)
-							.customGrouping("op",
-									new ViperShuffleSharedChannels(1));
-				}
-
+				}), sink_parallelism).customGrouping(
+						"op",
+						new ViperShuffleSharedChannels(logStats, statsPath,
+								topologyName, 1));
 			} else {
-				throw new RuntimeException(
-						"Operator parallelism seems to be negative...");
+				builder.setBolt("sink", new Sink(), sink_parallelism)
+						.customGrouping(
+								"op",
+								new ViperShuffleSharedChannels(logStats,
+										statsPath, topologyName, 1));
 			}
+
+			// } else {
+			// throw new RuntimeException(
+			// "Operator parallelism seems to be negative...");
+			// }
 
 		} else {
 

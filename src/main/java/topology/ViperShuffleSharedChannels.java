@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.grouping.CustomStreamGrouping;
 import backtype.storm.task.WorkerTopologyContext;
-import backtype.storm.utils.Utils;
 import core.TupleType;
 
 public class ViperShuffleSharedChannels implements CustomStreamGrouping,
@@ -30,30 +29,45 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 	private SharedChannelsScaleGate sharedChannels;
 	Map<Integer, String> destinationChannelsIDs;
 
-	Map<Integer, Boolean> scheduledSleep;
+	// Map<Integer, Boolean> scheduledSleep;
 
 	private boolean firstTuple = true;
 	private int tsIndex;
 
-	public ViperShuffleSharedChannels() {
+	boolean keepStats;
+	String statsPath;
+	String topologyName;
+
+	public ViperShuffleSharedChannels(boolean keepStats, String statsPath,
+			String topologyName) {
 		destinationChannelsIDs = new HashMap<Integer, String>();
-		scheduledSleep = new HashMap<Integer, Boolean>();
+		// scheduledSleep = new HashMap<Integer, Boolean>();
 		this.tsIndex = 1; // The user does not specify a timestamp, so we take
 							// the tuple one
+
+		this.keepStats = keepStats;
+		this.statsPath = statsPath;
+		this.topologyName = topologyName;
 	}
 
-	public ViperShuffleSharedChannels(int tsIndex) {
+	public ViperShuffleSharedChannels(boolean keepStats, String statsPath,
+			String topologyName, int tsIndex) {
 		destinationChannelsIDs = new HashMap<Integer, String>();
-		scheduledSleep = new HashMap<Integer, Boolean>();
+		// scheduledSleep = new HashMap<Integer, Boolean>();
 		this.tsIndex = tsIndex + 2; // The user specifies a timestamp, so we
 									// take that one
+
+		this.keepStats = keepStats;
+		this.statsPath = statsPath;
+		this.topologyName = topologyName;
 	}
 
 	@Override
 	public void prepare(WorkerTopologyContext context, GlobalStreamId stream,
 			List<Integer> targetTasks) {
 		this.targetTasks = targetTasks;
-		sharedChannels = SharedChannelsScaleGate.factory();
+		sharedChannels = SharedChannelsScaleGate.factory(keepStats, statsPath,
+				topologyName);
 	}
 
 	@Override
@@ -66,7 +80,7 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 			for (int i : targetTasks) {
 				destinationChannelsIDs.put(i,
 						sharedChannels.getChannelsID("" + i, "" + taskId));
-				scheduledSleep.put(i, false);
+				// scheduledSleep.put(i, false);
 				LOG.info("Channel from " + taskId + " to " + i + " is "
 						+ destinationChannelsIDs.get(i));
 			}
@@ -80,18 +94,18 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 
 			// If the size of for the internal channel at the current index is
 			// greater than 50000, remember to sleep next time...
-			scheduledSleep.put(targetTasks.get(index),
-					sharedChannels.getSize(destinationChannelsIDs
-							.get(targetTasks.get(index))) > 50000);
-
-			return targetTasks;
+			// scheduledSleep.put(targetTasks.get(index),
+			// sharedChannels.getSize(destinationChannelsIDs
+			// .get(targetTasks.get(index))) > 50000);
+			result.add(targetTasks.get(index));
+			return result;
 		} else if (type.equals(TupleType.REGULAR)) {
-
-			if (scheduledSleep.get(targetTasks.get(index))) {
-				scheduledSleep.put(targetTasks.get(index), false);
-//				LOG.info("Putting to sleep task " + taskId);
-				Utils.sleep(1);
-			}
+			//
+			// if (scheduledSleep.get(targetTasks.get(index))) {
+			// scheduledSleep.put(targetTasks.get(index), false);
+			// // LOG.info("Putting to sleep task " + taskId);
+			// Utils.sleep(1);
+			// }
 
 			// Notice that I am assuming the timestamp is alway in position 1,
 			// so it is the internal timestamp, not user defined one

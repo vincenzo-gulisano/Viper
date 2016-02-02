@@ -114,7 +114,8 @@ public class ViperBolt extends BaseRichBolt {
 
 			LOG.info("Bolt " + id + " starting internal queues setup");
 
-			sharedChannels = SharedChannelsScaleGate.factory();
+			sharedChannels = SharedChannelsScaleGate.factory(keepStats,
+					statsPath, (String) stormConf.get(Config.TOPOLOGY_NAME));
 
 			// TODO Should check whether there's only 1 source!!!
 			GlobalStreamId globalStreamId = (GlobalStreamId) context
@@ -267,6 +268,10 @@ public class ViperBolt extends BaseRichBolt {
 					costStat.writeStats();
 					invocationsStat.writeStats();
 					keepStats = false;
+
+					if (this.useInternalQueues)
+						sharedChannels.turnOff();
+
 				}
 			}
 		}
