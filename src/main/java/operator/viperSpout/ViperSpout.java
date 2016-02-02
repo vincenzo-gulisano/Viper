@@ -55,6 +55,12 @@ public class ViperSpout extends BaseRichSpout {
 
 	public void nextTuple() {
 
+		// Backoff for internalQueues. If you already exhausted what you could
+		// do during this second, then wait
+		while (useInternalQueues && costStat.getSum() >= 990000000) {
+			Utils.sleep(1);
+		}
+
 		if (veryFirstTuple) {
 			LOG.info("veryFirstTuple for spout " + id + " Sleeping 10 seconds");
 			Utils.sleep(10000);

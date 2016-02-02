@@ -30,7 +30,7 @@ public class AvgStat extends Thread implements Serializable {
 		this.stats = new TreeMap<Long, Long>();
 		this.stop = false;
 		this.sleepms = 1000;
-		this.immediateWrite = true;//immediateWrite;
+		this.immediateWrite = true;// immediateWrite;
 
 		FileWriter outFile;
 		try {
@@ -46,10 +46,14 @@ public class AvgStat extends Thread implements Serializable {
 		count++;
 	}
 
+	public long getSum() {
+		return sum;
+	}
+
 	@Override
 	public void run() {
 		while (!stop) {
-			
+
 			long time = System.currentTimeMillis();
 			if (immediateWrite) {
 				out.println(time + "," + (count != 0 ? sum / count : -1));
