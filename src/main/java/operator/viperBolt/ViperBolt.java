@@ -169,7 +169,7 @@ public class ViperBolt extends BaseRichBolt {
 	}
 
 	// startTS is for cost estimation
-	private void process(long startTS, Tuple t) {
+	private void process(Tuple t) {
 		counter++;
 		List<Values> result = f.process(t);
 		if (result != null)
@@ -179,13 +179,13 @@ public class ViperBolt extends BaseRichBolt {
 					countStat.increase(1);
 				}
 			}
-		if (keepStats) {
-			costStat.add((System.nanoTime() - startTS));
-		}
+		// if (keepStats) {
+		// costStat.add((System.nanoTime() - startTS));
+		// }
 	}
 
 	@SuppressWarnings("unchecked")
-	private void takeFromInternalBuffer(long startTS, Tuple input) {
+	private void takeFromInternalBuffer(Tuple input) {
 
 		MergerEntry nextReady = sharedChannels.getNextReadyObj("" + thisTask,
 				channelID);
@@ -196,12 +196,15 @@ public class ViperBolt extends BaseRichBolt {
 			// input.getSourceTask(), input.getSourceStreamId());
 			// LOG.info("ViperBolt " + id + " received tuple: " + t);
 
-			process(startTS,
-					new TupleImpl(context, (List<Object>) nextReady.getO(),
-							input.getSourceTask(), input.getSourceStreamId()));
+			process(new TupleImpl(context, (List<Object>) nextReady.getO(),
+					input.getSourceTask(), input.getSourceStreamId()));
 			nextReady = sharedChannels
 					.getNextReadyObj("" + thisTask, channelID);
 		}
+
+//		if (keepStats) {
+//			costStat.add((System.nanoTime() - startTS));
+//		}
 
 	}
 
@@ -219,15 +222,25 @@ public class ViperBolt extends BaseRichBolt {
 			invocationsStat.increase(1);
 
 		if (useInternalQueues)
-			takeFromInternalBuffer(start, input);
+			takeFromInternalBuffer(input);
 
 		TupleType ttype = (TupleType) input.getValueByField("type");
 
 		if (ttype.equals(TupleType.SHAREDQUEUEDUMMY)) {
+
 			emitDummy(input);
+
+			if (keepStats) {
+				costStat.add((System.nanoTime() - start));
+			}
+
 		} else if (ttype.equals(TupleType.REGULAR)) {
 
-			process(start, input);
+			process(input);
+
+			if (keepStats) {
+				costStat.add((System.nanoTime() - start));
+			}
 
 		} else if (ttype.equals(TupleType.FLUSH)) {
 
