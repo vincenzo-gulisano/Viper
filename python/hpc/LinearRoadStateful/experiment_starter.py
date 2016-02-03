@@ -57,15 +57,45 @@ if options.inputfile is None:
 data = dict()
 
 exp_num = 1
-for type in ['viper']:
+# for type in ['viper']:
+#     for main_class in ['StatefulVehicleEnteringNewSegment']:
+#         for thread in range(0, 20):
+#             for repetition in range(0, 1):
+#                 data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
+#                 data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
+#                 data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
+#                 data['exp_' + str(exp_num) + '_rep'] = str(repetition)
+#                 data['exp_' + str(exp_num) + '_config_next'] = "True"
+#                 data['exp_' + str(exp_num) + '_main_class'] = main_class
+#                 data['exp_' + str(exp_num) + '_type'] = type
+#                 if type in 'storm':
+#                     data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
+#                 elif type in 'viper':
+#                     data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
+#                 exp_num += 1
+#         for repetition in range(0, 1):
+#             data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
+#             data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
+#             data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
+#             data['exp_' + str(exp_num) + '_rep'] = str(repetition)
+#             data['exp_' + str(exp_num) + '_config_next'] = "False"
+#             data['exp_' + str(exp_num) + '_main_class'] = main_class
+#             data['exp_' + str(exp_num) + '_type'] = type
+#             if type in 'storm':
+#                 data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
+#             elif type in 'viper':
+#                 data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
+#             exp_num += 1
+
+for type in ['storm']:
     for main_class in ['StatefulVehicleEnteringNewSegment']:
-        for thread in range(0, 20):
-            for repetition in range(0, 1):
-                data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
-                data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
-                data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
-                data['exp_' + str(exp_num) + '_rep'] = str(repetition)
-                data['exp_' + str(exp_num) + '_config_next'] = "True"
+        for spout_parallelism in [1, 2, 4, 6]:
+            for op_parallelism in [1, 2, 4, 6]:
+                data['exp_' + str(exp_num) + '_spout_parallelism'] = str(spout_parallelism)
+                data['exp_' + str(exp_num) + '_op_parallelism'] = str(op_parallelism)
+                data['exp_' + str(exp_num) + '_sink_parallelism'] = str(op_parallelism)
+                data['exp_' + str(exp_num) + '_rep'] = "0"
+                data['exp_' + str(exp_num) + '_config_next'] = "False"
                 data['exp_' + str(exp_num) + '_main_class'] = main_class
                 data['exp_' + str(exp_num) + '_type'] = type
                 if type in 'storm':
@@ -73,19 +103,6 @@ for type in ['viper']:
                 elif type in 'viper':
                     data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
                 exp_num += 1
-        for repetition in range(0, 1):
-            data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
-            data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
-            data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
-            data['exp_' + str(exp_num) + '_rep'] = str(repetition)
-            data['exp_' + str(exp_num) + '_config_next'] = "False"
-            data['exp_' + str(exp_num) + '_main_class'] = main_class
-            data['exp_' + str(exp_num) + '_type'] = type
-            if type in 'storm':
-                data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "false"
-            elif type in 'viper':
-                data['exp_' + str(exp_num) + '_useoptimizedqueues'] = "true"
-            exp_num += 1
 
 data['experiment_number'] = "1"
 data['duration'] = "300"
