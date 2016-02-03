@@ -46,6 +46,8 @@ public class ViperSpout extends BaseRichSpout {
 	private double dummyProb = 0.1;
 	private boolean useInternalQueues;
 
+	private SpeedRegulator speedRegulator;
+
 	public ViperSpout(SpoutFunction udf, Fields outFields) {
 
 		this.udf = udf;
@@ -61,11 +63,8 @@ public class ViperSpout extends BaseRichSpout {
 			veryFirstTuple = false;
 		}
 
-		// Backoff for internalQueues. If you already exhausted what you could
-		// do during this second, then wait
-		if (useInternalQueues && costStat.getSum() >= 990000000) {
-			return;
-		}
+		if (!flushSent)
+			speedRegulator.regulateSpeed();
 
 		long start = System.nanoTime();
 		if (keepStats) {
@@ -154,6 +153,8 @@ public class ViperSpout extends BaseRichSpout {
 		this.useInternalQueues = temp != null ? (Boolean) temp : false;
 
 		id = arg1.getThisComponentId() + "." + arg1.getThisTaskIndex();
+
+		speedRegulator = new SpeedRegulator(id, 10000, 350000, 300, 2000);
 
 		if (keepStats) {
 			countStat = new CountStat("", statsPath + File.separator
