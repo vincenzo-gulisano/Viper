@@ -54,8 +54,8 @@ public class SpeedRegulator {
 		if (result) {
 			prevSecond = System.currentTimeMillis() / 1000;
 			secondsPassed++;
-			LOG.info("Speed regulator for " + id + ": a second has passed... ("
-					+ secondsPassed + " in total)");
+//			LOG.info("Speed regulator for " + id + ": a second has passed... ("
+//					+ secondsPassed + " in total)");
 		}
 		return result;
 	}
@@ -63,26 +63,26 @@ public class SpeedRegulator {
 	private void computeCurrentRate() {
 		currentRate = initialRate + (finalRate - initialRate) / duration
 				* secondsPassed;
-		LOG.info("Speed regulator for " + id + ": current rate is "
-				+ currentRate + " t/s");
+//		LOG.info("Speed regulator for " + id + ": current rate is "
+//				+ currentRate + " t/s");
 	}
 
 	private void computeCurrentBatchSize() {
 		batchSize = currentRate / 10;
-		LOG.info("Speed regulator for " + id + ": current batch size is "
-				+ batchSize);
+//		LOG.info("Speed regulator for " + id + ": current batch size is "
+//				+ batchSize);
 	}
 
 	private void computeCurrentSleepProb() {
 		sleepProb = 1.0 / batchSize;
-		LOG.info("Speed regulator for " + id + ": current sleep prob is "
-				+ sleepProb);
+//		LOG.info("Speed regulator for " + id + ": current sleep prob is "
+//				+ sleepProb);
 	}
 
 	private void computeSleepPeriod() {
 		this.sleepPeriod = 1000 / (currentRate / batchSize);
-		LOG.info("Speed regulator for " + id + ": current sleep period is "
-				+ sleepPeriod + " ms");
+//		LOG.info("Speed regulator for " + id + ": current sleep period is "
+//				+ sleepPeriod + " ms");
 	}
 
 	public void regulateSpeed() {
