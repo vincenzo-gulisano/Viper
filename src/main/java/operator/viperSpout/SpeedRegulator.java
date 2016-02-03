@@ -24,7 +24,9 @@ public class SpeedRegulator {
 		this.sleepProb = 1.0 / this.batchSize;
 		this.secondsPassed = 0;
 		this.firstInvocation = true;
-		this.rand = new Random();
+		// this.rand = new Random();
+
+		tupleCounter = 0;
 
 	}
 
@@ -44,14 +46,15 @@ public class SpeedRegulator {
 
 	private boolean firstInvocation;
 
-	private Random rand;
+	// private Random rand;
+	private long tupleCounter;
 
 	private boolean aSecondPassed() {
 		boolean result = System.currentTimeMillis() / 1000 - prevSecond >= 1;
 		if (result) {
 			prevSecond = System.currentTimeMillis() / 1000;
 			secondsPassed++;
-			LOG.info("Speed regulator for " + id + ": a second has passed... "
+			LOG.info("Speed regulator for " + id + ": a second has passed... ("
 					+ secondsPassed + " in total)");
 		}
 		return result;
@@ -62,6 +65,18 @@ public class SpeedRegulator {
 				* secondsPassed;
 		LOG.info("Speed regulator for " + id + ": current rate is "
 				+ currentRate + " t/s");
+	}
+
+	private void computeCurrentBatchSize() {
+		batchSize = currentRate / 10;
+		LOG.info("Speed regulator for " + id + ": current batch size is "
+				+ batchSize);
+	}
+
+	private void computeCurrentSleepProb() {
+		sleepProb = 1.0 / batchSize;
+		LOG.info("Speed regulator for " + id + ": current sleep prob is "
+				+ sleepProb);
 	}
 
 	private void computeSleepPeriod() {
@@ -76,17 +91,27 @@ public class SpeedRegulator {
 			firstInvocation = false;
 			prevSecond = System.currentTimeMillis() / 1000;
 			computeCurrentRate();
+			computeCurrentBatchSize();
+			computeCurrentSleepProb();
 			computeSleepPeriod();
+			tupleCounter = 0;
 		}
 
 		if (aSecondPassed()) {
 			computeCurrentRate();
+			computeCurrentBatchSize();
+			computeCurrentSleepProb();
 			computeSleepPeriod();
+			tupleCounter = 0;
 		}
 
-		if (rand.nextDouble() <= sleepProb)
-			Utils.sleep((long) sleepPeriod);
+		// if (rand.nextDouble() <= sleepProb)
+		if (tupleCounter >= batchSize) {
+			tupleCounter = 0;
+			Utils.sleep((long) (sleepPeriod * 0.9));
+		}
+
+		tupleCounter++;
 
 	}
-
 }

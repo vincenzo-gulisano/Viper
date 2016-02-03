@@ -154,7 +154,7 @@ public class ViperSpout extends BaseRichSpout {
 
 		id = arg1.getThisComponentId() + "." + arg1.getThisTaskIndex();
 
-		speedRegulator = new SpeedRegulator(id, 10000, 350000, 300, 2000);
+		speedRegulator = new SpeedRegulator(id, 10000, 500000, 300, 2000);
 
 		if (keepStats) {
 			countStat = new CountStat("", statsPath + File.separator
