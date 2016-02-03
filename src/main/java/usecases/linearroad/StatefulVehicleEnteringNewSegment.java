@@ -271,34 +271,34 @@ public class StatefulVehicleEnteringNewSegment {
 
 		if (useOptimizedQueues) {
 
-			// if (op_parallelism == 1) {
-			//
-			// // In this case, no need for merger.
-			//
-			// if (logOut) {
-			// builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
-			//
-			// @Override
-			// protected String convertTupleToLine(Tuple t) {
-			// return t.getIntegerByField("lr_type") + ";"
-			// + t.getLongByField("lr_time") + ";"
-			// + t.getIntegerByField("lr_vid") + ";"
-			// + t.getIntegerByField("lr_speed") + ";"
-			// + t.getIntegerByField("lr_xway") + ";"
-			// + t.getIntegerByField("lr_lane") + ";"
-			// + t.getIntegerByField("lr_dir") + ";"
-			// + t.getIntegerByField("lr_seg") + ";"
-			// + t.getIntegerByField("lr_pos") + ";"
-			// + t.getBooleanByField("new_seg");
-			// }
-			//
-			// }), sink_parallelism).shuffleGrouping("op");
-			// } else {
-			// builder.setBolt("sink", new Sink(), sink_parallelism)
-			// .shuffleGrouping("op");
-			// }
-			//
-			// } else if (op_parallelism > 1) {
+			if (op_parallelism == 1) {
+
+				// In this case, no need for merger.
+
+				if (logOut) {
+					builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
+
+						@Override
+						protected String convertTupleToLine(Tuple t) {
+							return t.getIntegerByField("lr_type") + ";"
+									+ t.getLongByField("lr_time") + ";"
+									+ t.getIntegerByField("lr_vid") + ";"
+									+ t.getIntegerByField("lr_speed") + ";"
+									+ t.getIntegerByField("lr_xway") + ";"
+									+ t.getIntegerByField("lr_lane") + ";"
+									+ t.getIntegerByField("lr_dir") + ";"
+									+ t.getIntegerByField("lr_seg") + ";"
+									+ t.getIntegerByField("lr_pos") + ";"
+									+ t.getBooleanByField("new_seg");
+						}
+
+					}), sink_parallelism).shuffleGrouping("op");
+				} else {
+					builder.setBolt("sink", new Sink(), sink_parallelism)
+							.shuffleGrouping("op");
+				}
+
+			} else if (op_parallelism > 1) {
 
 			if (logOut) {
 				builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
@@ -329,10 +329,10 @@ public class StatefulVehicleEnteringNewSegment {
 										statsPath, topologyName, 1));
 			}
 
-			// } else {
-			// throw new RuntimeException(
-			// "Operator parallelism seems to be negative...");
-			// }
+			 } else {
+			 throw new RuntimeException(
+			 "Operator parallelism seems to be negative...");
+			 }
 
 		} else {
 
