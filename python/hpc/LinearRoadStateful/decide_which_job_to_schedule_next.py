@@ -134,6 +134,9 @@ if highest_cost_op == 'sink_merger':
     print('Since the operator is the sink_merger, the thread actually goes to sink')
     highest_cost_op = 'sink'
 
+print('Assigning new thread to spout (HARD CODED!!!!!!)')
+highest_cost_op = 'spout'
+
 # Keep some stats...
 
 index = 0

@@ -4,8 +4,8 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/160125/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/160125'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/speedregulation/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/speedregulation'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
@@ -89,12 +89,12 @@ for type in ['storm']:
 
                 exp_num += 1
 
-                create_graph_multiple_time_value(threads, throughput_avg, keys, main_title + 'Throughput', 'Threads',
-                                                 'Throughput (t/s)', results_base_folder + '/' + id + '_throughput.pdf')
-                create_graph_multiple_time_value(threads, latency_avg, keys, main_title + 'Latency', 'Threads', 'Latency (ms)',
-                                                 results_base_folder + '/' + id + '_latency.pdf')
-                create_graph_multiple_time_value(threads, consumption_avg, keys, main_title + 'Consumption', 'Threads',
-                                                 'Consumption (W/t)', results_base_folder + '/' + id + '_consumption.pdf')
+                # create_graph_multiple_time_value(threads, throughput_avg, keys, main_title + 'Throughput', 'Threads',
+                #                                  'Throughput (t/s)', results_base_folder + '/' + id + '_throughput.pdf')
+                # create_graph_multiple_time_value(threads, latency_avg, keys, main_title + 'Latency', 'Threads', 'Latency (ms)',
+                #                                  results_base_folder + '/' + id + '_latency.pdf')
+                # create_graph_multiple_time_value(threads, consumption_avg, keys, main_title + 'Consumption', 'Threads',
+                #                                  'Consumption (W/t)', results_base_folder + '/' + id + '_consumption.pdf')
                 # create_graph_multiple_time_value(threads, op_cost_avg, keys, main_title + 'Operator Cost', 'Threads',
                 #                                  'Cost (nanoseconds)', results_base_folder + '/' + id + '_opcost.pdf')
                 # create_graph_multiple_time_value(threads, selectivity_avg, keys, main_title + 'Operator Selectivity', 'Threads',

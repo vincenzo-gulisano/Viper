@@ -1,7 +1,5 @@
 package operator.viperSpout;
 
-import java.util.Random;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +47,8 @@ public class SpeedRegulator {
 	// private Random rand;
 	private long tupleCounter;
 
+	private long prevSleepSystemTime;
+
 	private boolean aSecondPassed() {
 		boolean result = System.currentTimeMillis() / 1000 - prevSecond >= 1;
 		if (result) {
@@ -95,6 +95,7 @@ public class SpeedRegulator {
 			computeCurrentSleepProb();
 			computeSleepPeriod();
 			tupleCounter = 0;
+			prevSleepSystemTime = System.currentTimeMillis();
 		}
 
 		if (aSecondPassed()) {
@@ -108,7 +109,9 @@ public class SpeedRegulator {
 		// if (rand.nextDouble() <= sleepProb)
 		if (tupleCounter >= batchSize) {
 			tupleCounter = 0;
-			Utils.sleep((long) (sleepPeriod * 0.9));
+			long adjustment = System.currentTimeMillis()-prevSleepSystemTime;
+			Utils.sleep((long) (sleepPeriod) - adjustment);
+			prevSleepSystemTime = System.currentTimeMillis();
 		}
 
 		tupleCounter++;
