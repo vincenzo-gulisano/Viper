@@ -11,8 +11,11 @@ public class AvgStat extends Thread implements Serializable {
 
 	private static final long serialVersionUID = 2415520958777993198L;
 
-	private long sum;
-	private long count;
+	private boolean switch_ = false;
+	private long sumA;
+	private long countA;
+	private long sumB;
+	private long countB;
 	private TreeMap<Long, Long> stats;
 
 	private boolean stop;
@@ -25,8 +28,10 @@ public class AvgStat extends Thread implements Serializable {
 
 	public AvgStat(String id, String outputFile, boolean immediateWrite) {
 		this.id = id;
-		this.sum = 0;
-		this.count = 0;
+		this.sumA = 0;
+		this.countA = 0;
+		this.sumB = 0;
+		this.countB = 0;
 		this.stats = new TreeMap<Long, Long>();
 		this.stop = false;
 		this.sleepms = 1000;
@@ -42,12 +47,20 @@ public class AvgStat extends Thread implements Serializable {
 	}
 
 	public void add(long v) {
-		sum += v;
-		count++;
+		if (switch_) {
+			sumA += v;
+			countA++;
+		} else {
+			sumB += v;
+			countB++;
+		}
 	}
 
 	public long getSum() {
-		return sum;
+		if (switch_)
+			return sumA;
+		else
+			return sumB;
 	}
 
 	@Override
@@ -55,15 +68,33 @@ public class AvgStat extends Thread implements Serializable {
 		while (!stop) {
 
 			long time = System.currentTimeMillis();
-			if (immediateWrite) {
-				out.println(time + "," + (count != 0 ? sum / count : -1));
-				out.flush();
-			} else {
-				this.stats.put(time, count != 0 ? sum / count : -1);
-			}
 
-			sum = 0;
-			count = 0;
+			switch_ = !switch_;
+			if (switch_) {
+
+				if (immediateWrite) {
+					out.println(time + "," + (countB != 0 ? sumB / countB : -1));
+					out.flush();
+				} else {
+					this.stats.put(time, countB != 0 ? sumB / countB : -1);
+				}
+
+				sumB = 0;
+				countB = 0;
+
+			} else {
+
+				if (immediateWrite) {
+					out.println(time + "," + (countA != 0 ? sumA / countA : -1));
+					out.flush();
+				} else {
+					this.stats.put(time, countA != 0 ? sumA / countA : -1);
+				}
+
+				sumA = 0;
+				countA = 0;
+
+			}
 
 			long stop = System.currentTimeMillis();
 			if ((sleepms - (stop - time)) > 0)
