@@ -156,8 +156,8 @@ public class ViperSpout extends BaseRichSpout {
 
 		long parallelism = arg1.getComponentTasks(arg1.getThisComponentId())
 				.size();
-		speedRegulator = new SpeedRegulator(id, 10000 /*/ parallelism*/,
-				500000 /*/ parallelism*/, 300, 2000);
+		speedRegulator = new SpeedRegulator(id, 10000 / parallelism,
+				500000 / parallelism, 300, 2000);
 
 		if (keepStats) {
 			countStat = new CountStat("", statsPath + File.separator
