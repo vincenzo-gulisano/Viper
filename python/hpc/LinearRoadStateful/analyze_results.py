@@ -1,11 +1,11 @@
 import json
-from LinearRoad.create_single_exp_graphs import create_single_exp_graphs
+from LinearRoadStateful.create_single_exp_graphs import create_single_exp_graphs
 from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/speedregulation/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/speedregulation'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_posreponly2/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_posreponly2'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
@@ -49,6 +49,14 @@ for type in ['storm']:
                 results_folder = results_base_folder + '/' + result_path + '/'
                 onlyfiles = [f for f in listdir(results_folder) if isfile(join(results_folder, f)) and 'RAPL' in f]
                 print('Analyzing result folder ' + results_folder + ' (experiment ' + str(exp_num) + ')')
+
+                text_file = open(
+                        "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_posreponly2/summaries.csv",
+                        "a")
+                text_file.write('\n')
+                text_file.write(exp_id + '\n')
+                text_file.close()
+
                 [throughput, latency, consumption] = create_single_exp_graphs(state_folder,
                                                                               results_folder,
                                                                               onlyfiles[0],
@@ -58,17 +66,17 @@ for type in ['storm']:
 
                 stats_data[
                     id + '_thread_' + str(thread) + '_repetition_' + str(
-                        repetition) + '_spout_parallelism'] = spout_parallelism
+                            repetition) + '_spout_parallelism'] = spout_parallelism
                 stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                    repetition) + '_op_parallelism'] = op_parallelism
+                        repetition) + '_op_parallelism'] = op_parallelism
                 stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                    repetition) + '_sink_parallelism'] = sink_parallelism
+                        repetition) + '_sink_parallelism'] = sink_parallelism
                 stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                    repetition) + '_throughput'] = throughput
+                        repetition) + '_throughput'] = throughput
                 stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                    repetition) + '_latency'] = latency
+                        repetition) + '_latency'] = latency
                 stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                    repetition) + '_consumption'] = consumption
+                        repetition) + '_consumption'] = consumption
                 # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
                 #     repetition) + '_op_cost'] = op_cost
                 # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
@@ -76,9 +84,9 @@ for type in ['storm']:
 
                 number_of_threads = spout_parallelism + op_parallelism + sink_parallelism
                 if spout_parallelism > 1:
-                    number_of_threads+=op_parallelism
+                    number_of_threads += op_parallelism
                 if op_parallelism > 1:
-                    number_of_threads+=sink_parallelism
+                    number_of_threads += sink_parallelism
 
                 threads[id].append(number_of_threads)
                 throughput_avg[id].append(throughput)
