@@ -43,13 +43,14 @@ def create_graph_time_value(x, y, title, x_label, y_label, outFile):
     step = 20
     counter = 1
     text_file = open(
-            "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_posreponly2/summaries.csv", "a")
+            "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_stoppedcarsonly/summaries.csv",
+            "a")
     text_file.write(title)
     for i in range(int(x[0]) + step, int(x[-1]), step):
         plt.plot([i, i], [min(y), max(y)], color='r')
         indexes = [index for index, value in enumerate(x) if value >= i - step and value < i]
         plt.text(i, min(y), str(counter) + '\n' + str(int(statistics.median(y[indexes[0]:indexes[-1]]))),
-                 verticalalignment='bottom', horizontalalignment='right', fontsize=5)
+                 verticalalignment='bottom', horizontalalignment='right', fontsize=7)
         text_file.write('\t' + str(counter) + ':' + str(int(statistics.median(y[indexes[0]:indexes[-1]]))))
         counter += 1
     text_file.write('\n')
@@ -61,6 +62,96 @@ def create_graph_time_value(x, y, title, x_label, y_label, outFile):
     plt.grid(True)
     plt.close()
 
+    pp.savefig(f)
+    pp.close()
+
+    return
+
+
+def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink_latency_x, sink_latency_y,
+                          cons_x, cons_y, outFile):
+    rcParams.update({'figure.autolayout': True})
+    pp = PdfPages(outFile)
+
+    f = plt.figure()
+    f.set_size_inches(20, 10)
+
+    plt.subplot(2, 3, 1)
+    plt.plot(spout_rate_x, spout_rate_y)
+    plt.xlabel('time (seconds)')
+    plt.ylabel('throughput (t/s)')
+    plt.title('Spout throughput')
+    plt.grid(True)
+
+    step = 10
+
+    # Here I am assuming all x lists have the same size!!!
+    text_values = [['' for x in range(3)] for x in range(int(spout_rate_x[0]) + step, int(spout_rate_x[-1]), step)]
+
+    counter = 0
+    for i in range(int(spout_rate_x[0]) + step, int(spout_rate_x[-1]), step):
+        plt.plot([i, i], [min(spout_rate_y), max(spout_rate_y)], color='r')
+        indexes = [index for index, value in enumerate(spout_rate_x) if value >= i - step and value < i]
+        text_values[counter][0] = str(int(statistics.median(spout_rate_y[indexes[0]:indexes[-1]])))
+        plt.text(i, min(spout_rate_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+        counter += 1
+
+    plt.subplot(2, 3, 2)
+    plt.plot(op_rate_x, op_rate_y)
+    plt.xlabel('time (seconds)')
+    plt.ylabel('throughput (t/s)')
+    plt.title('Op throughput')
+    plt.grid(True)
+
+    counter = 0
+    for i in range(int(op_rate_x[0]) + step, int(op_rate_x[-1]), step):
+        plt.plot([i, i], [min(op_rate_y), max(op_rate_y)], color='r')
+        plt.text(i, min(op_rate_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+        counter += 1
+
+    plt.subplot(2, 3, 4)
+    plt.plot(sink_latency_x, sink_latency_y)
+    plt.xlabel('time (seconds)')
+    plt.ylabel('latency')
+    plt.title('Sink latency')
+    plt.grid(True)
+
+    counter = 0
+    for i in range(int(sink_latency_x[0]) + step, int(sink_latency_x[-1]), step):
+        plt.plot([i, i], [min(sink_latency_y), max(sink_latency_y)], color='r')
+        indexes = [index for index, value in enumerate(sink_latency_x) if value >= i - step and value < i]
+        text_values[counter][1] = str(int(statistics.median(sink_latency_y[indexes[0]:indexes[-1]])))
+        plt.text(i, min(sink_latency_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+        counter += 1
+
+    plt.subplot(2, 3, 5)
+    plt.plot(cons_x, cons_y)
+    plt.xlabel('time (seconds)')
+    plt.ylabel('Consumption (watts/second)')
+    plt.title('Consumption')
+    plt.grid(True)
+
+    counter = 0
+    for i in range(int(cons_x[0]) + step, int(cons_x[-1]), step):
+        plt.plot([i, i], [min(cons_y), max(cons_y)], color='r')
+        indexes = [index for index, value in enumerate(cons_x) if value >= i - step and value < i]
+        text_values[counter][2] = str(int(statistics.median(cons_y[indexes[0]:indexes[-1]])))
+        plt.text(i, min(cons_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+        counter += 1
+
+    ax = plt.subplot2grid((2, 3), (0, 2), rowspan=2)
+    range_length = len(range(int(cons_x[0]) + step, int(cons_x[-1]), step))
+    counter = 0
+    for i in range(int(cons_x[0]) + step, int(cons_x[-1]), step):
+        plt.text(0, 1 - counter * (1 / range_length), str(counter) + ': ' + str(text_values[counter]),
+                 verticalalignment='top', horizontalalignment='left', fontsize=10)
+        counter += 1
+
+    plt.close()
     pp.savefig(f)
     pp.close()
 
@@ -206,6 +297,13 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     throughput = scipystat.trim_mean(results['spout_rate_value'][start_ts:end_ts], 0.05)
     latency = scipystat.trim_mean(results['sink_latency_value'][start_ts:end_ts], 0.05)
     consumption = scipystat.trim_mean(consumption_value[start_ts:end_ts], 0.05) / throughput
+
+    create_overview_graph(results['spout_rate_ts'][start_ts:end_ts], results['spout_rate_value'][start_ts:end_ts],
+                          results['op_rate_ts'][start_ts:end_ts], results['op_rate_value'][start_ts:end_ts],
+                          results['sink_latency_ts'][start_ts:end_ts], results['sink_latency_value'][start_ts:end_ts],
+                          consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
+                          consumption_value[consumption_start_ts_index:consumption_end_ts_index],
+                          results_folder + 'summary.pdf')
 
     # This is the average processing tuple cost (in nanoseconds)
     # op_cost = scipystat.trim_mean(results['op_cost_value'][start_ts:end_ts], 0.05)

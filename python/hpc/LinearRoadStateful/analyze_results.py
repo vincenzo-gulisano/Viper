@@ -4,8 +4,8 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_posreponly2/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_posreponly2'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_stoppedcarsonly/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_stoppedcarsonly'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
@@ -38,7 +38,7 @@ for type in ['storm']:
         op_cost_avg[id] = []
         selectivity_avg[id] = []
 
-        for thread in range(0, 20):
+        for thread in range(0, 40):
             for repetition in range(0, 1):
                 result_path = state['exp_' + str(exp_num) + '_results_folder']
                 result_path = result_path.split('/')[-2]
@@ -51,7 +51,7 @@ for type in ['storm']:
                 print('Analyzing result folder ' + results_folder + ' (experiment ' + str(exp_num) + ')')
 
                 text_file = open(
-                        "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_posreponly2/summaries.csv",
+                        "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_stoppedcarsonly/summaries.csv",
                         "a")
                 text_file.write('\n')
                 text_file.write(exp_id + '\n')
