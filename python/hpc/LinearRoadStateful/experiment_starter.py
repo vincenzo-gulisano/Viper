@@ -95,7 +95,7 @@ for type in ['storm', 'viper']:
             for op_parallelism in [1, 2, 4, 6]:
                 data['exp_' + str(exp_num) + '_spout_parallelism'] = str(spout_parallelism)
                 data['exp_' + str(exp_num) + '_op_parallelism'] = str(op_parallelism)
-                data['exp_' + str(exp_num) + '_sink_parallelism'] = str(op_parallelism)
+                data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
                 data['exp_' + str(exp_num) + '_rep'] = "0"
                 data['exp_' + str(exp_num) + '_config_next'] = "False"
                 data['exp_' + str(exp_num) + '_main_class'] = main_class
