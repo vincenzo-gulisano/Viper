@@ -16,7 +16,6 @@ import operator.viperBolt.BoltFunction;
 import operator.viperBolt.ViperBolt;
 import operator.viperSpout.SpoutFunction;
 import operator.viperSpout.ViperSpout;
-import topology.ViperFieldsSharedChannels;
 import topology.ViperShuffleSharedChannels;
 import topology.ViperTopologyBuilder;
 import backtype.storm.Config;
@@ -168,8 +167,8 @@ public class StatelessForwardPositionReportsOnly {
 							"lr_seg", "lr_pos"), new CheckNewSegment()),
 					op_parallelism).customGrouping(
 					"spout",
-					new ViperFieldsSharedChannels(logStats, statsPath,
-							topologyName, 1, 2));
+					new ViperShuffleSharedChannels(logStats, statsPath,
+							topologyName, 1));
 
 		} else {
 
@@ -182,7 +181,7 @@ public class StatelessForwardPositionReportsOnly {
 								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
 								"lr_dir", "lr_seg", "lr_pos"),
 								new CheckNewSegment()), op_parallelism)
-						.fieldsGrouping("spout", new Fields("lr_vid"));
+						.shuffleGrouping("spout");
 
 			} else if (spout_parallelism > 1) {
 
@@ -191,8 +190,7 @@ public class StatelessForwardPositionReportsOnly {
 						new ViperMerger(new Fields("lr_type", "lr_time",
 								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
 								"lr_dir", "lr_seg", "lr_pos"), "lr_time"),
-						op_parallelism).fieldsGrouping("spout",
-						new Fields("lr_vid"));
+						op_parallelism).shuffleGrouping("spout");
 
 				builder.setBolt(
 						"op",

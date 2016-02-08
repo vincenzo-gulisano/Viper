@@ -88,8 +88,9 @@ exp_num = 1
 #             exp_num += 1
 
 # StatelessForwardPositionReportsOnly
-for type in ['viper']:
-    for main_class in ['StatelessForwardStoppedCarsOnly']:
+for type in ['storm', 'viper']:
+    for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
+                       'StatelessForwardStoppedCarsOnly']:
         for spout_parallelism in [1, 2, 4, 6]:
             for op_parallelism in [1, 2, 4, 6]:
                 data['exp_' + str(exp_num) + '_spout_parallelism'] = str(spout_parallelism)
@@ -124,11 +125,11 @@ exp_id = exp_id.replace('.', '-')
 
 command = 'usecases.linearroad.' + data[
     'exp_' + data['experiment_number'] + '_main_class'] + ' false true \$LOGDIR \$kill_id ' + str(
-    data['duration']) + ' ' + str(
-    data['exp_' + data['experiment_number'] + '_spout_parallelism']) + ' ' + str(
-    data['exp_' + data['experiment_number'] + '_op_parallelism']) + ' ' + str(
-    data['exp_' + data['experiment_number'] + '_sink_parallelism']) + ' ' + str(
-    data['input_file']) + ' ' + str(data['exp_' + data['experiment_number'] + '_useoptimizedqueues']) + ' 1'
+        data['duration']) + ' ' + str(
+        data['exp_' + data['experiment_number'] + '_spout_parallelism']) + ' ' + str(
+        data['exp_' + data['experiment_number'] + '_op_parallelism']) + ' ' + str(
+        data['exp_' + data['experiment_number'] + '_sink_parallelism']) + ' ' + str(
+        data['input_file']) + ' ' + str(data['exp_' + data['experiment_number'] + '_useoptimizedqueues']) + ' 1'
 
 data['exp_' + data['experiment_number'] + '_id'] = exp_id
 data['exp_' + data['experiment_number'] + '_command'] = command

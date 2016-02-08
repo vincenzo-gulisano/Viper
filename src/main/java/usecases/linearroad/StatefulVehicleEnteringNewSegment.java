@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import operator.csvSink.CSVFileWriter;
 import operator.csvSink.CSVSink;
@@ -68,7 +67,7 @@ public class StatefulVehicleEnteringNewSegment {
 			long repetition = 0;
 			long timeStep = 60 * 60 * 3;
 
-			Random r = new Random();
+			// Random r = new Random();
 
 			@SuppressWarnings("rawtypes")
 			@Override
@@ -196,19 +195,6 @@ public class StatefulVehicleEnteringNewSegment {
 
 		if (useOptimizedQueues) {
 
-			// if (spout_parallelism == 1) {
-			//
-			// // In this case, no need for merger.
-			// builder.setBolt(
-			// "op",
-			// new ViperBolt(new Fields("lr_type", "lr_time",
-			// "lr_vid", "lr_speed", "lr_xway", "lr_lane",
-			// "lr_dir", "lr_seg", "lr_pos", "new_seg"),
-			// new CheckNewSegment()), op_parallelism)
-			// .fieldsGrouping("spout", new Fields("lr_vid"));
-			//
-			// } else if (spout_parallelism > 1) {
-
 			builder.setBolt(
 					"op",
 					new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
@@ -219,11 +205,6 @@ public class StatefulVehicleEnteringNewSegment {
 							"spout",
 							new ViperFieldsSharedChannels(logStats, statsPath,
 									topologyName, 1, 2));
-
-			// } else {
-			// throw new RuntimeException(
-			// "Spout parallelism seems to be negative...");
-			// }
 
 		} else {
 
@@ -271,68 +252,11 @@ public class StatefulVehicleEnteringNewSegment {
 
 		if (useOptimizedQueues) {
 
-			// if (op_parallelism == 1) {
-			//
-			// // In this case, no need for merger.
-			//
-			// if (logOut) {
-			// builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
-			//
-			// @Override
-			// protected String convertTupleToLine(Tuple t) {
-			// return t.getIntegerByField("lr_type") + ";"
-			// + t.getLongByField("lr_time") + ";"
-			// + t.getIntegerByField("lr_vid") + ";"
-			// + t.getIntegerByField("lr_speed") + ";"
-			// + t.getIntegerByField("lr_xway") + ";"
-			// + t.getIntegerByField("lr_lane") + ";"
-			// + t.getIntegerByField("lr_dir") + ";"
-			// + t.getIntegerByField("lr_seg") + ";"
-			// + t.getIntegerByField("lr_pos") + ";"
-			// + t.getBooleanByField("new_seg");
-			// }
-			//
-			// }), sink_parallelism).shuffleGrouping("op");
-			// } else {
-			// builder.setBolt("sink", new Sink(), sink_parallelism)
-			// .shuffleGrouping("op");
-			// }
-			//
-			// } else if (op_parallelism > 1) {
-
-			// if (logOut) {
-			// builder.setBolt("sink", new CSVSink(new CSVFileWriter() {
-			//
-			// @Override
-			// protected String convertTupleToLine(Tuple t) {
-			// return t.getIntegerByField("lr_type") + ";"
-			// + t.getLongByField("lr_time") + ";"
-			// + t.getIntegerByField("lr_vid") + ";"
-			// + t.getIntegerByField("lr_speed") + ";"
-			// + t.getIntegerByField("lr_xway") + ";"
-			// + t.getIntegerByField("lr_lane") + ";"
-			// + t.getIntegerByField("lr_dir") + ";"
-			// + t.getIntegerByField("lr_seg") + ";"
-			// + t.getIntegerByField("lr_pos") + ";"
-			// + t.getBooleanByField("new_seg");
-			// }
-			//
-			// }), sink_parallelism).customGrouping(
-			// "op",
-			// new ViperShuffleSharedChannels(logStats, statsPath,
-			// topologyName, 1));
-			// } else {
 			builder.setBolt("sink", new Sink(), sink_parallelism)
 					.customGrouping(
 							"op",
 							new ViperShuffleSharedChannels(logStats, statsPath,
 									topologyName, 1));
-			// }
-
-			// } else {
-			// throw new RuntimeException(
-			// "Operator parallelism seems to be negative...");
-			// }
 
 		} else {
 

@@ -4,8 +4,8 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/viper_newseg/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/viper_newseg'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/viper_stoppedcarsonly/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/viper_stoppedcarsonly'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
