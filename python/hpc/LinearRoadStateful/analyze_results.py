@@ -4,8 +4,8 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_stoppedcarsonly/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_stoppedcarsonly'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/viper_newseg/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/viper_newseg'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
@@ -50,12 +50,12 @@ for type in ['storm']:
                 onlyfiles = [f for f in listdir(results_folder) if isfile(join(results_folder, f)) and 'RAPL' in f]
                 print('Analyzing result folder ' + results_folder + ' (experiment ' + str(exp_num) + ')')
 
-                text_file = open(
-                        "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_stoppedcarsonly/summaries.csv",
-                        "a")
-                text_file.write('\n')
-                text_file.write(exp_id + '\n')
-                text_file.close()
+                # text_file = open(
+                #         "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/viper_newseg/summaries.csv",
+                #         "a")
+                # text_file.write('\n')
+                # text_file.write(exp_id + '\n')
+                # text_file.close()
 
                 [throughput, latency, consumption] = create_single_exp_graphs(state_folder,
                                                                               results_folder,

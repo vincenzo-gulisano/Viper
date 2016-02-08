@@ -42,19 +42,19 @@ def create_graph_time_value(x, y, title, x_label, y_label, outFile):
 
     step = 20
     counter = 1
-    text_file = open(
-            "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_stoppedcarsonly/summaries.csv",
-            "a")
-    text_file.write(title)
+    # text_file = open(
+    #         "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/storm_stoppedcarsonly/summaries.csv",
+    #         "a")
+    # text_file.write(title)
     for i in range(int(x[0]) + step, int(x[-1]), step):
         plt.plot([i, i], [min(y), max(y)], color='r')
         indexes = [index for index, value in enumerate(x) if value >= i - step and value < i]
         plt.text(i, min(y), str(counter) + '\n' + str(int(statistics.median(y[indexes[0]:indexes[-1]]))),
                  verticalalignment='bottom', horizontalalignment='right', fontsize=7)
-        text_file.write('\t' + str(counter) + ':' + str(int(statistics.median(y[indexes[0]:indexes[-1]]))))
+        # text_file.write('\t' + str(counter) + ':' + str(int(statistics.median(y[indexes[0]:indexes[-1]]))))
         counter += 1
-    text_file.write('\n')
-    text_file.close()
+    # text_file.write('\n')
+    # text_file.close()
 
     plt.xlabel(x_label)
     plt.ylabel(y_label)

@@ -216,20 +216,11 @@ public class StatelessForwardStoppedCarsOnly {
 
 		if (useOptimizedQueues) {
 
-			if (op_parallelism == 1) {
-
-				builder.setBolt("sink", new Sink(), sink_parallelism)
-						.shuffleGrouping("op");
-
-			} else if (op_parallelism > 1) {
-
-				builder.setBolt("sink", new Sink(), sink_parallelism)
-						.customGrouping(
-								"op",
-								new ViperShuffleSharedChannels(logStats,
-										statsPath, topologyName, 1));
-
-			}
+			builder.setBolt("sink", new Sink(), sink_parallelism)
+					.customGrouping(
+							"op",
+							new ViperShuffleSharedChannels(logStats, statsPath,
+									topologyName, 1));
 
 		} else {
 
