@@ -88,9 +88,11 @@ exp_num = 1
 #             exp_num += 1
 
 # StatelessForwardPositionReportsOnly
-for type in ['storm', 'viper']:
-    for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
-                       'StatelessForwardStoppedCarsOnly']:
+# for type in ['storm', 'viper']:
+#     for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
+#                        'StatelessForwardStoppedCarsOnly']:
+for type in ['storm']:
+    for main_class in ['CostsAndSelectivities']:
         for spout_parallelism in [1, 2, 4, 6]:
             for op_parallelism in [1, 2, 4, 6]:
                 data['exp_' + str(exp_num) + '_spout_parallelism'] = str(spout_parallelism)

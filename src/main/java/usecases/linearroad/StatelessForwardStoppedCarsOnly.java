@@ -1,22 +1,13 @@
 package usecases.linearroad;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import operator.merger.ViperMerger;
 import operator.sink.Sink;
-import operator.viperBolt.BoltFunction;
+import operator.viperBolt.BoltFunctionBase;
 import operator.viperBolt.ViperBolt;
-import operator.viperSpout.SpoutFunction;
 import operator.viperSpout.ViperSpout;
-import topology.ViperFieldsSharedChannels;
 import topology.ViperShuffleSharedChannels;
 import topology.ViperTopologyBuilder;
 import backtype.storm.Config;
@@ -24,7 +15,7 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
-import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
@@ -48,95 +39,24 @@ public class StatelessForwardStoppedCarsOnly {
 		boolean useOptimizedQueues = Boolean.valueOf(args[9]);
 		final int workers = Integer.valueOf(args[10]);
 
-		boolean logOut = false; // Boolean.valueOf(args[11]);
-
 		ViperTopologyBuilder builder = new ViperTopologyBuilder();
 
 		// //////////////// SPOUT //////////////////////////
 
-		builder.setSpout("spout", new ViperSpout(new SpoutFunction() {
+		builder.setSpout("spout", new ViperSpout(new LRSpout(input_data,
+				spout_parallelism, duration), new Fields("lr_type", "lr_time",
+				"lr_vid", "lr_speed", "lr_xway", "lr_lane", "lr_dir", "lr_seg",
+				"lr_pos")), spout_parallelism);
 
-			private long startTimestamp;
-			private ArrayList<LRTuple> input_tuples;
-			int index = 0;
-			// long counter = 0;
+		// //////////////// OPERATOR //////////////////////////
 
-			// Force time to increase even if we are looping on input tuples.
-			long repetition = 0;
-			long timeStep = 60 * 60 * 3;
-
-			@SuppressWarnings("rawtypes")
-			@Override
-			public void prepare(Map stormConf, TopologyContext context) {
-
-				startTimestamp = System.currentTimeMillis();
-				input_tuples = new ArrayList<LRTuple>();
-
-				int taskIndex = context.getThisTaskIndex();
-
-				// Read input data
-				try {
-					// Open the file
-					FileInputStream fstream = new FileInputStream(input_data);
-					BufferedReader br = new BufferedReader(
-							new InputStreamReader(fstream));
-
-					String strLine;
-
-					// Read File Line By Line
-					int lineNumber = 0;
-					while ((strLine = br.readLine()) != null) {
-						if (lineNumber % spout_parallelism == taskIndex) {
-							LRTuple t = new LRTuple(strLine);
-							input_tuples.add(t);
-						}
-						lineNumber++;
-					}
-
-					// Close the input stream
-					br.close();
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-
-			}
+		class Filter extends BoltFunctionBase {
 
 			@Override
-			public boolean hasNext() {
-				return (System.currentTimeMillis() - startTimestamp) < duration * 1000;
-			}
-
-			@Override
-			public Values getTuple() {
-
-				LRTuple t = input_tuples.get(index);
-
-				Values result = new Values(t.type, t.time + repetition
-						* timeStep, t.vid, t.speed, t.xway, t.lane, t.dir,
-						t.seg, t.pos);
-				index = (index + 1) % input_tuples.size();
-
-				// Force time to increase even if we are looping on input
-				// tuples.
-				if (index == 0)
-					repetition++;
-
-				return result;
-			}
-
-		}, new Fields("lr_type", "lr_time", "lr_vid", "lr_speed", "lr_xway",
-				"lr_lane", "lr_dir", "lr_seg", "lr_pos")), spout_parallelism);
-
-		// //////////////// STATEFUL OPERATOR //////////////////////////
-
-		class CheckNewSegment implements BoltFunction {
-
 			public List<Values> process(Tuple arg0) {
 				List<Values> results = new ArrayList<Values>();
 				if (arg0.getIntegerByField("lr_type") == 0
-						&& arg0.getIntegerByField("lr_speed") == 0) {
+						&& arg0.getIntegerByField("lr_speed") == 0)
 					results.add(new Values(arg0.getIntegerByField("lr_type"),
 							arg0.getLongByField("lr_time"), arg0
 									.getIntegerByField("lr_vid"), arg0
@@ -146,46 +66,29 @@ public class StatelessForwardStoppedCarsOnly {
 									.getIntegerByField("lr_dir"), arg0
 									.getIntegerByField("lr_seg"), arg0
 									.getIntegerByField("lr_pos")));
-				}
 				return results;
-			}
-
-			@SuppressWarnings("rawtypes")
-			public void prepare(Map arg0, TopologyContext arg1) {
-			}
-
-			public List<Values> receivedFlush(Tuple arg0) {
-				return new ArrayList<Values>();
 			}
 
 		}
 
+		BoltDeclarer op = builder.setBolt("op", new ViperBolt(new Fields(
+				"lr_type", "lr_time", "lr_vid", "lr_speed", "lr_xway",
+				"lr_lane", "lr_dir", "lr_seg", "lr_pos"), new Filter()),
+				op_parallelism);
+
 		if (useOptimizedQueues) {
 
-			builder.setBolt(
-					"op",
-					new ViperBolt(new Fields("lr_type", "lr_time", "lr_vid",
-							"lr_speed", "lr_xway", "lr_lane", "lr_dir",
-							"lr_seg", "lr_pos"), new CheckNewSegment()),
-					op_parallelism).customGrouping(
-					"spout",
-					new ViperShuffleSharedChannels(logStats, statsPath,
-							topologyName, 1));
+			op.customGrouping("spout", new ViperShuffleSharedChannels(logStats,
+					statsPath, topologyName, 1));
 
 		} else {
 
 			if (spout_parallelism == 1) {
 
 				// In this case, no need for merger.
-				builder.setBolt(
-						"op",
-						new ViperBolt(new Fields("lr_type", "lr_time",
-								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
-								"lr_dir", "lr_seg", "lr_pos"),
-								new CheckNewSegment()), op_parallelism)
-						.shuffleGrouping("spout");
+				op.shuffleGrouping("spout");
 
-			} else if (spout_parallelism > 1) {
+			} else {
 
 				builder.setBolt(
 						"op_merger",
@@ -194,24 +97,13 @@ public class StatelessForwardStoppedCarsOnly {
 								"lr_dir", "lr_seg", "lr_pos"), "lr_time"),
 						op_parallelism).shuffleGrouping("spout");
 
-				builder.setBolt(
-						"op",
-						new ViperBolt(new Fields("lr_type", "lr_time",
-								"lr_vid", "lr_speed", "lr_xway", "lr_lane",
-								"lr_dir", "lr_seg", "lr_pos"),
-								new CheckNewSegment()), op_parallelism)
-						.directGrouping("op_merger");
+				op.directGrouping("op_merger");
 
 			}
 
 		}
 
 		// //////////////// SINK //////////////////////////
-
-		/*
-		 * Now the tricky part First of all, check if the previous operator has
-		 * at least two instances, otherwise no need for merger
-		 */
 
 		if (useOptimizedQueues) {
 
@@ -228,7 +120,7 @@ public class StatelessForwardStoppedCarsOnly {
 				builder.setBolt("sink", new Sink(), sink_parallelism)
 						.shuffleGrouping("op");
 
-			} else if (op_parallelism > 1) {
+			} else {
 
 				builder.setBolt(
 						"sink_merger",
@@ -251,14 +143,6 @@ public class StatelessForwardStoppedCarsOnly {
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
 		conf.put("merger.type", "MergerScaleGate");
-
-		if (logOut) {
-			for (int i = 0; i < sink_parallelism; i++) {
-				conf.put("sink." + i + ".filepath", statsPath + File.separator
-						+ topologyName + "_out" + i + ".csv");
-			}
-		}
-
 		conf.put("internal.queues", useOptimizedQueues);
 
 		if (!local) {
