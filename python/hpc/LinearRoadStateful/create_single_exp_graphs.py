@@ -89,16 +89,20 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
     text_values = [['' for x in range(3)] for x in range(int(spout_rate_x[0]) + step, int(spout_rate_x[-1]), step)]
 
     counter = 0
+    medians_x = []
+    medians_y = []
     for i in range(int(spout_rate_x[0]) + step, int(spout_rate_x[-1]), step):
         plt.plot([i, i], [min(spout_rate_y), max(spout_rate_y)], color='r')
         indexes = [index for index, value in enumerate(spout_rate_x) if value >= i - step and value < i]
         text_values[counter][0] = str(int(statistics.median(spout_rate_y[indexes[0]:indexes[-1]])))
+        medians_x.append(i - step/2)
+        medians_y.append(int(statistics.median(spout_rate_y[indexes[0]:indexes[-1]])))
         plt.text(i, min(spout_rate_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
                  fontsize=7)
         counter += 1
+    plt.plot(medians_x, medians_y, color='k')
 
     plt.subplot(2, 3, 2)
-    plt.plot(op_rate_x, op_rate_y)
     plt.xlabel('time (seconds)')
     plt.ylabel('throughput (t/s)')
     plt.title('Op throughput')
@@ -119,13 +123,18 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
     plt.grid(True)
 
     counter = 0
+    medians_x = []
+    medians_y = []
     for i in range(int(sink_latency_x[0]) + step, int(sink_latency_x[-1]), step):
         plt.plot([i, i], [min(sink_latency_y), max(sink_latency_y)], color='r')
         indexes = [index for index, value in enumerate(sink_latency_x) if value >= i - step and value < i]
         text_values[counter][1] = str(int(statistics.median(sink_latency_y[indexes[0]:indexes[-1]])))
+        medians_x.append(i - step/2)
+        medians_y.append(int(statistics.median(sink_latency_y[indexes[0]:indexes[-1]])))
         plt.text(i, min(sink_latency_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
                  fontsize=7)
         counter += 1
+    plt.plot(medians_x, medians_y, color='k')
 
     plt.subplot(2, 3, 5)
     plt.plot(cons_x, cons_y)
@@ -135,13 +144,18 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
     plt.grid(True)
 
     counter = 0
+    medians_x = []
+    medians_y = []
     for i in range(int(cons_x[0]) + step, int(cons_x[-1]), step):
         plt.plot([i, i], [min(cons_y), max(cons_y)], color='r')
         indexes = [index for index, value in enumerate(cons_x) if value >= i - step and value < i]
         text_values[counter][2] = str(int(statistics.median(cons_y[indexes[0]:indexes[-1]])))
+        medians_x.append(i - step/2)
+        medians_y.append(int(statistics.median(cons_y[indexes[0]:indexes[-1]])))
         plt.text(i, min(cons_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
                  fontsize=7)
         counter += 1
+    plt.plot(medians_x, medians_y, color='k')
 
     ax = plt.subplot2grid((2, 3), (0, 2), rowspan=2)
     range_length = len(range(int(cons_x[0]) + step, int(cons_x[-1]), step))

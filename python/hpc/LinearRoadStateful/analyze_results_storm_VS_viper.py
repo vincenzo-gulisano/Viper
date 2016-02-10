@@ -13,33 +13,11 @@ state = json.load(open(state_folder + 'state.json', 'r'))
 
 exp_num = 1
 # for type in ['storm', 'viper']:
-for type in ['storm']:
-
-    # Having stats data since we keep different fiels for storm and viper
-    stats_data = dict()
-
-    keys = []
-
-    threads = dict()
-    throughput_avg = dict()
-    latency_avg = dict()
-    consumption_avg = dict()
-    op_cost_avg = dict()
-    selectivity_avg = dict()
-
-    for main_class in ['StatefulVehicleEnteringNewSegment']:
-
-        id = main_class + '_' + type
-        keys.append(id)
-        threads[id] = []
-        throughput_avg[id] = []
-        latency_avg[id] = []
-        consumption_avg[id] = []
-        op_cost_avg[id] = []
-        selectivity_avg[id] = []
-
-        for thread in range(0, 100):
-            for repetition in range(0, 1):
+for type in ['storm', 'viper']:
+    for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
+                       'StatelessForwardStoppedCarsOnly']:
+        for spout_parallelism in [1, 2, 4, 6]:
+            for op_parallelism in [1, 2, 4, 6]:
                 result_path = state['exp_' + str(exp_num) + '_results_folder']
                 result_path = result_path.split('/')[-2]
                 exp_id = state['exp_' + str(exp_num) + '_id']
@@ -63,20 +41,20 @@ for type in ['storm']:
                                                                               spout_parallelism,
                                                                               op_parallelism,
                                                                               sink_parallelism)
-
-                stats_data[
-                    id + '_thread_' + str(thread) + '_repetition_' + str(
-                            repetition) + '_spout_parallelism'] = spout_parallelism
-                stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                        repetition) + '_op_parallelism'] = op_parallelism
-                stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                        repetition) + '_sink_parallelism'] = sink_parallelism
-                stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                        repetition) + '_throughput'] = throughput
-                stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                        repetition) + '_latency'] = latency
-                stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                        repetition) + '_consumption'] = consumption
+                #
+                # stats_data[
+                #     id + '_thread_' + str(thread) + '_repetition_' + str(
+                #             repetition) + '_spout_parallelism'] = spout_parallelism
+                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
+                #         repetition) + '_op_parallelism'] = op_parallelism
+                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
+                #         repetition) + '_sink_parallelism'] = sink_parallelism
+                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
+                #         repetition) + '_throughput'] = throughput
+                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
+                #         repetition) + '_latency'] = latency
+                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
+                #         repetition) + '_consumption'] = consumption
                 # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
                 #     repetition) + '_op_cost'] = op_cost
                 # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
@@ -88,10 +66,10 @@ for type in ['storm']:
                 if op_parallelism > 1:
                     number_of_threads += sink_parallelism
 
-                threads[id].append(number_of_threads)
-                throughput_avg[id].append(throughput)
-                latency_avg[id].append(latency)
-                consumption_avg[id].append(consumption)
+                # threads[id].append(number_of_threads)
+                # throughput_avg[id].append(throughput)
+                # latency_avg[id].append(latency)
+                # consumption_avg[id].append(consumption)
                 # op_cost_avg[id].append(op_cost)
                 # selectivity_avg[id].append(selectivity)
 
@@ -108,4 +86,4 @@ for type in ['storm']:
                 # create_graph_multiple_time_value(threads, selectivity_avg, keys, main_title + 'Operator Selectivity', 'Threads',
                 #                                  'Selectivity', results_base_folder + '/' + id + '_selectivity.pdf')
 
-    json.dump(stats_data, open(results_base_folder + '/0_' + type + '.json', 'w'))
+    # json.dump(stats_data, open(results_base_folder + '/0_' + type + '.json', 'w'))
