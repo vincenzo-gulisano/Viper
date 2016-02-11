@@ -87,22 +87,25 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
 
     # Here I am assuming all x lists have the same size!!!
     text_values = [['' for x in range(3)] for x in range(int(spout_rate_x[0]) + step, int(spout_rate_x[-1]), step)]
+    int_values = [[-1 for x in range(3)] for x in range(int(spout_rate_x[0]) + step, int(spout_rate_x[-1]), step)]
 
     counter = 0
-    medians_x = []
-    medians_y = []
+    medians_throughput_x = []
+    medians_throughput_y = []
     for i in range(int(spout_rate_x[0]) + step, int(spout_rate_x[-1]), step):
         plt.plot([i, i], [min(spout_rate_y), max(spout_rate_y)], color='r')
         indexes = [index for index, value in enumerate(spout_rate_x) if value >= i - step and value < i]
-        text_values[counter][0] = str(int(statistics.median(spout_rate_y[indexes[0]:indexes[-1]])))
-        medians_x.append(i - step/2)
-        medians_y.append(int(statistics.median(spout_rate_y[indexes[0]:indexes[-1]])))
+        int_values[counter][0] = int(statistics.median(spout_rate_y[indexes[0]:indexes[-1]]))
+        text_values[counter][0] = str(int_values[counter][0])
+        medians_throughput_x.append(i - step / 2)
+        medians_throughput_y.append(int(statistics.median(spout_rate_y[indexes[0]:indexes[-1]])))
         plt.text(i, min(spout_rate_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
                  fontsize=7)
         counter += 1
-    plt.plot(medians_x, medians_y, color='k')
+    plt.plot(medians_throughput_x, medians_throughput_y, color='k')
 
     plt.subplot(2, 3, 2)
+    plt.plot(op_rate_x, op_rate_y)
     plt.xlabel('time (seconds)')
     plt.ylabel('throughput (t/s)')
     plt.title('Op throughput')
@@ -123,18 +126,19 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
     plt.grid(True)
 
     counter = 0
-    medians_x = []
-    medians_y = []
+    medians_latency_x = []
+    medians_latency_y = []
     for i in range(int(sink_latency_x[0]) + step, int(sink_latency_x[-1]), step):
         plt.plot([i, i], [min(sink_latency_y), max(sink_latency_y)], color='r')
         indexes = [index for index, value in enumerate(sink_latency_x) if value >= i - step and value < i]
-        text_values[counter][1] = str(int(statistics.median(sink_latency_y[indexes[0]:indexes[-1]])))
-        medians_x.append(i - step/2)
-        medians_y.append(int(statistics.median(sink_latency_y[indexes[0]:indexes[-1]])))
+        int_values[counter][1] = int(statistics.median(sink_latency_y[indexes[0]:indexes[-1]]))
+        text_values[counter][1] = str(int_values[counter][1])
+        medians_latency_x.append(i - step / 2)
+        medians_latency_y.append(int(statistics.median(sink_latency_y[indexes[0]:indexes[-1]])))
         plt.text(i, min(sink_latency_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
                  fontsize=7)
         counter += 1
-    plt.plot(medians_x, medians_y, color='k')
+    plt.plot(medians_latency_x, medians_latency_y, color='k')
 
     plt.subplot(2, 3, 5)
     plt.plot(cons_x, cons_y)
@@ -144,32 +148,68 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
     plt.grid(True)
 
     counter = 0
-    medians_x = []
-    medians_y = []
+    medians_cons_x = []
+    medians_cons_y = []
     for i in range(int(cons_x[0]) + step, int(cons_x[-1]), step):
         plt.plot([i, i], [min(cons_y), max(cons_y)], color='r')
         indexes = [index for index, value in enumerate(cons_x) if value >= i - step and value < i]
-        text_values[counter][2] = str(int(statistics.median(cons_y[indexes[0]:indexes[-1]])))
-        medians_x.append(i - step/2)
-        medians_y.append(int(statistics.median(cons_y[indexes[0]:indexes[-1]])))
+        int_values[counter][2] = int(statistics.median(cons_y[indexes[0]:indexes[-1]]))
+        text_values[counter][2] = str(int_values[counter][2])
+        medians_cons_x.append(i - step / 2)
+        medians_cons_y.append(int(statistics.median(cons_y[indexes[0]:indexes[-1]])))
         plt.text(i, min(cons_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
                  fontsize=7)
         counter += 1
-    plt.plot(medians_x, medians_y, color='k')
+        if  counter >= len(int_values):
+            break
+    plt.plot(medians_cons_x, medians_cons_y, color='k')
+
+    # FIND THE HIGHEST THROUGHPUT FOR LATENCY BELOW THRESHOLD
+    threshold = 1000
+    latency_indexes = [index for index, value in enumerate(medians_latency_y) if value <= threshold]
+    if len(latency_indexes)>0:
+        max_throughput = max([medians_throughput_y[i] for i in latency_indexes])
+        max_throuhgput_positions = [i for i in latency_indexes if medians_throughput_y[i] == max_throughput]
+    else:
+        max_throuhgput_positions = []
+
+    if len(max_throuhgput_positions) > 1:
+        print('!!!! MORE THAN ONE MAX WAS FOUND !!!!')
+
+    while len(max_throuhgput_positions) == 0:
+        threshold += 100
+        print('... increasing threshold to ' + str(threshold))
+
+        if threshold > 2000:
+            print('THRESHOLD EXCEEDED 2000. Killing the process!')
+            exit(-1)
+
+        latency_indexes = [index for index, value in enumerate(medians_latency_y) if value <= threshold]
+        if len(latency_indexes)>0:
+            max_throughput = max([medians_throughput_y[i] for i in latency_indexes])
+            max_throuhgput_positions = [i for i in latency_indexes if medians_throughput_y[i] == max_throughput]
+        else:
+            max_throuhgput_positions = []
 
     ax = plt.subplot2grid((2, 3), (0, 2), rowspan=2)
     range_length = len(range(int(cons_x[0]) + step, int(cons_x[-1]), step))
     counter = 0
     for i in range(int(cons_x[0]) + step, int(cons_x[-1]), step):
-        plt.text(0, 1 - counter * (1 / range_length), str(counter) + ': ' + str(text_values[counter]),
-                 verticalalignment='top', horizontalalignment='left', fontsize=10)
+        text_ = str(counter) + ': ' + str(text_values[counter])
+        if counter in max_throuhgput_positions:
+            text_ += ' ***'
+        plt.text(0, 1 - counter * (1 / range_length), text_, verticalalignment='top', horizontalalignment='left',
+                 fontsize=10)
         counter += 1
+        if counter >= len(int_values):
+            break
 
     plt.close()
     pp.savefig(f)
     pp.close()
 
-    return
+    # Returning first highest throughput found (and relative latency and consumption)
+    return int_values[max_throuhgput_positions[0]]
 
 
 def create_graph_multiple_time_value(xs, ys, keys, title, x_label, y_label, outFile):
@@ -204,7 +244,7 @@ def create_graph_multiple_time_value(xs, ys, keys, title, x_label, y_label, outF
 
 
 def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_parallelim, op_parallelism,
-                             sink_parallelism):
+                             sink_parallelism, savePDF):
     # state_folder = '/Users/vinmas/repositories/viper_experiments/151130/'
 
     state = json.load(open(state_folder + 'state.json', 'r'))
@@ -219,7 +259,8 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
 
     # SPOUT
     results['spout_rate_ts'][:] = [x - earliest_ts for x in results['spout_rate_ts']]
-    create_graph_time_value(results['spout_rate_ts'][start_ts:end_ts], results['spout_rate_value'][start_ts:end_ts],
+    if savePDF:
+        create_graph_time_value(results['spout_rate_ts'][start_ts:end_ts], results['spout_rate_value'][start_ts:end_ts],
                             'Spout throughput', 'time (seconds)', 'throughput (t/s)',
                             results_folder + 'spout.throughput.pdf')
 
@@ -228,14 +269,16 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
         range(start_ts, end_ts)]
 
     results['spout_cost_ts'][:] = [x - earliest_ts for x in results['spout_cost_ts']]
-    create_graph_time_value(results['spout_cost_ts'][start_ts:end_ts], spout_cost_values, 'Spout cost',
+    if savePDF:
+        create_graph_time_value(results['spout_cost_ts'][start_ts:end_ts], spout_cost_values, 'Spout cost',
                             'time (seconds)',
                             'cost', results_folder + 'spout.cost.pdf')
 
     # OPERATOR
 
     results['op_rate_ts'][:] = [x - earliest_ts for x in results['op_rate_ts']]
-    create_graph_time_value(results['op_rate_ts'][start_ts:end_ts], results['op_rate_value'][start_ts:end_ts],
+    if savePDF:
+        create_graph_time_value(results['op_rate_ts'][start_ts:end_ts], results['op_rate_value'][start_ts:end_ts],
                             'Operator throughput', 'time (seconds)', 'throughput (t/s)',
                             results_folder + 'op.throughput.pdf')
 
@@ -244,7 +287,8 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
         range(start_ts, end_ts)]
 
     results['op_cost_ts'][:] = [x - earliest_ts for x in results['op_cost_ts']]
-    create_graph_time_value(results['op_cost_ts'][start_ts:end_ts], operator_cost_values, 'Operator cost',
+    if savePDF:
+        create_graph_time_value(results['op_cost_ts'][start_ts:end_ts], operator_cost_values, 'Operator cost',
                             'time (seconds)',
                             'cost', results_folder + 'op.cost.pdf')
 
@@ -255,11 +299,13 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
         range(start_ts, end_ts)]
 
     results['sink_cost_ts'][:] = [x - earliest_ts for x in results['sink_cost_ts']]
-    create_graph_time_value(results['sink_cost_ts'][start_ts:end_ts], sink_cost_values, 'Sink cost', 'time (seconds)',
+    if savePDF:
+        create_graph_time_value(results['sink_cost_ts'][start_ts:end_ts], sink_cost_values, 'Sink cost', 'time (seconds)',
                             'cost', results_folder + 'sink.cost.pdf')
 
     results['sink_latency_ts'][:] = [x - earliest_ts for x in results['sink_latency_ts']]
-    create_graph_time_value(results['sink_latency_ts'][start_ts:end_ts], results['sink_latency_value'][start_ts:end_ts],
+    if savePDF:
+        create_graph_time_value(results['sink_latency_ts'][start_ts:end_ts], results['sink_latency_value'][start_ts:end_ts],
                             'Sink latency', 'time (seconds)',
                             'latency ', results_folder + 'sink.latency.pdf')
 
@@ -303,7 +349,8 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     consumption_end_ts = int(consumption_ts[-1] * 0.9)
     consumption_start_ts_index = [n for n, i in enumerate(consumption_ts) if i > consumption_start_ts][0]
     consumption_end_ts_index = [n for n, i in enumerate(consumption_ts) if i < consumption_end_ts][-1]
-    create_graph_time_value(consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
+    if savePDF:
+        create_graph_time_value(consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
                             consumption_value[consumption_start_ts_index:consumption_end_ts_index], 'Consumption',
                             'time (seconds)',
                             'Consumption (watts/second) ', results_folder + 'consumption.pdf')
@@ -312,7 +359,7 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     latency = scipystat.trim_mean(results['sink_latency_value'][start_ts:end_ts], 0.05)
     consumption = scipystat.trim_mean(consumption_value[start_ts:end_ts], 0.05) / throughput
 
-    create_overview_graph(results['spout_rate_ts'][start_ts:end_ts], results['spout_rate_value'][start_ts:end_ts],
+    highest_throughput_stat = create_overview_graph(results['spout_rate_ts'][start_ts:end_ts], results['spout_rate_value'][start_ts:end_ts],
                           results['op_rate_ts'][start_ts:end_ts], results['op_rate_value'][start_ts:end_ts],
                           results['sink_latency_ts'][start_ts:end_ts], results['sink_latency_value'][start_ts:end_ts],
                           consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
@@ -326,4 +373,4 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     # selectivity_tmp = [results['op_rate_value'][i] / results['spout_rate_value'][i] for i in range(start_ts, end_ts)]
     # selectivity = scipystat.trim_mean(selectivity_tmp[start_ts:end_ts], 0.05)
 
-    return [throughput, latency, consumption]  # , op_cost, selectivity]
+    return [throughput, latency, consumption, highest_throughput_stat]  # , op_cost, selectivity]

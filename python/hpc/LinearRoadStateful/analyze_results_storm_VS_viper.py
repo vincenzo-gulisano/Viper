@@ -4,12 +4,14 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_multiplesinks/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_multiplesinks'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
 # json_out_id = '2_viper'
+
+stats_data = dict()
 
 exp_num = 1
 # for type in ['storm', 'viper']:
@@ -18,6 +20,9 @@ for type in ['storm', 'viper']:
                        'StatelessForwardStoppedCarsOnly']:
         for spout_parallelism in [1, 2, 4, 6]:
             for op_parallelism in [1, 2, 4, 6]:
+
+                # if spout_parallelism==2 and op_parallelism==1 and type in 'viper' and main_class in 'StatelessForwardPositionReportsOnly':
+
                 result_path = state['exp_' + str(exp_num) + '_results_folder']
                 result_path = result_path.split('/')[-2]
                 exp_id = state['exp_' + str(exp_num) + '_id']
@@ -28,37 +33,16 @@ for type in ['storm', 'viper']:
                 onlyfiles = [f for f in listdir(results_folder) if isfile(join(results_folder, f)) and 'RAPL' in f]
                 print('Analyzing result folder ' + results_folder + ' (experiment ' + str(exp_num) + ')')
 
-                # text_file = open(
-                #         "/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/viper_newseg/summaries.csv",
-                #         "a")
-                # text_file.write('\n')
-                # text_file.write(exp_id + '\n')
-                # text_file.close()
+                [throughput, latency, consumption, highest_throughput_stat] = create_single_exp_graphs(state_folder,
+                                                                                                       results_folder,
+                                                                                                       onlyfiles[0],
+                                                                                                       spout_parallelism,
+                                                                                                       op_parallelism,
+                                                                                                       sink_parallelism,
+                                                                                                       True)
 
-                [throughput, latency, consumption] = create_single_exp_graphs(state_folder,
-                                                                              results_folder,
-                                                                              onlyfiles[0],
-                                                                              spout_parallelism,
-                                                                              op_parallelism,
-                                                                              sink_parallelism)
-                #
-                # stats_data[
-                #     id + '_thread_' + str(thread) + '_repetition_' + str(
-                #             repetition) + '_spout_parallelism'] = spout_parallelism
-                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                #         repetition) + '_op_parallelism'] = op_parallelism
-                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                #         repetition) + '_sink_parallelism'] = sink_parallelism
-                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                #         repetition) + '_throughput'] = throughput
-                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                #         repetition) + '_latency'] = latency
-                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                #         repetition) + '_consumption'] = consumption
-                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                #     repetition) + '_op_cost'] = op_cost
-                # stats_data[id + '_thread_' + str(thread) + '_repetition_' + str(
-                #     repetition) + '_selectivity'] = selectivity
+                stats_data[type + '_' + main_class + '_' + str(spout_parallelism) + 'vs' + str(
+                        op_parallelism)] = highest_throughput_stat
 
                 number_of_threads = spout_parallelism + op_parallelism + sink_parallelism
                 if spout_parallelism > 1:
@@ -66,24 +50,16 @@ for type in ['storm', 'viper']:
                 if op_parallelism > 1:
                     number_of_threads += sink_parallelism
 
-                # threads[id].append(number_of_threads)
-                # throughput_avg[id].append(throughput)
-                # latency_avg[id].append(latency)
-                # consumption_avg[id].append(consumption)
-                # op_cost_avg[id].append(op_cost)
-                # selectivity_avg[id].append(selectivity)
-
                 exp_num += 1
 
-                # create_graph_multiple_time_value(threads, throughput_avg, keys, main_title + 'Throughput', 'Threads',
-                #                                  'Throughput (t/s)', results_base_folder + '/' + id + '_throughput.pdf')
-                # create_graph_multiple_time_value(threads, latency_avg, keys, main_title + 'Latency', 'Threads', 'Latency (ms)',
-                #                                  results_base_folder + '/' + id + '_latency.pdf')
-                # create_graph_multiple_time_value(threads, consumption_avg, keys, main_title + 'Consumption', 'Threads',
-                #                                  'Consumption (W/t)', results_base_folder + '/' + id + '_consumption.pdf')
-                # create_graph_multiple_time_value(threads, op_cost_avg, keys, main_title + 'Operator Cost', 'Threads',
-                #                                  'Cost (nanoseconds)', results_base_folder + '/' + id + '_opcost.pdf')
-                # create_graph_multiple_time_value(threads, selectivity_avg, keys, main_title + 'Operator Selectivity', 'Threads',
-                #                                  'Selectivity', results_base_folder + '/' + id + '_selectivity.pdf')
-
-    # json.dump(stats_data, open(results_base_folder + '/0_' + type + '.json', 'w'))
+        # Print stats
+        print(type + '_' + main_class)
+        for i in range(0, 3):
+            for spout_parallelism in [1, 2, 4, 6]:
+                for op_parallelism in [1, 2, 4, 6]:
+                    print(str(
+                            stats_data[
+                                type + '_' + main_class + '_' + str(spout_parallelism) + 'vs' + str(op_parallelism)][
+                                i]) + '\t', end='')
+                print('')
+            print('')
