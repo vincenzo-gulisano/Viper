@@ -141,7 +141,8 @@ public class PrototypeStatelessForwardStoppedCarsOnly {
 		conf.put("log.statistics", logStats);
 		conf.put("log.statistics.path", statsPath);
 		conf.put("merger.type", "MergerScaleGate");
-		conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 0);
+		conf.put("topology.spout.wait.strategy",
+				"operator.viperSpout.NoSleepSpoutWaitStrategy");
 
 		if (!local) {
 			conf.setNumWorkers(1);

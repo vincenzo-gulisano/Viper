@@ -65,56 +65,54 @@ public class ViperSpoutInternalOnly extends BaseRichSpout {
 		if (!flushSent)
 			speedRegulator.regulateSpeed();
 
-		for (int i = 0; i < 50; i++) {
-			long start = System.nanoTime();
-			if (keepStats) {
-				invocationsStat.increase(1);
-			}
-			if (udf.hasNext()) {
+		long start = System.nanoTime();
+		if (keepStats) {
+			invocationsStat.increase(1);
+		}
+		if (udf.hasNext()) {
 
-				Values v = udf.getTuple();
-				if (v != null) {
-					v.add(0, TupleType.REGULAR);
-					v.add(1, System.currentTimeMillis());
+			Values v = udf.getTuple();
+			if (v != null) {
+				v.add(0, TupleType.REGULAR);
+				v.add(1, System.currentTimeMillis());
 
-					iq.emit(id, v);
-					counter++;
-
-					if (keepStats) {
-						countStat.increase(1);
-						costStat.add((System.nanoTime() - start));
-					}
-				}
-
-			} else if (!flushSent) {
-				iq.emit(id, ViperUtils.getFlushTuple(this.outFields.size() - 2));
-
-				LOG.info("Spout " + id + " sending FLUSH tuple, " + counter
-						+ " tuples sent");
-
-				flushSent = true;
+				iq.emit(id, v);
+				counter++;
 
 				if (keepStats) {
-					Utils.sleep(2000); // Just wait for latest statistics to be
-										// written
-					countStat.stopStats();
-					costStat.stopStats();
-					invocationsStat.stopStats();
-					try {
-						countStat.join();
-						costStat.join();
-						invocationsStat.join();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					countStat.writeStats();
-					costStat.writeStats();
-					invocationsStat.writeStats();
+					countStat.increase(1);
+					costStat.add((System.nanoTime() - start));
 				}
-
-			} else {
-				Utils.sleep(1000);
 			}
+
+		} else if (!flushSent) {
+			iq.emit(id, ViperUtils.getFlushTuple(this.outFields.size() - 2));
+
+			LOG.info("Spout " + id + " sending FLUSH tuple, " + counter
+					+ " tuples sent");
+
+			flushSent = true;
+
+			if (keepStats) {
+				Utils.sleep(2000); // Just wait for latest statistics to be
+									// written
+				countStat.stopStats();
+				costStat.stopStats();
+				invocationsStat.stopStats();
+				try {
+					countStat.join();
+					costStat.join();
+					invocationsStat.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				countStat.writeStats();
+				costStat.writeStats();
+				invocationsStat.writeStats();
+			}
+
+		} else {
+			Utils.sleep(1000);
 		}
 
 	}
