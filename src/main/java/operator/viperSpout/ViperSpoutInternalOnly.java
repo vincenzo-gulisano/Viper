@@ -65,7 +65,7 @@ public class ViperSpoutInternalOnly extends BaseRichSpout {
 		if (!flushSent)
 			speedRegulator.regulateSpeed();
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 50; i++) {
 			long start = System.nanoTime();
 			if (keepStats) {
 				invocationsStat.increase(1);
