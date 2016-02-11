@@ -45,9 +45,6 @@ public class ViperSpoutInternalOnly extends BaseRichSpout {
 
 	InternalQueuesShuffle iq;
 
-//	int consecutiveCalls = 10;
-//	int thisCall = 0;
-
 	public ViperSpoutInternalOnly(SpoutFunction udf, Fields outFields,
 			InternalQueuesShuffle iq) {
 
@@ -68,61 +65,58 @@ public class ViperSpoutInternalOnly extends BaseRichSpout {
 		if (!flushSent)
 			speedRegulator.regulateSpeed();
 
-		long start = System.nanoTime();
-		if (keepStats) {
-			invocationsStat.increase(1);
-		}
-		if (udf.hasNext()) {
+		for (int i = 0; i < 10; i++) {
+			long start = System.nanoTime();
+			if (keepStats) {
+				invocationsStat.increase(1);
+			}
+			if (udf.hasNext()) {
 
-			Values v = udf.getTuple();
-			if (v != null) {
-				v.add(0, TupleType.REGULAR);
-				v.add(1, System.currentTimeMillis());
+				Values v = udf.getTuple();
+				if (v != null) {
+					v.add(0, TupleType.REGULAR);
+					v.add(1, System.currentTimeMillis());
 
-				iq.emit(id, v);
-				counter++;
+					iq.emit(id, v);
+					counter++;
+
+					if (keepStats) {
+						countStat.increase(1);
+						costStat.add((System.nanoTime() - start));
+					}
+				}
+
+			} else if (!flushSent) {
+				iq.emit(id, ViperUtils.getFlushTuple(this.outFields.size() - 2));
+
+				LOG.info("Spout " + id + " sending FLUSH tuple, " + counter
+						+ " tuples sent");
+
+				flushSent = true;
 
 				if (keepStats) {
-					countStat.increase(1);
-					costStat.add((System.nanoTime() - start));
+					Utils.sleep(2000); // Just wait for latest statistics to be
+										// written
+					countStat.stopStats();
+					costStat.stopStats();
+					invocationsStat.stopStats();
+					try {
+						countStat.join();
+						costStat.join();
+						invocationsStat.join();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					countStat.writeStats();
+					costStat.writeStats();
+					invocationsStat.writeStats();
 				}
+
+			} else {
+				Utils.sleep(1000);
 			}
-
-		} else if (!flushSent) {
-			iq.emit(id, ViperUtils.getFlushTuple(this.outFields.size() - 2));
-
-			LOG.info("Spout " + id + " sending FLUSH tuple, " + counter
-					+ " tuples sent");
-
-			flushSent = true;
-
-			if (keepStats) {
-				Utils.sleep(2000); // Just wait for latest statistics to be
-									// written
-				countStat.stopStats();
-				costStat.stopStats();
-				invocationsStat.stopStats();
-				try {
-					countStat.join();
-					costStat.join();
-					invocationsStat.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				countStat.writeStats();
-				costStat.writeStats();
-				invocationsStat.writeStats();
-			}
-
-		} else {
-			Utils.sleep(1000);
 		}
 
-//		thisCall++;
-//		if (thisCall == consecutiveCalls)
-//			thisCall = 0;
-//		else
-//			nextTuple();
 	}
 
 	@SuppressWarnings({ "rawtypes" })
