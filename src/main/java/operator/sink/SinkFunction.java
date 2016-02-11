@@ -41,6 +41,14 @@ public class SinkFunction extends BoltFunctionBase {
 	}
 
 	@Override
+	public List<Values> process(List<Object> t) {
+		if (keepStats) {
+			latencyStat.add(System.currentTimeMillis() - (Long) t.get(1));
+		}
+		return null;
+	}
+
+	@Override
 	public List<Values> receivedFlush(Tuple t) {
 		if (keepStats && !statsWritten) {
 			statsWritten = true;

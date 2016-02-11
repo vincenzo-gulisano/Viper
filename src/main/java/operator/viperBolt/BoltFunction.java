@@ -15,7 +15,11 @@ public interface BoltFunction extends Serializable {
 	
 	public List<Values> process(Tuple t);
 	
+	public List<Values> process (List<Object> v);
+	
 	public List<Values> receivedFlush(Tuple t);
+	
+	public List<Values> receivedFlush (List<Object> v);
 	
 	//public void receivedWriteLog(Tuple t);
 	

@@ -134,8 +134,11 @@ public class SharedChannelsScaleGate implements SharedChannels {
 	@Override
 	public void addObj(String source, String id, MergerEntry me) {
 
-		if (!this.channels.containsKey(id))
+		if (!this.channels.containsKey(id)) {
+			for (String s : this.channels.keySet())
+				LOG.info("known channel: " + s);
 			throw new RuntimeException("Adding to unkown channel " + id);
+		}
 
 		if (!this.channelsSourcesMap.get(id).containsKey(source))
 			throw new RuntimeException("Unknown source " + source
@@ -154,18 +157,18 @@ public class SharedChannelsScaleGate implements SharedChannels {
 	}
 
 	@Override
-	public MergerEntry getNextReadyObj(String destination, String id) {
+	public MergerEntry getNextReadyObj(String source, String id) {
 
 		if (!this.channels.containsKey(id))
 			throw new RuntimeException("Getting from unkown channel " + id);
 
-		if (!this.channelsDestinationsMap.get(id).containsKey(destination))
-			throw new RuntimeException("Unknown destination " + destination
-					+ " adding to channel " + id);
+		if (!this.channelsDestinationsMap.get(id).containsKey(source))
+			throw new RuntimeException("Unknown source " + source
+					+ " getting from channel " + id);
 
 		SGTupleContainer t = (SGTupleContainer) this.channels.get(id)
 				.getNextReadyTuple(
-						this.channelsDestinationsMap.get(id).get(destination));
+						this.channelsDestinationsMap.get(id).get(source));
 
 		if (t == null) {
 			return null;

@@ -25,9 +25,19 @@ public abstract class BoltFunctionBase implements BoltFunction {
 		return new ArrayList<Values>();
 	}
 
-//	@Override
-//	public void receivedWriteLog(Tuple t) {
-//
-//	}
+	@Override
+	public List<Values> process(List<Object> v) {
+		return new ArrayList<Values>();
+	}
+
+	@Override
+	public List<Values> receivedFlush(List<Object> v) {
+		return new ArrayList<Values>();
+	}
+
+	// @Override
+	// public void receivedWriteLog(Tuple t) {
+	//
+	// }
 
 }

@@ -111,6 +111,16 @@ public class LRStatelessConvertingToo {
 				return results;
 			}
 
+			@Override
+			public List<Values> process(List<Object> v) {
+				throw new RuntimeException("METHOD NOT IMPLEMENTED");
+			}
+
+			@Override
+			public List<Values> receivedFlush(List<Object> v) {
+				throw new RuntimeException("METHOD NOT IMPLEMENTED");
+			}
+
 		}
 
 		BoltDeclarer opBolt = builder.setBolt("op", new ViperBolt(new Fields(

@@ -100,6 +100,18 @@ public class MergerTestNonDeterministic {
 								}
 								return result;
 							}
+
+							@Override
+							public List<Values> process(List<Object> v) {
+								// TODO Auto-generated method stub
+								return null;
+							}
+
+							@Override
+							public List<Values> receivedFlush(List<Object> v) {
+								// TODO Auto-generated method stub
+								return null;
+							}
 						}), op_parallelism).customGrouping("spout",
 				new ViperShuffle());
 

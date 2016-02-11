@@ -89,6 +89,16 @@ public class StatefulVehicleEnteringNewSegment {
 				return new ArrayList<Values>();
 			}
 
+			@Override
+			public List<Values> process(List<Object> v) {
+				throw new RuntimeException("METHOD NOT IMPLEMENTED");
+			}
+
+			@Override
+			public List<Values> receivedFlush(List<Object> v) {
+				throw new RuntimeException("METHOD NOT IMPLEMENTED");
+			}
+
 		}
 
 		BoltDeclarer op = builder.setBolt("op", new ViperBolt(new Fields(

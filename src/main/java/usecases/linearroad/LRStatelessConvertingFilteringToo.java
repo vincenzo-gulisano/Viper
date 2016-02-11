@@ -110,6 +110,15 @@ public class LRStatelessConvertingFilteringToo {
 					results.add(new Values(lrTuple));
 				return results;
 			}
+			@Override
+			public List<Values> process(List<Object> v) {
+				throw new RuntimeException("METHOD NOT IMPLEMENTED");
+			}
+
+			@Override
+			public List<Values> receivedFlush(List<Object> v) {
+				throw new RuntimeException("METHOD NOT IMPLEMENTED");
+			}
 
 		}
 

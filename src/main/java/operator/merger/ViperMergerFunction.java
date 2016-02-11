@@ -127,4 +127,16 @@ public class ViperMergerFunction implements BoltFunction {
 	// public void receivedWriteLog(Tuple t) {
 	// }
 
+	@Override
+	public List<Values> process(List<Object> v) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Values> receivedFlush(List<Object> v) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

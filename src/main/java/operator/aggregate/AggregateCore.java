@@ -155,4 +155,16 @@ public class AggregateCore<T extends AggregateWindow> implements BoltFunction {
 		return null;
 	}
 
+	@Override
+	public List<Values> process(List<Object> v) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Values> receivedFlush(List<Object> v) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
