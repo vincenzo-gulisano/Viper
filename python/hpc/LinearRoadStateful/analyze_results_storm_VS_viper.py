@@ -4,8 +4,8 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_multiplesinks/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_multiplesinks'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/vipernostats/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/vipernostats'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
@@ -15,9 +15,11 @@ stats_data = dict()
 
 exp_num = 1
 # for type in ['storm', 'viper']:
-for type in ['storm', 'viper']:
-    for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
-                       'StatelessForwardStoppedCarsOnly']:
+# for type in ['storm', 'viper']:
+#     for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
+#                        'StatelessForwardStoppedCarsOnly']:
+for type in ['viper']:
+    for main_class in ['StatelessForwardStoppedCarsOnly']:
         for spout_parallelism in [1, 2, 4, 6]:
             for op_parallelism in [1, 2, 4, 6]:
 
