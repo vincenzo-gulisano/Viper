@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import operator.merger.MergerEntry;
 
@@ -24,7 +25,7 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 	private static final long serialVersionUID = 3014404246770284550L;
 	int index = 0;
 	List<Integer> targetTasks;
-	int counter = 0;
+	//int counter = 0;
 
 	private SharedChannelsScaleGate sharedChannels;
 	Map<Integer, String> destinationChannelsIDs;
@@ -38,6 +39,8 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 	String statsPath;
 	String topologyName;
 
+	Random r = new Random();
+	
 	public ViperShuffleSharedChannels(boolean keepStats, String statsPath,
 			String topologyName) {
 		destinationChannelsIDs = new HashMap<Integer, String>();
@@ -115,8 +118,8 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 
 			// LOG.info(taskId + " - Adding ts " + ((Long) values.get(tsIndex))
 			// + " values: " + values);
-			index = (index + 1) % targetTasks.size();
-			counter++;
+			index = r.nextInt(targetTasks.size()); // (index + 1) % targetTasks.size();
+			//counter++;
 			return result;
 
 		} else if (type.equals(TupleType.FLUSH)) {
