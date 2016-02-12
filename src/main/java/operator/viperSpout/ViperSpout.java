@@ -43,7 +43,7 @@ public class ViperSpout extends BaseRichSpout {
 
 	// private long ackGap = 0;
 	private Random r = new Random(System.nanoTime());
-	private double dummyProb = 0.001;
+	private double dummyProb = 0.05;
 	private boolean useInternalQueues;
 
 	private SpeedRegulator speedRegulator;
