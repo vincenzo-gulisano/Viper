@@ -165,7 +165,7 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
     plt.plot(medians_cons_x, medians_cons_y, color='k')
 
     # FIND THE HIGHEST THROUGHPUT FOR LATENCY BELOW THRESHOLD
-    threshold = 100
+    threshold = 1000
     latency_indexes = [index for index, value in enumerate(medians_latency_y) if value <= threshold]
     if len(latency_indexes)>0:
         max_throughput = max([medians_throughput_y[i] for i in latency_indexes])

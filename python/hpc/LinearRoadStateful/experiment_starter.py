@@ -91,7 +91,7 @@ exp_num = 1
 # for type in ['storm', 'viper']:
 #     for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
 #                        'StatelessForwardStoppedCarsOnly']:
-for type in ['storm', 'viper']:
+for type in ['viper']:
     for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
                        'StatelessForwardStoppedCarsOnly']:
         for spout_parallelism in [1, 2, 4, 6]:
