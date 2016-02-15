@@ -4,22 +4,22 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/run3/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/run3'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
 # json_out_id = '2_viper'
 
 stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
-run = 1;
+run = 2;
 
 exp_num = 1
 # for type in ['storm', 'viper']:
 # for type in ['storm', 'viper']:
 #     for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
 #                        'StatelessForwardStoppedCarsOnly']:
-for type in ['storm', 'viper']:
+for type in ['viper']:
     for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
                        'StatelessForwardStoppedCarsOnly']:
         for spout_parallelism in [1, 2, 4, 6]:
@@ -45,7 +45,7 @@ for type in ['storm', 'viper']:
                                                                                                        sink_parallelism,
                                                                                                        True)
 
-                stats_data[type + '_' + main_class + '_' + str(spout_parallelism) + 'vs' + str(
+                stats_data[type + '_' + main_class + '_S' + str(spout_parallelism) + 'vsO' + str(
                         op_parallelism) + '_' + str(run)] = highest_throughput_stat
 
                 number_of_threads = spout_parallelism + op_parallelism + sink_parallelism
@@ -63,7 +63,7 @@ for type in ['storm', 'viper']:
                 for op_parallelism in [1, 2, 4, 6]:
                     print(str(
                             stats_data[
-                                type + '_' + main_class + '_' + str(spout_parallelism) + 'vs' + str(
+                                type + '_' + main_class + '_S' + str(spout_parallelism) + 'vsO' + str(
                                         op_parallelism) + '_' + str(run)][i]) + '\t', end='')
                 print('')
             print('')
