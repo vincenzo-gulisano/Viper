@@ -265,9 +265,9 @@ public class ViperBolt extends BaseRichBolt {
 
 				process(input);
 
-				if (keepStats) {
-					costStat.add((System.nanoTime() - start));
-				}
+//				if (keepStats) {
+//					costStat.add((System.nanoTime() - start));
+//				}
 
 			} else if (ttype.equals(TupleType.FLUSH)) {
 
@@ -316,6 +316,10 @@ public class ViperBolt extends BaseRichBolt {
 					}
 				}
 			}
+		}
+		
+		if (keepStats) {
+			costStat.add((System.nanoTime() - start));
 		}
 
 	}
