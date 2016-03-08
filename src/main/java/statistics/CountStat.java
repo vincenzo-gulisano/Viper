@@ -99,6 +99,20 @@ public class CountStat /* extends Thread */implements Serializable {
 	}
 
 	public void writeStats() {
+		
+		long thisSec = System.currentTimeMillis() / 1000;
+		while (prevSec < thisSec) {
+			if (immediateWrite) {
+				out.println(prevSec*1000 + "," + count);
+				out.flush();
+			} else {
+				this.countStats.put(prevSec*1000, count);
+			}
+			// latestCount = count;
+			count = 0;
+			prevSec++;
+		}
+		
 		if (!immediateWrite) {
 			try {
 				for (Entry<Long, Long> stat : countStats.entrySet()) {

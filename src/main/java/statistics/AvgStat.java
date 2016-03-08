@@ -129,6 +129,20 @@ public class AvgStat /* extends Thread */implements Serializable {
 
 	public void writeStats() {
 
+		long thisSec = System.currentTimeMillis() / 1000;
+		while (prevSec < thisSec) {
+			if (immediateWrite) {
+				out.println(prevSec*1000 + "," + (count != 0 ? sum / count : -1));
+				out.flush();
+			} else {
+				this.stats.put(prevSec*1000, (count != 0 ? sum / count : -1));
+			}
+			// latestCount = count;
+			sum = 0;
+			count = 0;
+			prevSec++;
+		}
+		
 		if (!immediateWrite) {
 			try {
 				for (Entry<Long, Long> stat : stats.entrySet()) {
