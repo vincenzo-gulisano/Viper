@@ -59,8 +59,8 @@ public class ViperSpoutBoltWrapper extends BaseRichSpout {
 	InternalQueuesShuffle iq;
 	String prevOp;
 
-//	int consecutiveCalls = 10;
-//	int thisCall = 0;
+	// int consecutiveCalls = 10;
+	// int thisCall = 0;
 
 	public ViperSpoutBoltWrapper(Fields outFields, BoltFunction boltFunction,
 			InternalQueuesShuffle iq, String prevOp) {
@@ -146,9 +146,9 @@ public class ViperSpoutBoltWrapper extends BaseRichSpout {
 			invocationsStat = new CountStat("", statsPath + File.separator
 					+ conf.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".invocations.csv", false);
-			countStat.start();
-			costStat.start();
-			invocationsStat.start();
+			// countStat.start();
+			// costStat.start();
+			// invocationsStat.start();
 		}
 
 		f.prepare(conf, context);
@@ -207,11 +207,11 @@ public class ViperSpoutBoltWrapper extends BaseRichSpout {
 			costStat.add((System.nanoTime() - start));
 		}
 
-//		thisCall++;
-//		if (thisCall == consecutiveCalls)
-//			thisCall = 0;
-//		else
-//			nextTuple();
+		// thisCall++;
+		// if (thisCall == consecutiveCalls)
+		// thisCall = 0;
+		// else
+		// nextTuple();
 	}
 
 }

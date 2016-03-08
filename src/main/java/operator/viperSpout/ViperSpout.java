@@ -70,16 +70,16 @@ public class ViperSpout extends BaseRichSpout {
 		if (keepStats) {
 			invocationsStat.increase(1);
 		}
-//		if (useInternalQueues && !flushSent && r.nextDouble() <= dummyProb) {
-//
-//			collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
-//
-//			// remove this
-//			// LOG.info("Spout " + id + " sending DUMMY tuple, " + counter
-//			// + " tuples sent");
-//
-//		} else 
-			if (udf.hasNext()) {
+		// if (useInternalQueues && !flushSent && r.nextDouble() <= dummyProb) {
+		//
+		// collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
+		//
+		// // remove this
+		// // LOG.info("Spout " + id + " sending DUMMY tuple, " + counter
+		// // + " tuples sent");
+		//
+		// } else
+		if (udf.hasNext()) {
 
 			// if (ackGap < 1000) {
 
@@ -114,13 +114,13 @@ public class ViperSpout extends BaseRichSpout {
 				countStat.stopStats();
 				costStat.stopStats();
 				invocationsStat.stopStats();
-				try {
-					countStat.join();
-					costStat.join();
-					invocationsStat.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				// try {
+				// countStat.join();
+				// costStat.join();
+				// invocationsStat.join();
+				// } catch (InterruptedException e) {
+				// e.printStackTrace();
+				// }
 				countStat.writeStats();
 				costStat.writeStats();
 				invocationsStat.writeStats();
@@ -164,15 +164,15 @@ public class ViperSpout extends BaseRichSpout {
 			countStat = new CountStat("", statsPath + File.separator
 					+ arg0.get(Config.TOPOLOGY_NAME) + "_" + id + ".rate.csv",
 					false);
-			countStat.start();
+			// countStat.start();
 			costStat = new AvgStat("", statsPath + File.separator
 					+ arg0.get(Config.TOPOLOGY_NAME) + "_" + id + ".cost.csv",
 					false);
-			costStat.start();
+			// costStat.start();
 			invocationsStat = new CountStat("", statsPath + File.separator
 					+ arg0.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".invocations.csv", false);
-			invocationsStat.start();
+			// invocationsStat.start();
 		}
 
 		udf.prepare(arg0, arg1);

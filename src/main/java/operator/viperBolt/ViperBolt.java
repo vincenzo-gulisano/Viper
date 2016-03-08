@@ -102,9 +102,9 @@ public class ViperBolt extends BaseRichBolt {
 			invocationsStat = new CountStat("", statsPath + File.separator
 					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".invocations.csv", false);
-			countStat.start();
-			costStat.start();
-			invocationsStat.start();
+			//countStat.start();
+			//costStat.start();
+			//invocationsStat.start();
 		}
 
 		f.prepare(stormConf, context);
@@ -298,13 +298,13 @@ public class ViperBolt extends BaseRichBolt {
 						countStat.stopStats();
 						costStat.stopStats();
 						invocationsStat.stopStats();
-						try {
-							countStat.join();
-							costStat.join();
-							invocationsStat.join();
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+//						try {
+//							countStat.join();
+//							costStat.join();
+//							invocationsStat.join();
+//						} catch (InterruptedException e) {
+//							e.printStackTrace();
+//						}
 						countStat.writeStats();
 						costStat.writeStats();
 						invocationsStat.writeStats();

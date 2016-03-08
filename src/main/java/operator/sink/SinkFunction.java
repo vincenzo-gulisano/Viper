@@ -55,11 +55,11 @@ public class SinkFunction extends BoltFunctionBase {
 			Utils.sleep(2000); // Just wait for latest statistics to be
 								// stored
 			latencyStat.stopStats();
-			try {
-				latencyStat.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+//			try {
+//				latencyStat.join();
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
 			latencyStat.writeStats();
 			String messageFilePath = statsPath + File.separator + topologyID
 					+ "." + taskIndex;
@@ -97,7 +97,7 @@ public class SinkFunction extends BoltFunctionBase {
 			latencyStat = new AvgStat("", statsPath + File.separator
 					+ stormConf.get(Config.TOPOLOGY_NAME) + "_" + componentId
 					+ "." + taskIndex + ".latency.csv", false);
-			latencyStat.start();
+//			latencyStat.start();
 
 		}
 		this.topologyID = (String) stormConf.get(Config.TOPOLOGY_NAME);

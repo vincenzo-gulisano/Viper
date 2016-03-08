@@ -99,13 +99,13 @@ public class ViperSpoutInternalOnly extends BaseRichSpout {
 				countStat.stopStats();
 				costStat.stopStats();
 				invocationsStat.stopStats();
-				try {
-					countStat.join();
-					costStat.join();
-					invocationsStat.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				// try {
+				// countStat.join();
+				// costStat.join();
+				// invocationsStat.join();
+				// } catch (InterruptedException e) {
+				// e.printStackTrace();
+				// }
 				countStat.writeStats();
 				costStat.writeStats();
 				invocationsStat.writeStats();
@@ -138,15 +138,15 @@ public class ViperSpoutInternalOnly extends BaseRichSpout {
 			countStat = new CountStat("", statsPath + File.separator
 					+ arg0.get(Config.TOPOLOGY_NAME) + "_" + id + ".rate.csv",
 					false);
-			countStat.start();
+			// countStat.start();
 			costStat = new AvgStat("", statsPath + File.separator
 					+ arg0.get(Config.TOPOLOGY_NAME) + "_" + id + ".cost.csv",
 					false);
-			costStat.start();
+			// costStat.start();
 			invocationsStat = new CountStat("", statsPath + File.separator
 					+ arg0.get(Config.TOPOLOGY_NAME) + "_" + id
 					+ ".invocations.csv", false);
-			invocationsStat.start();
+			// invocationsStat.start();
 		}
 
 		udf.prepare(arg0, arg1);
