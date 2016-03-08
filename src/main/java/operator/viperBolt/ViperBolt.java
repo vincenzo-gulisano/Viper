@@ -14,6 +14,7 @@ import statistics.AvgStat;
 import statistics.CountStat;
 import topology.SharedChannelsScaleGate;
 import backtype.storm.Config;
+import backtype.storm.Constants;
 import backtype.storm.generated.GlobalStreamId;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -164,9 +165,9 @@ public class ViperBolt extends BaseRichBolt {
 		collector.emit(ViperUtils.getFlushTuple(this.outFields.size() - 2));
 	}
 
-	protected void emitDummy(Tuple t) {
-		collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
-	}
+	// protected void emitDummy(Tuple t) {
+	// collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
+	// }
 
 	// startTS is for cost estimation
 	private void process(Tuple t) {
@@ -184,8 +185,32 @@ public class ViperBolt extends BaseRichBolt {
 		// }
 	}
 
+	public Map<String, Object> getComponentConfiguration() {
+
+		// if (stillNeedToConfigure)
+		// LOG.error("Getting Viper bolt configuration but configuration did not start yet...");
+		// else {
+		// LOG.info("getComponentConfiguration correctly called once configuration has been initiated");
+		// }
+
+		// configure how often a tick tuple will be sent to our bolt
+		Config conf = new Config();
+		conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, 0.001D);
+		return conf;
+
+	}
+
+//	List<Long> last1000ticks = new LinkedList<Long>();
+
+	protected boolean isTickTuple(Tuple tuple) {
+
+		return tuple.getSourceComponent().equals(Constants.SYSTEM_COMPONENT_ID)
+				&& tuple.getSourceStreamId().equals(
+						Constants.SYSTEM_TICK_STREAM_ID);
+	}
+
 	@SuppressWarnings("unchecked")
-	private void takeFromInternalBuffer(Tuple input) {
+	private void takeFromInternalBuffer() {
 
 		MergerEntry nextReady = sharedChannels.getNextReadyObj("" + thisTask,
 				channelID);
@@ -197,14 +222,14 @@ public class ViperBolt extends BaseRichBolt {
 			// LOG.info("ViperBolt " + id + " received tuple: " + t);
 
 			process(new TupleImpl(context, (List<Object>) nextReady.getO(),
-					input.getSourceTask(), input.getSourceStreamId()));
+					nextReady.getTaskId(), nextReady.getStreamId()));
 			nextReady = sharedChannels
 					.getNextReadyObj("" + thisTask, channelID);
 		}
 
-//		if (keepStats) {
-//			costStat.add((System.nanoTime() - startTS));
-//		}
+		// if (keepStats) {
+		// costStat.add((System.nanoTime() - startTS));
+		// }
 
 	}
 
@@ -221,70 +246,74 @@ public class ViperBolt extends BaseRichBolt {
 		if (keepStats)
 			invocationsStat.increase(1);
 
-		if (useInternalQueues)
-			takeFromInternalBuffer(input);
+		if (useInternalQueues && isTickTuple(input))
+			takeFromInternalBuffer();
 
-		TupleType ttype = (TupleType) input.getValueByField("type");
+		if (!isTickTuple(input)) {
+			TupleType ttype = (TupleType) input.getValueByField("type");
 
-		if (ttype.equals(TupleType.SHAREDQUEUEDUMMY)) {
+			// if (ttype.equals(TupleType.SHAREDQUEUEDUMMY)) {
+			//
+			// emitDummy(input);
+			//
+			// if (keepStats) {
+			// costStat.add((System.nanoTime() - start));
+			// }
+			//
+			// } else
+			if (ttype.equals(TupleType.REGULAR)) {
 
-			emitDummy(input);
+				process(input);
 
-			if (keepStats) {
-				costStat.add((System.nanoTime() - start));
-			}
-
-		} else if (ttype.equals(TupleType.REGULAR)) {
-
-			process(input);
-
-			if (keepStats) {
-				costStat.add((System.nanoTime() - start));
-			}
-
-		} else if (ttype.equals(TupleType.FLUSH)) {
-
-			LOG.info("ViperBolt " + id + " received FLUSH from "
-					+ input.getSourceComponent() + ":" + input.getSourceTask());
-
-			List<Values> result = f.receivedFlush(input);
-			if (result != null) {
-
-				for (Values t : result) {
-					if (t != null) {
-						emit(input, t);
-						if (keepStats) {
-							countStat.increase(1);
-						}
-					}
+				if (keepStats) {
+					costStat.add((System.nanoTime() - start));
 				}
 
-				LOG.info("ViperBolt " + id + " received " + counter
-						+ " tuples before sending FLUSH");
-				emitFlush(input);
+			} else if (ttype.equals(TupleType.FLUSH)) {
 
-				if (keepStats && !statsWritten) {
-					statsWritten = true;
-					Utils.sleep(2000); // Just wait for latest stats to be
-										// written
-					countStat.stopStats();
-					costStat.stopStats();
-					invocationsStat.stopStats();
-					try {
-						countStat.join();
-						costStat.join();
-						invocationsStat.join();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+				LOG.info("ViperBolt " + id + " received FLUSH from "
+						+ input.getSourceComponent() + ":"
+						+ input.getSourceTask());
+
+				List<Values> result = f.receivedFlush(input);
+				if (result != null) {
+
+					for (Values t : result) {
+						if (t != null) {
+							emit(input, t);
+							if (keepStats) {
+								countStat.increase(1);
+							}
+						}
 					}
-					countStat.writeStats();
-					costStat.writeStats();
-					invocationsStat.writeStats();
-					keepStats = false;
 
-					if (this.useInternalQueues)
-						sharedChannels.turnOff();
+					LOG.info("ViperBolt " + id + " received " + counter
+							+ " tuples before sending FLUSH");
+					emitFlush(input);
 
+					if (keepStats && !statsWritten) {
+						statsWritten = true;
+						Utils.sleep(2000); // Just wait for latest stats to be
+											// written
+						countStat.stopStats();
+						costStat.stopStats();
+						invocationsStat.stopStats();
+						try {
+							countStat.join();
+							costStat.join();
+							invocationsStat.join();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						countStat.writeStats();
+						costStat.writeStats();
+						invocationsStat.writeStats();
+						keepStats = false;
+
+						if (this.useInternalQueues)
+							sharedChannels.turnOff();
+
+					}
 				}
 			}
 		}

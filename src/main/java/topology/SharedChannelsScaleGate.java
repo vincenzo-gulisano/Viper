@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import scalegate.SGTupleContainer;
 import scalegate.ScaleGate;
 import scalegate.ScaleGateAArrImpl;
+import scalegate.SingleQueueScaleGate;
 
 public class SharedChannelsScaleGate implements SharedChannels {
 
@@ -28,10 +29,11 @@ public class SharedChannelsScaleGate implements SharedChannels {
 	private Map<String, Map<String, Integer>> channelsDestinationsMap = new HashMap<String, Map<String, Integer>>();
 	// private Map<String, Integer> channelsSizes = new HashMap<String,
 	// Integer>();
-	//private Map<String, CountStat> channelSize = new HashMap<String, CountStat>();
-	//private boolean keepStats;
-	//private String statsPath;
-	//private String topologyName;
+	// private Map<String, CountStat> channelSize = new HashMap<String,
+	// CountStat>();
+	// private boolean keepStats;
+	// private String statsPath;
+	// private String topologyName;
 
 	// For support method
 	private Map<String, Map<String, String>> destinationSouceMapping = new HashMap<String, Map<String, String>>();
@@ -47,11 +49,11 @@ public class SharedChannelsScaleGate implements SharedChannels {
 			try {
 				thisSharedChannels = new SharedChannelsScaleGate();
 
-				//thisSharedChannels.keepStats = keepStats;
+				// thisSharedChannels.keepStats = keepStats;
 
-				//thisSharedChannels.statsPath = statsPath;
+				// thisSharedChannels.statsPath = statsPath;
 
-				//thisSharedChannels.topologyName = topologyName;
+				// thisSharedChannels.topologyName = topologyName;
 
 			} finally {
 				l.unlock();
@@ -74,14 +76,24 @@ public class SharedChannelsScaleGate implements SharedChannels {
 						"Registering already existing channel " + id);
 
 			// Create ScaleGate
-			ScaleGate sg = new ScaleGateAArrImpl(3, sources.size(),
-					destinations.size());
+			boolean isRealScaleGate = sources.size() > 1
+					|| destinations.size() > 1;
+
+			LOG.info(id + " - isRealScaleGate: " + isRealScaleGate);
+
+			ScaleGate sg = null;
+			if (isRealScaleGate)
+				sg = new ScaleGateAArrImpl(3, sources.size(),
+						destinations.size());
+			else
+				sg = new SingleQueueScaleGate();
 
 			channelsSourcesMap.put(id, new HashMap<String, Integer>());
 			int i = 0;
 			for (String s : sources) {
 				channelsSourcesMap.get(id).put(s, i);
-				sg.addTuple(new SGTupleContainer(), i);
+				if (isRealScaleGate)
+					sg.addTuple(new SGTupleContainer(), i);
 				i++;
 			}
 
@@ -115,12 +127,12 @@ public class SharedChannelsScaleGate implements SharedChannels {
 			}
 
 			// channelsSizes.put(id, 0);
-//			if (keepStats) {
-//				channelSize.put(id, new CountStat("", statsPath
-//						+ File.separator + topologyName + "_" + id
-//						+ ".rate.csv", true));
-//				channelSize.get(id).start();
-//			}
+			// if (keepStats) {
+			// channelSize.put(id, new CountStat("", statsPath
+			// + File.separator + topologyName + "_" + id
+			// + ".rate.csv", true));
+			// channelSize.get(id).start();
+			// }
 			channels.put(id, sg);
 
 		} finally {
@@ -144,8 +156,8 @@ public class SharedChannelsScaleGate implements SharedChannels {
 		this.channels.get(id).addTuple(new SGTupleContainer(me),
 				this.channelsSourcesMap.get(id).get(source));
 
-//		if (keepStats)
-//			channelSize.get(id).increase(+1);
+		// if (keepStats)
+		// channelSize.get(id).increase(+1);
 
 	}
 
@@ -172,8 +184,8 @@ public class SharedChannelsScaleGate implements SharedChannels {
 		// nevertheless, this will create some extra latency only in the very
 		// beginning...
 
-//		if (keepStats)
-//			channelSize.get(id).increase(-1);
+		// if (keepStats)
+		// channelSize.get(id).increase(-1);
 
 		return t.getME();
 
@@ -202,17 +214,17 @@ public class SharedChannelsScaleGate implements SharedChannels {
 
 	@Override
 	public void turnOff() {
-//		if (keepStats) {
-//			for (String id : channels.keySet()) {
-//				channelSize.get(id).stopStats();
-//				try {
-//					channelSize.get(id).join();
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
-//				channelSize.get(id).writeStats();
-//			}
-//		}
+		// if (keepStats) {
+		// for (String id : channels.keySet()) {
+		// channelSize.get(id).stopStats();
+		// try {
+		// channelSize.get(id).join();
+		// } catch (InterruptedException e) {
+		// e.printStackTrace();
+		// }
+		// channelSize.get(id).writeStats();
+		// }
+		// }
 
 	}
 

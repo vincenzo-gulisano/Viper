@@ -69,8 +69,10 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 		List<Values> result = f.process(t);
 		if (result != null)
 			for (Values v : result) {
-				merger.add(thisTupleId,
-						new MergerEntry(t.getLongByField(tsField), v));
+				merger.add(
+						thisTupleId,
+						new MergerEntry(t.getLongByField(tsField), t
+								.getSourceTask(), t.getSourceStreamId(), v));
 				// LOG.info(id + " added values " + v);
 			}
 
@@ -92,15 +94,19 @@ public class StatelessBoltFunctionWrapper implements BoltFunction {
 		// The ViperBolt is informing you that you received a flush
 		// You want to add it to the merger for sure
 		// You want to get all the remaining tuples in the merger
-		// Once you are done, you want to disable the internal thread of the merger 
+		// Once you are done, you want to disable the internal thread of the
+		// merger
 		// Then you can return the results...
-		
+
 		thisTupleId = id + ":" + t.getSourceComponent() + ":"
 				+ t.getSourceTask();
 
 		if (ids.contains(thisTupleId)) {
 			LOG.info(id + " adding flush for " + thisTupleId);
-			merger.add(thisTupleId, new MergerEntry(Long.MAX_VALUE, t));
+			merger.add(
+					thisTupleId,
+					new MergerEntry(Long.MAX_VALUE, t.getSourceTask(), t
+							.getSourceStreamId(), t));
 			ids.remove(thisTupleId);
 		}
 

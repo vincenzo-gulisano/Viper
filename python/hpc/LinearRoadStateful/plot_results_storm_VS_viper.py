@@ -4,26 +4,91 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 import statistics
+from LinearRoadStateful.storm_vs_viper_paper_graph import create_overview_graph
+import numpy
+
+# state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/detectaccidents_runs2and3/'
+# results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/detectaccidents_runs2and3'
 
 state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/'
 results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2'
+
 main_title = 'Storm '
 
 stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
 
-for type in ['storm', 'viper']:
-    for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
-                       'StatelessForwardStoppedCarsOnly']:
-        keys = []
-        throughput_x = dict()
-        throughput_y = dict()
-        latency_x = dict()
-        latency_y = dict()
-        consumption_x = dict()
-        consumption_y = dict()
+run_ranges = range(0, 3)
+
+keys = []
+throughput_x = dict()
+throughput_y = dict()
+latency_x = dict()
+latency_y = dict()
+consumption_x = dict()
+consumption_y = dict()
+keys_markers = dict()
+keys_legend = dict()
+
+def compute_top_results(keys, throughput, latency, consumption):
+    results = [[0 for x in range(3)] for x in range(3)]
+
+    index = -1
+    results[0][0] = 0
+    k = ''
+
+    for key in keys:
+        for i in range(0, len(throughput[key])):
+            if index == -1 or throughput[key][i] > results[0][0]:
+                results[0][0] = throughput[key][i]
+                index = i
+                k = key
+
+    results[0][1] = latency[k][index]
+    results[0][2] = consumption[k][index]
+
+    index = -1
+    results[1][1] = 0
+    k = ''
+
+    for key in keys:
+        for i in range(0, len(latency[key])):
+            if index == -1 or latency[key][i] < results[1][1]:
+                results[1][1] = latency[key][i]
+                index = i
+                k = key
+
+    results[1][0] = throughput[k][index]
+    results[1][2] = consumption[k][index]
+
+    index = -1
+    results[2][2] = 0
+    k = ''
+
+    for key in keys:
+        for i in range(0, len(consumption[key])):
+            if index == -1 or consumption[key][i] < results[2][2]:
+                results[2][2] = consumption[key][i]
+                index = i
+                k = key
+
+    results[2][0] = throughput[k][index]
+    results[2][1] = latency[k][index]
+
+    return results
+
+
+markers = ['x', '+', 's', '*']
+
+# for main_class in ['StatefulVehicleDetectAccident']:
+# for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
+#                        'StatelessForwardStoppedCarsOnly']:
+for main_class in ['StatelessForwardStoppedCarsOnly']:
+    for type in ['storm', 'viper']:
+
+        marker_index = 0
 
         for spout_parallelism in [1, 2, 4, 6]:
-            key = str(spout_parallelism)
+            key = type + '_' + str(spout_parallelism)
             keys.append(key)
             throughput_x[key] = []
             throughput_y[key] = []
@@ -32,11 +97,15 @@ for type in ['storm', 'viper']:
             consumption_x[key] = []
             consumption_y[key] = []
 
+            keys_markers[key] = markers[marker_index]
+            keys_legend[key] = str(spout_parallelism) + ' Inj.'
+            marker_index += 1
+
             for op_parallelism in [1, 2, 4, 6]:
                 throughput_temp = []
                 latency_temp = []
                 consumption_temp = []
-                for run in range(0, 3):
+                for run in run_ranges:
                     throughput_temp.append(stats_data[
                                                type + '_' + main_class + '_S' + str(spout_parallelism) + 'vsO' + str(
                                                        op_parallelism) + '_' + str(run)][0])
@@ -71,9 +140,28 @@ for type in ['storm', 'viper']:
             for spout_parallelism in [1, 2, 4, 6]:
                 for op_parallelism in [1, 2, 4, 6]:
                     temp = [];
-                    for run in range(0, 3):
+                    for run in run_ranges:
                         temp.append(stats_data[type + '_' + main_class + '_S' + str(spout_parallelism) + 'vsO' + str(
                                 op_parallelism) + '_' + str(run)][i])
                     print(str(int(statistics.mean(temp))) + '\t', end='')
                 print('')
             print('')
+
+storm_keys = [value for index, value in enumerate(keys) if 'storm' in value]
+viper_keys = [value for index, value in enumerate(keys) if 'viper' in value]
+
+create_overview_graph(storm_keys, viper_keys, keys_markers, keys_legend, [1, 2, 4, 6],
+                      throughput_y, latency_y, consumption_y, throughput_y, latency_y, consumption_y,
+                      [0.9, 1, 2, 4, 6, 6.1], ['', '1', '2', '4', '6', ''], [0, 250000, 500000, 750000],
+                      ['0', '250K', '500K', '750K'], [-50, 0, 250, 500, 750, 1000, 1110],
+                      ['', '0', '250', '500', '750', '1000', ''], [0.00000, 0.00020, 0.00040, 0.00060, 0.0007],
+                      ['0', '0.2', '0.4', '0.6', ''],
+                      '/Users/vinmas/repositories/viperpaper/debs2016/evaluation/' + main_class + '.pdf')
+
+# Summary results
+resultsStorm = compute_top_results(storm_keys, throughput_y, latency_y, consumption_y)
+print(str(resultsStorm))
+resultsViper = compute_top_results(viper_keys, throughput_y, latency_y, consumption_y)
+print(str(resultsViper))
+
+print(str(numpy.divide(resultsViper, resultsStorm)))

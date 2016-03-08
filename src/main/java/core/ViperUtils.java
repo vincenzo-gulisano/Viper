@@ -21,15 +21,15 @@ public class ViperUtils {
 		return result;
 	}
 
-	public static List<Object> getDummyTuple(int numberOfFields) {
-		List<Object> result = new LinkedList<Object>();
-		result.add(TupleType.SHAREDQUEUEDUMMY);
-		result.add(Long.MAX_VALUE);
-		for (int i = 0; i < numberOfFields; i++) {
-			result.add(null);
-		}
-		return result;
-	}
+//	public static List<Object> getDummyTuple(int numberOfFields) {
+//		List<Object> result = new LinkedList<Object>();
+//		result.add(TupleType.SHAREDQUEUEDUMMY);
+//		result.add(Long.MAX_VALUE);
+//		for (int i = 0; i < numberOfFields; i++) {
+//			result.add(null);
+//		}
+//		return result;
+//	}
 
 	// public static List<Object> getWriteLogTuple(int numberOfFields, String
 	// id) {

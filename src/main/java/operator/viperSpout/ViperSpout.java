@@ -70,15 +70,16 @@ public class ViperSpout extends BaseRichSpout {
 		if (keepStats) {
 			invocationsStat.increase(1);
 		}
-		if (useInternalQueues && !flushSent && r.nextDouble() <= dummyProb) {
-
-			collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
-
-			// remove this
-			// LOG.info("Spout " + id + " sending DUMMY tuple, " + counter
-			// + " tuples sent");
-
-		} else if (udf.hasNext()) {
+//		if (useInternalQueues && !flushSent && r.nextDouble() <= dummyProb) {
+//
+//			collector.emit(ViperUtils.getDummyTuple(this.outFields.size() - 2));
+//
+//			// remove this
+//			// LOG.info("Spout " + id + " sending DUMMY tuple, " + counter
+//			// + " tuples sent");
+//
+//		} else 
+			if (udf.hasNext()) {
 
 			// if (ackGap < 1000) {
 

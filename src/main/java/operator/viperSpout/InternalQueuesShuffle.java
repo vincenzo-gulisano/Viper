@@ -34,8 +34,9 @@ public abstract class InternalQueuesShuffle implements Serializable {
 			sharedChannels = SharedChannelsScaleGate.factory(keepStats,
 					statsPath, topologyName);
 
-		sharedChannels
-				.addObj(id, getChannelID(v), new MergerEntry(getTS(v), v));
+		throw new RuntimeException("Calling an unsupported method");
+//		sharedChannels
+//				.addObj(id, getChannelID(v), new MergerEntry(getTS(v), v));
 
 	}
 

@@ -44,6 +44,7 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 	boolean keepStats;
 	String statsPath;
 	String topologyName;
+	String streamId;
 
 	// TODO need to do something smarter for this!
 	public ViperFieldsSharedChannels(boolean keepStats, String statsPath,
@@ -72,6 +73,7 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 		this.keepStats = keepStats;
 		this.statsPath = statsPath;
 		this.topologyName = topologyName;
+
 	}
 
 	@Override
@@ -80,6 +82,7 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 		this.targetTasks = targetTasks;
 		sharedChannels = SharedChannelsScaleGate.factory(keepStats, statsPath,
 				topologyName);
+		this.streamId = stream.get_streamId();
 	}
 
 	@Override
@@ -102,32 +105,34 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 		ArrayList<Integer> result = new ArrayList<Integer>();
 		TupleType type = (TupleType) values.get(0);
 
-		if (type.equals(TupleType.SHAREDQUEUEDUMMY)) {
+		// if (type.equals(TupleType.SHAREDQUEUEDUMMY)) {
+		//
+		// // int backOffIndex = targetTasks.get(scheduleSleepIndex);
+		// //
+		// // if (sharedChannels
+		// // .getSize(destinationChannelsIDs.get(backOffIndex)) > 50000) {
+		// // long currentBO = backoffs.get(backOffIndex);
+		// // if (currentBO == 0) {
+		// // // LOG.info("Back off for task " + taskId + " set to 1");
+		// // backoffs.put(backOffIndex, 1L);
+		// // } else {
+		// // // LOG.info("Back off for task " + taskId + " set to "
+		// // // + currentBO * 2);
+		// // backoffs.put(backOffIndex, currentBO * 2);
+		// // }
+		// //
+		// // } else {
+		// // // LOG.info("Back off for task " + taskId + " set to 0");
+		// // backoffs.put(backOffIndex, 0L);
+		// // }
+		// //
+		// // scheduleSleepIndex = (scheduleSleepIndex + 1) %
+		// // targetTasks.size();
+		// result.add(targetTasks.get(index));
+		// return result;
+		// } else
 
-			// int backOffIndex = targetTasks.get(scheduleSleepIndex);
-			//
-			// if (sharedChannels
-			// .getSize(destinationChannelsIDs.get(backOffIndex)) > 50000) {
-			// long currentBO = backoffs.get(backOffIndex);
-			// if (currentBO == 0) {
-			// // LOG.info("Back off for task " + taskId + " set to 1");
-			// backoffs.put(backOffIndex, 1L);
-			// } else {
-			// // LOG.info("Back off for task " + taskId + " set to "
-			// // + currentBO * 2);
-			// backoffs.put(backOffIndex, currentBO * 2);
-			// }
-			//
-			// } else {
-			// // LOG.info("Back off for task " + taskId + " set to 0");
-			// backoffs.put(backOffIndex, 0L);
-			// }
-			//
-			// scheduleSleepIndex = (scheduleSleepIndex + 1) %
-			// targetTasks.size();
-			result.add(targetTasks.get(index));
-			return result;
-		} else if (type.equals(TupleType.REGULAR)) {
+		if (type.equals(TupleType.REGULAR)) {
 
 			index = values.get(fieldIndex).hashCode() % targetTasks.size();
 
@@ -141,9 +146,10 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 			// Notice that I am assuming the timestamp is alway in position 1,
 			// so it is the internal timestamp, not user defined one
 
-			sharedChannels.addObj("" + taskId,
-					destinationChannelsIDs.get(targetTasks.get(index)),
-					new MergerEntry((Long) values.get(tsIndex), values));
+			sharedChannels.addObj("" + taskId, destinationChannelsIDs
+					.get(targetTasks.get(index)),
+					new MergerEntry((Long) values.get(tsIndex), taskId,
+							streamId, values));
 			// index = (index + 1) % targetTasks.size();
 			// counter++;
 			return result;

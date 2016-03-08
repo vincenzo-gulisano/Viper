@@ -81,8 +81,10 @@ public class ViperMergerFunction implements BoltFunction {
 
 		// System.out.println(id + " adding " + t.toString());
 
-		merger.add(t.getSourceComponent() + ":" + t.getSourceTask(),
-				new MergerEntry(t.getLongByField(tsField), t));
+		merger.add(
+				t.getSourceComponent() + ":" + t.getSourceTask(),
+				new MergerEntry(t.getLongByField(tsField), t.getSourceTask(), t
+						.getSourceStreamId(), t));
 
 		long temp_count = 0;
 		MergerEntry me = merger.getNextReady();
@@ -95,16 +97,18 @@ public class ViperMergerFunction implements BoltFunction {
 			temp_count++;
 		}
 
-//		if (result.size() > 10)
-//			LOG.info(id + " return size is " + result.size());
+		// if (result.size() > 10)
+		// LOG.info(id + " return size is " + result.size());
 
 		return result;
 	}
 
 	@Override
 	public List<Values> receivedFlush(Tuple t) {
-		merger.add(t.getSourceComponent() + ":" + t.getSourceTask(),
-				new MergerEntry(Long.MAX_VALUE, t));
+		merger.add(
+				t.getSourceComponent() + ":" + t.getSourceTask(),
+				new MergerEntry(Long.MAX_VALUE, t.getSourceTask(), t
+						.getSourceStreamId(), t));
 		// LOG.info(id + " adding flush from " + t.getSourceComponent() + ":"
 		// + t.getSourceTask());
 		idsFlushed.remove(t.getSourceComponent() + ":" + t.getSourceTask());
@@ -122,6 +126,7 @@ public class ViperMergerFunction implements BoltFunction {
 		}
 		return null;
 	}
+
 	//
 	// @Override
 	// public void receivedWriteLog(Tuple t) {

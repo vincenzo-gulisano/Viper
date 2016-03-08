@@ -25,7 +25,7 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 	private static final long serialVersionUID = 3014404246770284550L;
 	int index = 0;
 	List<Integer> targetTasks;
-	//int counter = 0;
+	// int counter = 0;
 
 	private SharedChannelsScaleGate sharedChannels;
 	Map<Integer, String> destinationChannelsIDs;
@@ -38,9 +38,10 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 	boolean keepStats;
 	String statsPath;
 	String topologyName;
+	String streamId;
 
 	Random r = new Random();
-	
+
 	public ViperShuffleSharedChannels(boolean keepStats, String statsPath,
 			String topologyName) {
 		destinationChannelsIDs = new HashMap<Integer, String>();
@@ -71,6 +72,7 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 		this.targetTasks = targetTasks;
 		sharedChannels = SharedChannelsScaleGate.factory(keepStats, statsPath,
 				topologyName);
+		this.streamId = stream.get_streamId();
 	}
 
 	@Override
@@ -91,18 +93,19 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 
 		ArrayList<Integer> result = new ArrayList<Integer>();
 		TupleType type = (TupleType) values.get(0);
-		if (type.equals(TupleType.SHAREDQUEUEDUMMY)) {
-			// LOG.info("Forwarding SHAREDQUEUEDUMMY to all destinations (task "
-			// + taskId + ")");
-
-			// If the size of for the internal channel at the current index is
-			// greater than 50000, remember to sleep next time...
-			// scheduledSleep.put(targetTasks.get(index),
-			// sharedChannels.getSize(destinationChannelsIDs
-			// .get(targetTasks.get(index))) > 50000);
-			result.add(targetTasks.get(index));
-			return result;
-		} else if (type.equals(TupleType.REGULAR)) {
+		// if (type.equals(TupleType.SHAREDQUEUEDUMMY)) {
+		// // LOG.info("Forwarding SHAREDQUEUEDUMMY to all destinations (task "
+		// // + taskId + ")");
+		//
+		// // If the size of for the internal channel at the current index is
+		// // greater than 50000, remember to sleep next time...
+		// // scheduledSleep.put(targetTasks.get(index),
+		// // sharedChannels.getSize(destinationChannelsIDs
+		// // .get(targetTasks.get(index))) > 50000);
+		// result.add(targetTasks.get(index));
+		// return result;
+		// } else
+		if (type.equals(TupleType.REGULAR)) {
 			//
 			// if (scheduledSleep.get(targetTasks.get(index))) {
 			// scheduledSleep.put(targetTasks.get(index), false);
@@ -112,14 +115,16 @@ public class ViperShuffleSharedChannels implements CustomStreamGrouping,
 
 			// Notice that I am assuming the timestamp is alway in position 1,
 			// so it is the internal timestamp, not user defined one
-			sharedChannels.addObj("" + taskId,
-					destinationChannelsIDs.get(targetTasks.get(index)),
-					new MergerEntry((Long) values.get(tsIndex), values));
+			sharedChannels.addObj("" + taskId, destinationChannelsIDs
+					.get(targetTasks.get(index)),
+					new MergerEntry((Long) values.get(tsIndex), taskId,
+							streamId, values));
 
 			// LOG.info(taskId + " - Adding ts " + ((Long) values.get(tsIndex))
 			// + " values: " + values);
-			index = r.nextInt(targetTasks.size()); // (index + 1) % targetTasks.size();
-			//counter++;
+			index = r.nextInt(targetTasks.size()); // (index + 1) %
+													// targetTasks.size();
+			// counter++;
 			return result;
 
 		} else if (type.equals(TupleType.FLUSH)) {
