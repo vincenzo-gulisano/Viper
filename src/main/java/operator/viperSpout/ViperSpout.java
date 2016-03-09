@@ -136,6 +136,7 @@ public class ViperSpout extends BaseRichSpout {
 		//
 		// }
 		else {
+			LOG.info("Spout "+id+" has finished sending tuples");
 			Utils.sleep(1000);
 		}
 	}
