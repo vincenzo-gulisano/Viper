@@ -40,7 +40,7 @@ def read_parallel_op_statistics(prefix, op_name, instances):
         data[op_name + "_rate_value"] = value.tolist()
     except:
         print('Could not compute rate stats for operator ' + op_name)
-        print('Error:' + sys.exc_info()[0])
+        # print('Error:' + sys.exc_info()[0])
 
     # INVOCATIONS
     try:
@@ -54,7 +54,7 @@ def read_parallel_op_statistics(prefix, op_name, instances):
         data[op_name + "_invocations_value"] = value.tolist()
     except:
         print('Could not compute invocations stats for operator ' + op_name)
-        print('Error:' + sys.exc_info()[0])
+        # print('Error:' + sys.exc_info()[0])
 
     # COST
     try:
@@ -68,7 +68,7 @@ def read_parallel_op_statistics(prefix, op_name, instances):
         data[op_name + "_cost_value"] = value.tolist()
     except:
         print('Could not compute cost stats for operator ' + op_name)
-        print('Error:' + sys.exc_info()[0])
+        # print('Error:' + sys.exc_info()[0])
 
     # LATENCY
     try:
@@ -83,7 +83,7 @@ def read_parallel_op_statistics(prefix, op_name, instances):
             data[op_name + "_latency_value"] = value.tolist()
     except:
         print('Could not compute latency stats for operator ' + op_name)
-        print('Error:' + sys.exc_info()[0])
+        # print('Error:' + sys.exc_info()[0])
 
     return data
 
