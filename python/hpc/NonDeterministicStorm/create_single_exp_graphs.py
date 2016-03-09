@@ -31,24 +31,29 @@ def create_graph_time_value(x, y, title, x_label, y_label, outFile):
 
     return
 
+
 def create_graph_multiple_time_value(xs, ys, keys, title, x_label, y_label, outFile):
+    markers = ['.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', '*', 'h', 'H', '+', 'x', 'D', 'd',
+               '|', '_']
+
     rcParams.update({'figure.autolayout': True})
     pp = PdfPages(outFile)
 
     f = plt.figure()
     ax = plt.gca()
 
+    marker_i = 0
     for key in keys:
-        plt.plot(xs[key], ys[key], label=key)
-
+        plt.plot(xs[key], ys[key], label=key, marker=markers[marker_i])
+        marker_i = (marker_i + 1) % len(markers)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
     plt.grid(True)
-    plt.legend(loc='upper left')
+    plt.legend(loc='best')
 
     ymin, ymax = plt.ylim()
-    plt.ylim(0,ymax)
+    plt.ylim(0, ymax)
 
     plt.close()
 
@@ -56,6 +61,7 @@ def create_graph_multiple_time_value(xs, ys, keys, title, x_label, y_label, outF
     pp.close()
 
     return
+
 
 def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_parallelim, op_parallelism,
                              sink_parallelism):
@@ -155,14 +161,15 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     # consumption_ts[:] = [x - earliest_ts for x in consumption_ts]
     consumption_start_ts = int(consumption_ts[-1] * 0.1)
     consumption_end_ts = int(consumption_ts[-1] * 0.9)
-    consumption_start_ts_index = [ n for n,i in enumerate(consumption_ts) if i>consumption_start_ts ][0]
-    consumption_end_ts_index = [ n for n,i in enumerate(consumption_ts) if i<consumption_end_ts ][-1]
+    consumption_start_ts_index = [n for n, i in enumerate(consumption_ts) if i > consumption_start_ts][0]
+    consumption_end_ts_index = [n for n, i in enumerate(consumption_ts) if i < consumption_end_ts][-1]
     create_graph_time_value(consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
-                            consumption_value[consumption_start_ts_index:consumption_end_ts_index], 'Consumption', 'time (seconds)',
+                            consumption_value[consumption_start_ts_index:consumption_end_ts_index], 'Consumption',
+                            'time (seconds)',
                             'Consumption (watts/second) ', results_folder + 'consumption.pdf')
 
     throughput = scipystat.trim_mean(results['spout_rate_value'][start_ts:end_ts], 0.05)
     latency = scipystat.trim_mean(results['sink_latency_value'][start_ts:end_ts], 0.05)
-    consumption = scipystat.trim_mean(consumption_value[start_ts:end_ts], 0.05)/throughput
+    consumption = scipystat.trim_mean(consumption_value[start_ts:end_ts], 0.05) / throughput
 
     return [throughput, latency, consumption]

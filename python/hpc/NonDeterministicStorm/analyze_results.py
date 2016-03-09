@@ -10,6 +10,8 @@ main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
 
+stats_data = dict()
+
 exp_num = 1
 for load in [1.0, 0.1, 0]:
 
@@ -45,6 +47,25 @@ for load in [1.0, 0.1, 0]:
                                                                               spout_parallelism, op_parallelism,
                                                                               sink_parallelism)
 
+                stats_data[
+                    'storm_load_' + str(load) + '_selectivity_' + str(selectivity) + '_thread_' + str(
+                        thread) + '_repetition_' + str(repetition) + '_spout_parallelism'] = spout_parallelism
+                stats_data[
+                    'storm_load_' + str(load) + '_selectivity_' + str(selectivity) + '_thread_' + str(
+                        thread) + '_repetition_' + str(repetition) + '_op_parallelism'] = op_parallelism
+                stats_data[
+                    'storm_load_' + str(load) + '_selectivity_' + str(selectivity) + '_thread_' + str(
+                        thread) + '_repetition_' + str(repetition) + '_sink_parallelism'] = sink_parallelism
+                stats_data[
+                    'storm_load_' + str(load) + '_selectivity_' + str(selectivity) + '_thread_' + str(
+                        thread) + '_repetition_' + str(repetition) + '_throughput'] = throughput
+                stats_data[
+                    'storm_load_' + str(load) + '_selectivity_' + str(selectivity) + '_thread_' + str(
+                        thread) + '_repetition_' + str(repetition) + '_latency'] = latency
+                stats_data[
+                    'storm_load_' + str(load) + '_selectivity_' + str(selectivity) + '_thread_' + str(
+                        thread) + '_repetition_' + str(repetition) + '_consumption'] = consumption
+
                 threads[id].append(spout_parallelism + op_parallelism + sink_parallelism)
                 throughput_avg[id].append(throughput)
                 latency_avg[id].append(latency)
@@ -52,12 +73,16 @@ for load in [1.0, 0.1, 0]:
 
                 exp_num += 1
 
-    create_graph_multiple_time_value(threads, throughput_avg, keys, main_title + 'Throughput', 'Threads', 'Throughput (t/s)',
+    create_graph_multiple_time_value(threads, throughput_avg, keys, main_title + 'Throughput', 'Threads',
+                                     'Throughput (t/s)',
                                      results_base_folder + '/L' + str(load) + 'throughput.pdf')
     create_graph_multiple_time_value(threads, latency_avg, keys, main_title + 'Latency', 'Threads', 'Latency (ms)',
                                      results_base_folder + '/L' + str(load) + 'latency.pdf')
-    create_graph_multiple_time_value(threads, consumption_avg, keys, main_title + 'Consumption', 'Threads', 'Consumption (W/t)',
+    create_graph_multiple_time_value(threads, consumption_avg, keys, main_title + 'Consumption', 'Threads',
+                                     'Consumption (W/t)',
                                      results_base_folder + '/L' + str(load) + 'consumption.pdf')
+
+json.dump(stats_data, open(results_base_folder + '/stats_data.json', 'w'))
 
 # for exp_num in range(1, 37):
 #     result_path = state['exp_' + str(exp_num) + '_results_folder']

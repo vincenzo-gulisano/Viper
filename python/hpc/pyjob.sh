@@ -1,0 +1,6 @@
+ 
+ 
+KILLDURATION=365
+SAMPLEDURATION=365
+sleep_time=90
+ 

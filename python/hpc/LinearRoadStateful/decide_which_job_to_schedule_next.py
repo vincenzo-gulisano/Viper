@@ -80,7 +80,10 @@ print('')
 
 for o in operators:
 
-    throughput.append(scipystat.trim_mean(results_json[o + "_rate_value"][start_ts:end_ts], 0.05))
+    if str(o + "_rate_value") in results_json.keys():
+        throughput.append(scipystat.trim_mean(results_json[o + "_rate_value"][start_ts:end_ts], 0.05))
+    else:
+        throughput.append(0.0)
     if str(o + "_latency_value") in results_json.keys():
         latency.append(scipystat.trim_mean(results_json[o + "_latency_value"][start_ts:end_ts], 0.05))
     else:
@@ -155,8 +158,6 @@ if 'storm' in exp_type:
         index += 1
 elif 'viper' in exp_type:
     print('This experiment is viper... not keeping merger statistics')
-
-
 
 data['exp_' + exp_num + '_op_throughput'] = str(throughput[index])
 data['exp_' + exp_num + '_op_latency'] = str(latency[index])

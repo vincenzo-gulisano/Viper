@@ -1,6 +1,8 @@
 __author__ = 'vinmas'
 from NonDeterministicStorm.create_json_for_experiment_results import read_topology_parallel_op_data_and_store_json
 import json
+from os import listdir
+from os.path import isfile, join
 from scipy import stats as scipystat
 from optparse import OptionParser
 from create_script_and_schedule_job import create_script_and_schedule_job
@@ -28,39 +30,51 @@ from create_script_and_schedule_job import create_script_and_schedule_job
 #
 # data = json.dump(data,open('/Users/vinmas/Downloads/ImprovedParallelStorm_2015-11-06_17.49/state.json', 'w'))
 
-data = dict()
+# data = dict()
+#
+# exp_num = 1
+# for load in [1.0, 0.1, 0]:
+#     for selectivity in [1.0, 0.1, 0.01]:
+#         for thread in range(0, 10):
+#             for repetition in range(0, 1):
+#                 # data['exp_' + str(exp_num) + '_num'] = str(exp_num)
+#                 data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
+#                 data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
+#                 data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
+#                 data['exp_' + str(exp_num) + '_load'] = str(load)
+#                 data['exp_' + str(exp_num) + '_selectivity'] = str(selectivity)
+#                 data['exp_' + str(exp_num) + '_rep'] = str(repetition)
+#                 data['exp_' + str(exp_num) + '_config_next'] = "True"
+#                 exp_num += 1
+#         for repetition in range(0, 1):
+#             # data['exp_' + str(exp_num) + '_num'] = str(exp_num)
+#             data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
+#             data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
+#             data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
+#             data['exp_' + str(exp_num) + '_load'] = str(load)
+#             data['exp_' + str(exp_num) + '_selectivity'] = str(selectivity)
+#             data['exp_' + str(exp_num) + '_rep'] = str(repetition)
+#             data['exp_' + str(exp_num) + '_config_next'] = "False"
+#             exp_num += 1
 
-exp_num = 1
-for load in [1.0, 0.1, 0]:
-    for selectivity in [1.0, 0.1, 0.01]:
-        for thread in range(0, 10):
-            for repetition in range(0, 1):
-                # data['exp_' + str(exp_num) + '_num'] = str(exp_num)
-                data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
-                data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
-                data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
-                data['exp_' + str(exp_num) + '_load'] = str(load)
-                data['exp_' + str(exp_num) + '_selectivity'] = str(selectivity)
-                data['exp_' + str(exp_num) + '_rep'] = str(repetition)
-                data['exp_' + str(exp_num) + '_config_next'] = "True"
-                exp_num += 1
-        for repetition in range(0, 1):
-            # data['exp_' + str(exp_num) + '_num'] = str(exp_num)
-            data['exp_' + str(exp_num) + '_spout_parallelism'] = "1"
-            data['exp_' + str(exp_num) + '_op_parallelism'] = "1"
-            data['exp_' + str(exp_num) + '_sink_parallelism'] = "1"
-            data['exp_' + str(exp_num) + '_load'] = str(load)
-            data['exp_' + str(exp_num) + '_selectivity'] = str(selectivity)
-            data['exp_' + str(exp_num) + '_rep'] = str(repetition)
-            data['exp_' + str(exp_num) + '_config_next'] = "False"
-            exp_num += 1
+real_folders = [f for f in listdir('/Users/vinmas/repositories/viper_experiments/experiments1215/') if
+             not isfile(join('/Users/vinmas/repositories/viper_experiments/experiments1215/', f))]
 
-data = json.load(open('/Users/vinmas/repositories/viper_experiments/151202/state.json', 'r'))
-for exp_num in range(1, 37):
-    configure_next_exp_parallelim = data['exp_' + str(exp_num) + '_config_next'] in ['True']
-    print('exp_' + str(exp_num) + '_config_next: ' + data['exp_' + str(exp_num) + '_config_next'] + ' --> ' + str(
-        configure_next_exp_parallelim))
-    print('exp_' + str(exp_num) + '_results_folder: ' + data['exp_' + str(exp_num) + '_results_folder'])
+exp_folders = []
+data = json.load(open('/Users/vinmas/repositories/viper_experiments/experiments1215/state.json', 'r'))
+for exp_num in range(1, 97):
+    # configure_next_exp_parallelim = data['exp_' + str(exp_num) + '_config_next'] in ['True']
+    # print('exp_' + str(exp_num) + '_config_next: ' + data['exp_' + str(exp_num) + '_config_next'] + ' --> ' + str(
+    #     configure_next_exp_parallelim))
+    # print('exp_' + str(exp_num) + '_results_folder: ' + data['exp_' + str(exp_num) + '_results_folder'].split('/')[-2])
+    exp_folders.append(data['exp_' + str(exp_num) + '_results_folder'].split('/')[-2])
+
+
+for i in range(0,len(exp_folders)):
+    if exp_folders[i] != real_folders[i]:
+        print(exp_folders[i] + ' <==> ' + real_folders[i])
+        break
+
     #
     # parser = OptionParser()
     # parser.add_option("-r", "--resultsfolder", dest="resultsfolder",
