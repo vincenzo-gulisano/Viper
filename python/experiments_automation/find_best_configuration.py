@@ -104,10 +104,11 @@ def create_graph_time_value(x, y, title, x_label, y_label, outFile):
     return
 
 
-def create_graphs(stats_folder, id, selectivity, operators, spout_op, sink_op):
+# For a given folder and id, create the graph for the throughput and the latency
+def create_graphs(file_name, operators, spout_op, sink_op):
     columns = defaultdict(list)  # each value in each column is appended to a list
 
-    with open(stats_folder + id + str(selectivity).replace('.', '-') + '.csv') as f:
+    with open(file_name) as f:
         reader = csv.DictReader(f)  # read rows into a dictionary format
         for row in reader:  # read a row as {column1: value1, column2: value2,...}
             for (k, v) in row.items():  # go over each column name and value
@@ -119,11 +120,11 @@ def create_graphs(stats_folder, id, selectivity, operators, spout_op, sink_op):
         for o in operators:
             threads[i] += int(columns[o + '_instances'][i])
     create_graph_time_value(threads, columns[spout_op + '_throughput'], 'Throughput', 'Threads', 'Throughput (t/s)',
-                            stats_folder + id + str(selectivity).replace('.', '-') + '_throughput.pdf')
+                            file_name.replace('.csv', '') + '_throughput.pdf')
     create_graph_time_value(threads, columns[sink_op + '_latency'], 'Latency', 'Threads', 'Latency (ms)',
-                            stats_folder + id + str(selectivity).replace('.', '-') + '_latency.pdf')
+                            file_name.replace('.csv', '') + '_latency.pdf')
 
-    return
+    return threads, columns
 
 
 def create_graph_multiple_time_value(xs, ys, title, x_label, y_label, outFile):

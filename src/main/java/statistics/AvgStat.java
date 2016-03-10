@@ -41,7 +41,7 @@ public class AvgStat /* extends Thread */implements Serializable {
 
 		FileWriter outFile;
 		try {
-			outFile = new FileWriter(outputFile);
+			outFile = new FileWriter(outputFile,true);
 			out = new PrintWriter(outFile);
 		} catch (IOException e) {
 			e.printStackTrace();

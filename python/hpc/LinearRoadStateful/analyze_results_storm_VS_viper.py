@@ -11,7 +11,7 @@ main_title = 'Storm '
 state = json.load(open(state_folder + 'state.json', 'r'))
 # json_out_id = '2_viper'
 
-stats_data = dict() #json.load(open(results_base_folder + '/summary.json', 'r'))
+stats_data = dict()  # json.load(open(results_base_folder + '/summary.json', 'r'))
 run = 0;
 
 exp_num = 1
@@ -36,22 +36,26 @@ for type in ['viper']:
                 onlyfiles = [f for f in listdir(results_folder) if isfile(join(results_folder, f)) and 'RAPL' in f]
                 print('Analyzing result folder ' + results_folder + ' (experiment ' + str(exp_num) + ')')
 
-                [throughput, latency, consumption, highest_throughput_stat] = create_single_exp_graphs(state_folder,
-                                                                                                       results_folder,
-                                                                                                       onlyfiles[0],
-                                                                                                       spout_parallelism,
-                                                                                                       op_parallelism,
-                                                                                                       sink_parallelism,
-                                                                                                       True)
+                try:
+                    [throughput, latency, consumption, highest_throughput_stat] = create_single_exp_graphs(state_folder,
+                                                                                                           results_folder,
+                                                                                                           onlyfiles[0],
+                                                                                                           spout_parallelism,
+                                                                                                           op_parallelism,
+                                                                                                           sink_parallelism,
+                                                                                                           True)
 
-                stats_data[type + '_' + main_class + '_S' + str(spout_parallelism) + 'vsO' + str(
-                        op_parallelism) + '_' + str(run)] = highest_throughput_stat
+                    stats_data[type + '_' + main_class + '_S' + str(spout_parallelism) + 'vsO' + str(
+                            op_parallelism) + '_' + str(run)] = highest_throughput_stat
 
-                number_of_threads = spout_parallelism + op_parallelism + sink_parallelism
-                if spout_parallelism > 1:
-                    number_of_threads += op_parallelism
-                if op_parallelism > 1:
-                    number_of_threads += sink_parallelism
+                    number_of_threads = spout_parallelism + op_parallelism + sink_parallelism
+                    if spout_parallelism > 1:
+                        number_of_threads += op_parallelism
+                    if op_parallelism > 1:
+                        number_of_threads += sink_parallelism
+
+                except:
+                    print('Cannot do that')
 
                 exp_num += 1
 

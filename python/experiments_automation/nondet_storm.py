@@ -140,12 +140,12 @@ instances = {'spout': 1, 'op': 1, 'sink': 1}
 if options.logfile is not None:
     original_stderr = sys.stderr
     original_stdout = sys.stdout
-    sys.stderr = LoggerOut(options.logfile)
-    sys.stdout = LoggerErr(options.logfile)
+    sys.stderr = LoggerErr(options.logfile)
+    sys.stdout = LoggerOut(options.logfile)
 
 available_threads = int(options.threads)
 
-suffix = '_' + str(options.selectivity) + '_' + str(options.load) + '_' + str(options.workers)
+# suffix = '_' + str(options.selectivity) + '_' + str(options.load) + '_' + str(options.workers)
 
 with open(options.stats_folder + get_stats_file_name(options.id, options.selectivity, options.load,
                                                      options.workers) + '.csv',

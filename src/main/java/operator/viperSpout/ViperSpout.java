@@ -2,7 +2,6 @@ package operator.viperSpout;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +41,9 @@ public class ViperSpout extends BaseRichSpout {
 	private boolean veryFirstTuple = true;
 
 	// private long ackGap = 0;
-	private Random r = new Random(System.nanoTime());
-	private double dummyProb = 0.05;
-	private boolean useInternalQueues;
+	//private Random r = new Random(System.nanoTime());
+	//private double dummyProb = 0.05;
+	//private boolean useInternalQueues;
 
 	private SpeedRegulator speedRegulator;
 
@@ -152,14 +151,14 @@ public class ViperSpout extends BaseRichSpout {
 		this.statsPath = temp != null ? (String) temp : "";
 
 		temp = arg0.get("internal.queues");
-		this.useInternalQueues = temp != null ? (Boolean) temp : false;
+		//this.useInternalQueues = temp != null ? (Boolean) temp : false;
 
 		id = arg1.getThisComponentId() + "." + arg1.getThisTaskIndex();
 
 		long parallelism = arg1.getComponentTasks(arg1.getThisComponentId())
 				.size();
 		speedRegulator = new SpeedRegulator(id, 10000 / parallelism,
-				800000 / parallelism, 300, 1000);
+				1200000 / parallelism, 300, 1000);
 
 		if (keepStats) {
 			countStat = new CountStat("", statsPath + File.separator

@@ -1,4 +1,4 @@
-import create_op_rate_graph as corg
+import read_topology_data as corg
 import statistics as stat
 from scipy import stats as scipystat
 
@@ -32,7 +32,7 @@ def analyze_topology_results(operators, instances, duration, repetitions, stats_
         # remove illegal characters
         id = id .replace('.','-')
 
-        data = corg.manage_topology_parallel_op_graphs(stats_folder,
+        data = corg.read_topology_parallel_op_data(stats_folder,
                                                        [id + op for op in operators],
                                                        instances_list,
                                                        start_ts, end_ts)
