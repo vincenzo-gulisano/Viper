@@ -34,7 +34,7 @@ def create_overview_graph(storm_keys, viper_keys, keys_marker, keys_legend, ops,
     plt.grid(True)
     plt.ylabel('Throughput (t/s)')
     plt.title('Shared-nothing')
-    plt.legend(loc='lower right', fontsize=7, ncol=2, columnspacing=0.4, labelspacing=0.1)
+    plt.legend(loc='upper left', fontsize=7, ncol=2, columnspacing=0.4, labelspacing=0.1)
     for axis in ['top', 'bottom', 'left', 'right']:
         ax.spines[axis].set_linewidth(0.4)
 

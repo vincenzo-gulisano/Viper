@@ -7,17 +7,17 @@ import statistics
 from LinearRoadStateful.storm_vs_viper_paper_graph import create_overview_graph
 import numpy
 
-# state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/detectaccidents_runs2and3/'
-# results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/detectaccidents_runs2and3'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/filtertype/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/filtertype'
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2'
+# state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/'
+# results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2'
 
 main_title = 'Storm '
 
 stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
 
-run_ranges = range(0, 3)
+run_ranges = range(0, 1)
 
 keys = []
 throughput_x = dict()
@@ -82,7 +82,7 @@ markers = ['x', '+', 's', '*']
 # for main_class in ['StatefulVehicleDetectAccident']:
 # for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
 #                        'StatelessForwardStoppedCarsOnly']:
-for main_class in ['StatelessForwardStoppedCarsOnly']:
+for main_class in ['StatelessForwardPositionReportsOnly']:
     for type in ['storm', 'viper']:
 
         marker_index = 0
@@ -156,7 +156,7 @@ create_overview_graph(storm_keys, viper_keys, keys_markers, keys_legend, [1, 2, 
                       ['0', '250K', '500K', '750K'], [-50, 0, 250, 500, 750, 1000, 1110],
                       ['', '0', '250', '500', '750', '1000', ''], [0.00000, 0.00020, 0.00040, 0.00060, 0.0007],
                       ['0', '0.2', '0.4', '0.6', ''],
-                      '/Users/vinmas/repositories/viperpaper/debs2016/evaluation/' + main_class + '.pdf')
+                      state_folder + main_class + '.pdf')
 
 # Summary results
 resultsStorm = compute_top_results(storm_keys, throughput_y, latency_y, consumption_y)

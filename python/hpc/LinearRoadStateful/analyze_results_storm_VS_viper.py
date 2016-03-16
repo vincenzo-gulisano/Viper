@@ -4,8 +4,8 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/2/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/2'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/filtertype/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/filtertype'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
@@ -19,8 +19,8 @@ exp_num = 1
 # for type in ['storm', 'viper']:
 #     for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
 #                        'StatelessForwardStoppedCarsOnly']:
-for type in ['viper']:
-    for main_class in ['StatelessForwardPositionReportsOnly','StatelessForwardStoppedCarsOnly']:
+for type in ['storm', 'viper']:
+    for main_class in ['StatelessForwardPositionReportsOnly']:
         for spout_parallelism in [1, 2, 4, 6]:
             for op_parallelism in [1, 2, 4, 6]:
 
