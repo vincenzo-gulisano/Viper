@@ -17,7 +17,7 @@ main_title = 'Storm '
 
 stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
 
-run_ranges = range(0, 1)
+run_ranges = range(0, 4)
 
 keys = []
 throughput_x = dict()

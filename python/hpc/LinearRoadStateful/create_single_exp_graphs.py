@@ -160,14 +160,14 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
         plt.text(i, min(cons_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
                  fontsize=7)
         counter += 1
-        if  counter >= len(int_values):
+        if counter >= len(int_values):
             break
     plt.plot(medians_cons_x, medians_cons_y, color='k')
 
     # FIND THE HIGHEST THROUGHPUT FOR LATENCY BELOW THRESHOLD
     threshold = 1000
     latency_indexes = [index for index, value in enumerate(medians_latency_y) if value <= threshold]
-    if len(latency_indexes)>0:
+    if len(latency_indexes) > 0:
         max_throughput = max([medians_throughput_y[i] for i in latency_indexes])
         max_throuhgput_positions = [i for i in latency_indexes if medians_throughput_y[i] == max_throughput]
     else:
@@ -185,7 +185,7 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
             exit(-1)
 
         latency_indexes = [index for index, value in enumerate(medians_latency_y) if value <= threshold]
-        if len(latency_indexes)>0:
+        if len(latency_indexes) > 0:
             max_throughput = max([medians_throughput_y[i] for i in latency_indexes])
             max_throuhgput_positions = [i for i in latency_indexes if medians_throughput_y[i] == max_throughput]
         else:
@@ -261,8 +261,8 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     results['spout_rate_ts'][:] = [x - earliest_ts for x in results['spout_rate_ts']]
     if savePDF:
         create_graph_time_value(results['spout_rate_ts'][start_ts:end_ts], results['spout_rate_value'][start_ts:end_ts],
-                            'Spout throughput', 'time (seconds)', 'throughput (t/s)',
-                            results_folder + 'spout.throughput.pdf')
+                                'Spout throughput', 'time (seconds)', 'throughput (t/s)',
+                                results_folder + 'spout.throughput.pdf')
 
     spout_cost_values = [
         results['spout_cost_value'][i] * results['spout_invocations_value'][i] / spout_parallelim / pow(10, 9) for i in
@@ -271,26 +271,29 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     results['spout_cost_ts'][:] = [x - earliest_ts for x in results['spout_cost_ts']]
     if savePDF:
         create_graph_time_value(results['spout_cost_ts'][start_ts:end_ts], spout_cost_values, 'Spout cost',
-                            'time (seconds)',
-                            'cost', results_folder + 'spout.cost.pdf')
+                                'time (seconds)',
+                                'cost', results_folder + 'spout.cost.pdf')
 
     # OPERATOR
 
     results['op_rate_ts'][:] = [x - earliest_ts for x in results['op_rate_ts']]
     if savePDF:
         create_graph_time_value(results['op_rate_ts'][start_ts:end_ts], results['op_rate_value'][start_ts:end_ts],
-                            'Operator throughput', 'time (seconds)', 'throughput (t/s)',
-                            results_folder + 'op.throughput.pdf')
+                                'Operator throughput', 'time (seconds)', 'throughput (t/s)',
+                                results_folder + 'op.throughput.pdf')
 
-    operator_cost_values = [
-        results['op_cost_value'][i] * results['op_invocations_value'][i] / op_parallelism / pow(10, 9) for i in
-        range(start_ts, end_ts)]
+    try:
+        operator_cost_values = [
+            results['op_cost_value'][i] * results['op_invocations_value'][i] / op_parallelism / pow(10, 9) for i in
+            range(start_ts, end_ts)]
 
-    results['op_cost_ts'][:] = [x - earliest_ts for x in results['op_cost_ts']]
-    if savePDF:
-        create_graph_time_value(results['op_cost_ts'][start_ts:end_ts], operator_cost_values, 'Operator cost',
-                            'time (seconds)',
-                            'cost', results_folder + 'op.cost.pdf')
+        results['op_cost_ts'][:] = [x - earliest_ts for x in results['op_cost_ts']]
+        if savePDF:
+            create_graph_time_value(results['op_cost_ts'][start_ts:end_ts], operator_cost_values, 'Operator cost',
+                                    'time (seconds)',
+                                    'cost', results_folder + 'op.cost.pdf')
+    except:
+        print('Cannot compute operator cost!')
 
     # SINK
 
@@ -300,14 +303,16 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
 
     results['sink_cost_ts'][:] = [x - earliest_ts for x in results['sink_cost_ts']]
     if savePDF:
-        create_graph_time_value(results['sink_cost_ts'][start_ts:end_ts], sink_cost_values, 'Sink cost', 'time (seconds)',
-                            'cost', results_folder + 'sink.cost.pdf')
+        create_graph_time_value(results['sink_cost_ts'][start_ts:end_ts], sink_cost_values, 'Sink cost',
+                                'time (seconds)',
+                                'cost', results_folder + 'sink.cost.pdf')
 
     results['sink_latency_ts'][:] = [x - earliest_ts for x in results['sink_latency_ts']]
     if savePDF:
-        create_graph_time_value(results['sink_latency_ts'][start_ts:end_ts], results['sink_latency_value'][start_ts:end_ts],
-                            'Sink latency', 'time (seconds)',
-                            'latency ', results_folder + 'sink.latency.pdf')
+        create_graph_time_value(results['sink_latency_ts'][start_ts:end_ts],
+                                results['sink_latency_value'][start_ts:end_ts],
+                                'Sink latency', 'time (seconds)',
+                                'latency ', results_folder + 'sink.latency.pdf')
 
     consumption_ts = []
     consumption_value = []
@@ -351,20 +356,24 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     consumption_end_ts_index = [n for n, i in enumerate(consumption_ts) if i < consumption_end_ts][-1]
     if savePDF:
         create_graph_time_value(consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
-                            consumption_value[consumption_start_ts_index:consumption_end_ts_index], 'Consumption',
-                            'time (seconds)',
-                            'Consumption (watts/second) ', results_folder + 'consumption.pdf')
+                                consumption_value[consumption_start_ts_index:consumption_end_ts_index], 'Consumption',
+                                'time (seconds)',
+                                'Consumption (watts/second) ', results_folder + 'consumption.pdf')
 
     throughput = scipystat.trim_mean(results['spout_rate_value'][start_ts:end_ts], 0.05)
     latency = scipystat.trim_mean(results['sink_latency_value'][start_ts:end_ts], 0.05)
     consumption = scipystat.trim_mean(consumption_value[start_ts:end_ts], 0.05) / throughput
 
-    highest_throughput_stat = create_overview_graph(results['spout_rate_ts'][start_ts:end_ts], results['spout_rate_value'][start_ts:end_ts],
-                          results['op_rate_ts'][start_ts:end_ts], results['op_rate_value'][start_ts:end_ts],
-                          results['sink_latency_ts'][start_ts:end_ts], results['sink_latency_value'][start_ts:end_ts],
-                          consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
-                          consumption_value[consumption_start_ts_index:consumption_end_ts_index],
-                          results_folder + 'summary.pdf')
+    highest_throughput_stat = create_overview_graph(results['spout_rate_ts'][start_ts:end_ts],
+                                                    results['spout_rate_value'][start_ts:end_ts],
+                                                    results['op_rate_ts'][start_ts:end_ts],
+                                                    results['op_rate_value'][start_ts:end_ts],
+                                                    results['sink_latency_ts'][start_ts:end_ts],
+                                                    results['sink_latency_value'][start_ts:end_ts],
+                                                    consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
+                                                    consumption_value[
+                                                    consumption_start_ts_index:consumption_end_ts_index],
+                                                    results_folder + 'summary.pdf')
 
     # This is the average processing tuple cost (in nanoseconds)
     # op_cost = scipystat.trim_mean(results['op_cost_value'][start_ts:end_ts], 0.05)

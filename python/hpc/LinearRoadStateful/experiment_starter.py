@@ -92,7 +92,7 @@ exp_num = 1
 #     for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
 #                        'StatelessForwardStoppedCarsOnly']:
 
-for repetition in range(1, 4):
+for repetition in range(0, 4):
     for type in ['storm','viper']:
         for main_class in ['StatelessForwardPositionReportsOnly']:
             for spout_parallelism in [1, 2, 4, 6]:
