@@ -43,21 +43,21 @@ exp_type = data['exp_' + exp_num + '_useoptimizedqueues']
 
 operators = ['spout']
 instances = [spout_instances]
-if 'storm' in exp_type:
+if 'false' in exp_type:
     print('This experiment is standard storm... checking if we should have a merger')
     if spout_instances > 1:
         operators.append('op_merger')
         instances.append(op_instances)
-elif 'viper' in exp_type:
+elif 'true' in exp_type:
     print('This experiment is viper... not checking if we should have a merger')
 operators.append('op')
 instances.append(op_instances)
-if 'storm' in exp_type:
+if 'false' in exp_type:
     print('This experiment is standard storm... checking if we should have a merger')
     if op_instances > 1:
         operators.append('sink_merger')
         instances.append(sink_instances)
-elif 'viper' in exp_type:
+elif 'true' in exp_type:
     print('This experiment is viper... not checking if we should have a merger')
 operators.append('sink')
 instances.append(sink_instances)
@@ -93,7 +93,7 @@ for o in operators:
     # In order to compute the cost, we need the parallelism for the given operator. Nevertheless, the state file does
     # not contain the parallelism for mergers. If this operator is a merger, take the parallelism as the parallelism of
     # its respective operator.
-    this_op_parallelism = 0;
+    this_op_parallelism = 0
     if o == 'op_merger':
         this_op_parallelism = data['exp_' + exp_num + '_op_parallelism']
     elif o == 'sink_merger':
@@ -149,14 +149,14 @@ data['exp_' + exp_num + '_spout_latency'] = str(latency[index])
 data['exp_' + exp_num + '_spout_cost'] = str(cost[index])
 index += 1
 
-if 'storm' in exp_type:
+if 'false' in exp_type:
     print('This experiment is standard storm... keeping merger statistics')
     if spout_instances > 1:
         data['exp_' + exp_num + '_op_merger_throughput'] = str(throughput[index])
         data['exp_' + exp_num + '_op_merger_latency'] = str(latency[index])
         data['exp_' + exp_num + '_op_merger_cost'] = str(cost[index])
         index += 1
-elif 'viper' in exp_type:
+elif 'true' in exp_type:
     print('This experiment is viper... not keeping merger statistics')
 
 data['exp_' + exp_num + '_op_throughput'] = str(throughput[index])
@@ -164,14 +164,14 @@ data['exp_' + exp_num + '_op_latency'] = str(latency[index])
 data['exp_' + exp_num + '_op_cost'] = str(cost[index])
 index += 1
 
-if 'storm' in exp_type:
+if 'false' in exp_type:
     print('This experiment is standard storm... keeping merger statistics')
     if op_instances > 1:
         data['exp_' + exp_num + '_sink_merger_throughput'] = str(throughput[index])
         data['exp_' + exp_num + '_sink_merger_latency'] = str(latency[index])
         data['exp_' + exp_num + '_sink_merger_cost'] = str(cost[index])
         index += 1
-elif 'viper' in exp_type:
+elif 'true' in exp_type:
     print('This experiment is viper... not keeping merger statistics')
 
 data['exp_' + exp_num + '_sink_throughput'] = str(throughput[index])

@@ -10,7 +10,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import csv
 import statistics
-
+from functools import reduce
 
 # import plotly.plotly as py
 # import plotly.graph_objs as go
@@ -68,15 +68,17 @@ def create_graph_time_value(x, y, title, x_label, y_label, outFile):
     return
 
 
-def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink_latency_x, sink_latency_y,
-                          cons_x, cons_y, outFile):
+def create_overview_graph(spout_rate_x, spout_rate_y, spout_cost_x, spout_cost_y, op_rate_x, op_rate_y, op_cost_x,
+                          op_cost_y, sink_latency_x, sink_latency_y, cons_x, cons_y, outFile):
     rcParams.update({'figure.autolayout': True})
     pp = PdfPages(outFile)
 
     f = plt.figure()
     f.set_size_inches(20, 10)
 
-    plt.subplot(2, 3, 1)
+    ### SPOUT RATE ###
+
+    spout_rate_plt = plt.subplot(2, 3, 1)
     plt.plot(spout_rate_x, spout_rate_y)
     plt.xlabel('time (seconds)')
     plt.ylabel('throughput (t/s)')
@@ -104,7 +106,33 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
         counter += 1
     plt.plot(medians_throughput_x, medians_throughput_y, color='k')
 
-    plt.subplot(2, 3, 2)
+
+    ### SPOUT COST ###
+
+    spout_cost_plt = plt.subplot(2, 3, 4)
+    plt.plot(spout_cost_x, spout_cost_y)
+    plt.xlabel('time (seconds)')
+    plt.ylabel('cost')
+    plt.title('Spout cost')
+    plt.grid(True)
+
+    counter = 0
+    medians_spout_cost_x = []
+    medians_spout_cost_y = []
+    for i in range(int(spout_cost_x[0]) + step, int(spout_cost_x[-1]), step):
+        plt.plot([i, i], [min(spout_cost_y), max(spout_cost_y)], color='r')
+        indexes = [index for index, value in enumerate(spout_cost_x) if value >= i - step and value < i]
+        medians_spout_cost_x.append(i - step / 2)
+        medians_spout_cost_y.append(statistics.median(spout_cost_y[indexes[0]:indexes[-1]]))
+        plt.text(i, min(spout_cost_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+        counter += 1
+    plt.plot(medians_spout_cost_x, medians_spout_cost_y, color='k')
+
+
+    ### OPERATOR RATE ###
+
+    op_rate_plt =  plt.subplot(2, 3, 2)
     plt.plot(op_rate_x, op_rate_y)
     plt.xlabel('time (seconds)')
     plt.ylabel('throughput (t/s)')
@@ -112,13 +140,42 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
     plt.grid(True)
 
     counter = 0
+    medians_op_rate_x = []
+    medians_op_rate_y = []
     for i in range(int(op_rate_x[0]) + step, int(op_rate_x[-1]), step):
         plt.plot([i, i], [min(op_rate_y), max(op_rate_y)], color='r')
+        indexes = [index for index, value in enumerate(op_rate_x) if value >= i - step and value < i]
+        medians_op_rate_x.append(i - step / 2)
+        medians_op_rate_y.append(statistics.median(op_rate_y[indexes[0]:indexes[-1]]))
         plt.text(i, min(op_rate_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
                  fontsize=7)
         counter += 1
 
-    plt.subplot(2, 3, 4)
+    ### OPERATOR COST ###
+
+    op_cost_plt = plt.subplot(2, 3, 5)
+    plt.plot(op_cost_x, op_cost_y)
+    plt.xlabel('time (seconds)')
+    plt.ylabel('cost')
+    plt.title('Op cost')
+    plt.grid(True)
+
+    counter = 0
+    medians_op_cost_x = []
+    medians_op_cost_y = []
+    for i in range(int(op_cost_x[0]) + step, int(op_cost_x[-1]), step):
+        plt.plot([i, i], [min(op_cost_y), max(op_cost_y)], color='r')
+        indexes = [index for index, value in enumerate(op_cost_x) if value >= i - step and value < i]
+        medians_op_cost_x.append(i - step / 2)
+        medians_op_cost_y.append(statistics.median(op_cost_y[indexes[0]:indexes[-1]]))
+        plt.text(i, min(op_cost_y), str(counter), verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+        counter += 1
+    plt.plot(medians_op_cost_x, medians_op_cost_y, color='k')
+
+    ### SINK LATENCY ###
+
+    latency_plt = plt.subplot(2, 3, 3)
     plt.plot(sink_latency_x, sink_latency_y)
     plt.xlabel('time (seconds)')
     plt.ylabel('latency')
@@ -140,7 +197,9 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
         counter += 1
     plt.plot(medians_latency_x, medians_latency_y, color='k')
 
-    plt.subplot(2, 3, 5)
+    ### CONSUMPTION ###
+
+    cons_plt = plt.subplot(2, 3, 6)
     plt.plot(cons_x, cons_y)
     plt.xlabel('time (seconds)')
     plt.ylabel('Consumption (watts/second)')
@@ -164,45 +223,41 @@ def create_overview_graph(spout_rate_x, spout_rate_y, op_rate_x, op_rate_y, sink
             break
     plt.plot(medians_cons_x, medians_cons_y, color='k')
 
-    # FIND THE HIGHEST THROUGHPUT FOR LATENCY BELOW THRESHOLD
+    # FIND THE HIGHEST THROUGHPUT FOR LATENCY BELOW THRESHOLD AND ALL BOLTS COST BELOW 0.9
+
+    spout_cost_index = [index for index, value in enumerate(medians_spout_cost_y) if value <= 0.9]
+
+    op_cost_index = [index for index, value in enumerate(medians_op_cost_y) if value <= 0.9]
+
     threshold = 1000
     latency_indexes = [index for index, value in enumerate(medians_latency_y) if value <= threshold]
-    if len(latency_indexes) > 0:
-        max_throughput = max([medians_throughput_y[i] for i in latency_indexes])
-        max_throuhgput_positions = [i for i in latency_indexes if medians_throughput_y[i] == max_throughput]
+
+    valid_indexes = reduce(set.intersection, [set(spout_cost_index), set(op_cost_index), set(latency_indexes)])
+
+    if len(valid_indexes) > 0:
+        max_throughput = max([medians_throughput_y[i] for i in valid_indexes])
+        max_throuhgput_positions = [i for i in valid_indexes if medians_throughput_y[i] == max_throughput]
     else:
-        max_throuhgput_positions = []
+        print('cannot find max throughput for given threshold!')
+        exit(-1)
 
     if len(max_throuhgput_positions) > 1:
         print('!!!! MORE THAN ONE MAX WAS FOUND !!!!')
 
-    while len(max_throuhgput_positions) == 0:
-        threshold += 100
-        print('... increasing threshold to ' + str(threshold))
+    # PLOT VISUALLY WHICH IS THE VALUE WE TAKE
 
-        if threshold > 2000:
-            print('THRESHOLD EXCEEDED 2000. Killing the process!')
-            exit(-1)
-
-        latency_indexes = [index for index, value in enumerate(medians_latency_y) if value <= threshold]
-        if len(latency_indexes) > 0:
-            max_throughput = max([medians_throughput_y[i] for i in latency_indexes])
-            max_throuhgput_positions = [i for i in latency_indexes if medians_throughput_y[i] == max_throughput]
-        else:
-            max_throuhgput_positions = []
-
-    ax = plt.subplot2grid((2, 3), (0, 2), rowspan=2)
-    range_length = len(range(int(cons_x[0]) + step, int(cons_x[-1]), step))
-    counter = 0
-    for i in range(int(cons_x[0]) + step, int(cons_x[-1]), step):
-        text_ = str(counter) + ': ' + str(text_values[counter])
-        if counter in max_throuhgput_positions:
-            text_ += ' ***'
-        plt.text(0, 1 - counter * (1 / range_length), text_, verticalalignment='top', horizontalalignment='left',
-                 fontsize=10)
-        counter += 1
-        if counter >= len(int_values):
-            break
+    spout_rate_plt.text(medians_throughput_x[max_throuhgput_positions[0]], max(spout_rate_y), '***', verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+    spout_cost_plt.text(medians_spout_cost_x[max_throuhgput_positions[0]], max(spout_cost_y), '***', verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+    op_rate_plt.text(medians_op_rate_x[max_throuhgput_positions[0]], max(op_rate_y), '***', verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+    op_cost_plt.text(medians_op_cost_x[max_throuhgput_positions[0]], max(op_cost_y), '***', verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+    latency_plt.text(medians_latency_x[max_throuhgput_positions[0]], max(sink_latency_y), '***', verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
+    cons_plt.text(medians_cons_x[max_throuhgput_positions[0]], max(cons_y), '***', verticalalignment='bottom', horizontalalignment='center',
+                 fontsize=7)
 
     plt.close()
     pp.savefig(f)
@@ -366,8 +421,12 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
 
     highest_throughput_stat = create_overview_graph(results['spout_rate_ts'][start_ts:end_ts],
                                                     results['spout_rate_value'][start_ts:end_ts],
+                                                    results['spout_cost_ts'][start_ts:end_ts],
+                                                    spout_cost_values,
                                                     results['op_rate_ts'][start_ts:end_ts],
                                                     results['op_rate_value'][start_ts:end_ts],
+                                                    results['op_cost_ts'][start_ts:end_ts],
+                                                    operator_cost_values,
                                                     results['sink_latency_ts'][start_ts:end_ts],
                                                     results['sink_latency_value'][start_ts:end_ts],
                                                     consumption_ts[consumption_start_ts_index:consumption_end_ts_index],

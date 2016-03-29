@@ -11,7 +11,7 @@ main_title = 'Storm '
 state = json.load(open(state_folder + 'state.json', 'r'))
 # json_out_id = '2_viper'
 
-stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
+stats_data = dict() # json.load(open(results_base_folder + '/summary.json', 'r'))
 # run = 0;
 
 exp_num = 1
