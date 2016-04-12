@@ -4,14 +4,14 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/filtertype/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/filtertype'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_2/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_2'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
 # json_out_id = '2_viper'
 
-stats_data = dict() # json.load(open(results_base_folder + '/summary.json', 'r'))
+stats_data = dict()  # json.load(open(results_base_folder + '/summary.json', 'r'))
 # run = 0;
 
 exp_num = 1
@@ -39,16 +39,22 @@ for run in range(0, 1):
                     print('Analyzing result folder ' + results_folder + ' (experiment ' + str(exp_num) + ')')
 
                     # try:
-                    [throughput, latency, consumption, highest_throughput_stat] = create_single_exp_graphs(state_folder,
-                                                                                                           results_folder,
-                                                                                                           onlyfiles[0],
-                                                                                                           spout_parallelism,
-                                                                                                           op_parallelism,
-                                                                                                           sink_parallelism,
-                                                                                                           True)
+                    [throughput, latency, consumption, highest_throughput_stat,
+                     result_boundaries] = create_single_exp_graphs(state_folder,
+                                                                   results_folder,
+                                                                   onlyfiles[0],
+                                                                   spout_parallelism,
+                                                                   op_parallelism,
+                                                                   sink_parallelism,
+                                                                   True)
+
+                    # ADDING BOUNDARIES FOR COSTS COMPUTED FROM THE STATISTICS
+                    state['exp_' + str(exp_num) + '_result_boundaries_left'] = result_boundaries[0]
+                    state['exp_' + str(exp_num) + '_result_boundaries_right'] = result_boundaries[1]
 
                     stats_data[type + '_' + main_class + '_S' + str(spout_parallelism) + 'vsO' + str(
                             op_parallelism) + '_' + str(run)] = highest_throughput_stat
+
 
                     number_of_threads = spout_parallelism + op_parallelism + sink_parallelism
                     if spout_parallelism > 1:
@@ -74,3 +80,4 @@ for run in range(0, 1):
                 print('')
 
 json.dump(stats_data, open(results_base_folder + '/summary.json', 'w'))
+json.dump(state, open(results_base_folder + '/state.json', 'w'))

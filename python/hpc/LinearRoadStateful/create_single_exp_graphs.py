@@ -12,6 +12,7 @@ import csv
 import statistics
 from functools import reduce
 
+
 # import plotly.plotly as py
 # import plotly.graph_objs as go
 
@@ -106,7 +107,6 @@ def create_overview_graph(spout_rate_x, spout_rate_y, spout_cost_x, spout_cost_y
         counter += 1
     plt.plot(medians_throughput_x, medians_throughput_y, color='k')
 
-
     ### SPOUT COST ###
 
     spout_cost_plt = plt.subplot(2, 3, 4)
@@ -129,10 +129,9 @@ def create_overview_graph(spout_rate_x, spout_rate_y, spout_cost_x, spout_cost_y
         counter += 1
     plt.plot(medians_spout_cost_x, medians_spout_cost_y, color='k')
 
-
     ### OPERATOR RATE ###
 
-    op_rate_plt =  plt.subplot(2, 3, 2)
+    op_rate_plt = plt.subplot(2, 3, 2)
     plt.plot(op_rate_x, op_rate_y)
     plt.xlabel('time (seconds)')
     plt.ylabel('throughput (t/s)')
@@ -246,25 +245,34 @@ def create_overview_graph(spout_rate_x, spout_rate_y, spout_cost_x, spout_cost_y
 
     # PLOT VISUALLY WHICH IS THE VALUE WE TAKE
 
-    spout_rate_plt.text(medians_throughput_x[max_throuhgput_positions[0]], max(spout_rate_y), '***', verticalalignment='bottom', horizontalalignment='center',
-                 fontsize=7)
-    spout_cost_plt.text(medians_spout_cost_x[max_throuhgput_positions[0]], max(spout_cost_y), '***', verticalalignment='bottom', horizontalalignment='center',
-                 fontsize=7)
-    op_rate_plt.text(medians_op_rate_x[max_throuhgput_positions[0]], max(op_rate_y), '***', verticalalignment='bottom', horizontalalignment='center',
-                 fontsize=7)
-    op_cost_plt.text(medians_op_cost_x[max_throuhgput_positions[0]], max(op_cost_y), '***', verticalalignment='bottom', horizontalalignment='center',
-                 fontsize=7)
-    latency_plt.text(medians_latency_x[max_throuhgput_positions[0]], max(sink_latency_y), '***', verticalalignment='bottom', horizontalalignment='center',
-                 fontsize=7)
-    cons_plt.text(medians_cons_x[max_throuhgput_positions[0]], max(cons_y), '***', verticalalignment='bottom', horizontalalignment='center',
-                 fontsize=7)
+    spout_rate_plt.text(medians_throughput_x[max_throuhgput_positions[0]], max(spout_rate_y), '***',
+                        verticalalignment='bottom', horizontalalignment='center',
+                        fontsize=7)
+    spout_cost_plt.text(medians_spout_cost_x[max_throuhgput_positions[0]], max(spout_cost_y), '***',
+                        verticalalignment='bottom', horizontalalignment='center',
+                        fontsize=7)
+    op_rate_plt.text(medians_op_rate_x[max_throuhgput_positions[0]], max(op_rate_y), '***', verticalalignment='bottom',
+                     horizontalalignment='center',
+                     fontsize=7)
+    op_cost_plt.text(medians_op_cost_x[max_throuhgput_positions[0]], max(op_cost_y), '***', verticalalignment='bottom',
+                     horizontalalignment='center',
+                     fontsize=7)
+    latency_plt.text(medians_latency_x[max_throuhgput_positions[0]], max(sink_latency_y), '***',
+                     verticalalignment='bottom', horizontalalignment='center',
+                     fontsize=7)
+    cons_plt.text(medians_cons_x[max_throuhgput_positions[0]], max(cons_y), '***', verticalalignment='bottom',
+                  horizontalalignment='center',
+                  fontsize=7)
+
+    left_interval_boundary = int(spout_rate_x[0]) + max_throuhgput_positions[0] * step
+    right_interval_boundary = left_interval_boundary + step
 
     plt.close()
     pp.savefig(f)
     pp.close()
 
     # Returning first highest throughput found (and relative latency and consumption)
-    return int_values[max_throuhgput_positions[0]]
+    return int_values[max_throuhgput_positions[0]], [left_interval_boundary, right_interval_boundary]
 
 
 def create_graph_multiple_time_value(xs, ys, keys, title, x_label, y_label, outFile):
@@ -419,20 +427,21 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     latency = scipystat.trim_mean(results['sink_latency_value'][start_ts:end_ts], 0.05)
     consumption = scipystat.trim_mean(consumption_value[start_ts:end_ts], 0.05) / throughput
 
-    highest_throughput_stat = create_overview_graph(results['spout_rate_ts'][start_ts:end_ts],
-                                                    results['spout_rate_value'][start_ts:end_ts],
-                                                    results['spout_cost_ts'][start_ts:end_ts],
-                                                    spout_cost_values,
-                                                    results['op_rate_ts'][start_ts:end_ts],
-                                                    results['op_rate_value'][start_ts:end_ts],
-                                                    results['op_cost_ts'][start_ts:end_ts],
-                                                    operator_cost_values,
-                                                    results['sink_latency_ts'][start_ts:end_ts],
-                                                    results['sink_latency_value'][start_ts:end_ts],
-                                                    consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
-                                                    consumption_value[
-                                                    consumption_start_ts_index:consumption_end_ts_index],
-                                                    results_folder + 'summary.pdf')
+    highest_throughput_stat, result_boundaries = create_overview_graph(
+            results['spout_rate_ts'][start_ts:end_ts],
+            results['spout_rate_value'][start_ts:end_ts],
+            results['spout_cost_ts'][start_ts:end_ts],
+            spout_cost_values,
+            results['op_rate_ts'][start_ts:end_ts],
+            results['op_rate_value'][start_ts:end_ts],
+            results['op_cost_ts'][start_ts:end_ts],
+            operator_cost_values,
+            results['sink_latency_ts'][start_ts:end_ts],
+            results['sink_latency_value'][start_ts:end_ts],
+            consumption_ts[consumption_start_ts_index:consumption_end_ts_index],
+            consumption_value[
+            consumption_start_ts_index:consumption_end_ts_index],
+            results_folder + 'summary.pdf')
 
     # This is the average processing tuple cost (in nanoseconds)
     # op_cost = scipystat.trim_mean(results['op_cost_value'][start_ts:end_ts], 0.05)
@@ -441,4 +450,4 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     # selectivity_tmp = [results['op_rate_value'][i] / results['spout_rate_value'][i] for i in range(start_ts, end_ts)]
     # selectivity = scipystat.trim_mean(selectivity_tmp[start_ts:end_ts], 0.05)
 
-    return [throughput, latency, consumption, highest_throughput_stat]  # , op_cost, selectivity]
+    return [throughput, latency, consumption, highest_throughput_stat, result_boundaries]  # , op_cost, selectivity]

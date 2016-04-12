@@ -17,7 +17,7 @@ def create_overview_graph(storm_keys, viper_keys, keys_marker, keys_legend, ops,
     pp = PdfPages(outFile)
 
     f = plt.figure()
-    f.set_size_inches(3.33333, 3.33333)
+    f.set_size_inches(20, 10)
 
     # plot_lines = []
     # labels = []
