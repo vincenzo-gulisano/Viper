@@ -47,6 +47,7 @@ public class ViperBolt extends BaseRichBolt {
 	protected int thisTask;
 	protected String id;
 	private int counter = 0;
+	private int tuples_processed_in_this_invocation = 0;
 
 	private boolean stillNeedToConfigure = true;
 
@@ -172,6 +173,7 @@ public class ViperBolt extends BaseRichBolt {
 	// startTS is for cost estimation
 	private void process(Tuple t) {
 		counter++;
+		tuples_processed_in_this_invocation++;
 		List<Values> result = f.process(t);
 		if (result != null)
 			for (Values out : result) {
@@ -246,6 +248,8 @@ public class ViperBolt extends BaseRichBolt {
 		if (keepStats)
 			invocationsStat.increase(1);
 
+		tuples_processed_in_this_invocation = 0;
+		
 		if (useInternalQueues && isTickTuple(input))
 			takeFromInternalBuffer();
 
@@ -319,7 +323,7 @@ public class ViperBolt extends BaseRichBolt {
 		}
 		
 		if (keepStats) {
-			costStat.add((System.nanoTime() - start));
+			costStat.add((System.nanoTime() - start)/tuples_processed_in_this_invocation);
 		}
 
 	}
