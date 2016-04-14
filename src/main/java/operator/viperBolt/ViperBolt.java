@@ -322,7 +322,7 @@ public class ViperBolt extends BaseRichBolt {
 			}
 		}
 		
-		if (keepStats) {
+		if (keepStats && tuples_processed_in_this_invocation > 0) {
 			costStat.add((System.nanoTime() - start)/tuples_processed_in_this_invocation);
 		}
 
