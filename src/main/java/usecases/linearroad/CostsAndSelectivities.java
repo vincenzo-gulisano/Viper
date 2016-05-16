@@ -48,15 +48,24 @@ public class CostsAndSelectivities {
 				inputTuplesConverted.add(new LRTuple(s));
 			}
 
-			// /////////////// STATEFULVEHICLEDETECTACCIDENT ///////////////
+			long repetition = 0;
+			long timeStep = 60 * 60 * 3;
 
+			// /////////////// STATEFULVEHICLEDETECTACCIDENT ///////////////
 			DetectAccidentOperator detectAccOperator = new DetectAccidentOperator();
 
-			long before = System.currentTimeMillis();
+			long duration = 0;
 			for (int i = 0; i < repetitions; i++) {
+
+				if (i > 0 && i % input_tuples.size() == 0)
+					repetition++;
+
 				LRTuple lrTuple = inputTuplesConverted.get(i
 						% input_tuples.size());
 
+				lrTuple.time += repetition * timeStep;
+
+				long before = System.nanoTime();
 				List<Values> results = new ArrayList<Values>();
 				if (lrTuple.type == 0) {
 
@@ -65,132 +74,125 @@ public class CostsAndSelectivities {
 							lrTuple.vid, lrTuple.speed, lrTuple.lane,
 							lrTuple.pos);
 
-					results.add(new Values(lrTuple.type, lrTuple.time,
-							lrTuple.vid, lrTuple.speed, lrTuple.xway,
-							lrTuple.lane, lrTuple.dir, lrTuple.seg,
-							lrTuple.pos, result.newacc, result.cleared));
-					outputs++;
+					if (result.cleared || result.newacc) {
+						results.add(new Values(lrTuple.type, lrTuple.time,
+								lrTuple.vid, lrTuple.speed, lrTuple.xway,
+								lrTuple.lane, lrTuple.dir, lrTuple.seg,
+								lrTuple.pos, result.newacc, result.cleared));
+						outputs++;
+					}
 
 				}
+				duration += System.nanoTime() - before;
 			}
-			long after = System.currentTimeMillis();
 			out.println("StatefulVehicleDetectAccident - cost: "
-					+ myFormatter.format((after - before) / repetitions)
+					+ myFormatter.format(duration / repetitions)
 					+ " selectivity: "
 					+ myFormatter.format((outputs / repetitions)));
 
-			// Spout
+			// /////////////// STATEFULVEHICLEENTERINGNEWSEGMENT ///////////////
+			DetectNewVehicles detectNewVehicles = new DetectNewVehicles();
+
+			duration = 0;
+			repetition = 0;
 			outputs = 0;
-			long repetition = 0;
-			long timeStep = 60 * 60 * 3;
-			before = System.currentTimeMillis();
 			for (int i = 0; i < repetitions; i++) {
-				LRTuple lrTuple = inputTuplesConverted.get(i
-						% input_tuples.size());
 
-				Values result = new Values(lrTuple.type, lrTuple.time
-						+ repetition * timeStep, lrTuple.vid, lrTuple.speed,
-						lrTuple.xway, lrTuple.lane, lrTuple.dir, lrTuple.seg,
-						lrTuple.pos);
-
-				// Force time to increase even when looping on input tuples.
-				if (i % input_tuples.size() == 0)
+				if (i > 0 && i % input_tuples.size() == 0)
 					repetition++;
 
-				// Just to prevent compiler optimizations (hopefully)
-				result.size();
-				outputs++;
-
-			}
-			after = System.currentTimeMillis();
-			out.println("Spout - cost: "
-					+ myFormatter.format((after - before) / repetitions)
-					+ " selectivity: "
-					+ myFormatter.format((outputs / repetitions)));
-
-			// StatefulVehicleEnteringNewSegment
-			repetition = 0;
-			DetectNewVehicles detectNewVehicles = new DetectNewVehicles();
-			outputs = 0;
-			before = System.currentTimeMillis();
-			for (int i = 0; i < repetitions; i++) {
 				LRTuple lrTuple = inputTuplesConverted.get(i
 						% input_tuples.size());
 
+				lrTuple.time += repetition * timeStep;
+
+				long before = System.nanoTime();
 				List<Values> results = new ArrayList<Values>();
 				if (lrTuple.type == 0) {
-					results.add(new Values(lrTuple.type, lrTuple.time
-							+ repetition * timeStep, lrTuple.vid,
-							lrTuple.speed, lrTuple.xway, lrTuple.lane,
-							lrTuple.dir, lrTuple.seg, lrTuple.pos,
-							detectNewVehicles.isThisANewVehicle(lrTuple.time
-									+ repetition * timeStep, lrTuple.xway,
-									lrTuple.seg, lrTuple.vid)));
-					outputs++;
+
+					boolean newVehicle = detectNewVehicles.isThisANewVehicle(
+							lrTuple.time, lrTuple.xway, lrTuple.seg,
+							lrTuple.vid);
+					if (newVehicle) {
+						results.add(new Values(lrTuple.type, lrTuple.time,
+								lrTuple.vid, lrTuple.speed, lrTuple.xway,
+								lrTuple.lane, lrTuple.dir, lrTuple.seg,
+								lrTuple.pos, newVehicle));
+						outputs++;
+					}
+
 				}
-
-				// Just to prevent compiler optimizations (hopefully)
-				results.size();
-
-				if ((i + 1) % input_tuples.size() == 0)
-					repetition++;
-
+				duration += System.nanoTime() - before;
 			}
-			after = System.currentTimeMillis();
 			out.println("StatefulVehicleEnteringNewSegment - cost: "
-					+ myFormatter.format((after - before) / repetitions)
+					+ myFormatter.format(duration / repetitions)
 					+ " selectivity: "
 					+ myFormatter.format((outputs / repetitions)));
 
-			// StatelessForwardPositionReportsOnly
+			// /////////////// STATELESSFORWARDPOSITIONREPORTSONLY
+			// ///////////////
+
+			duration = 0;
+			repetition = 0;
 			outputs = 0;
-			before = System.currentTimeMillis();
 			for (int i = 0; i < repetitions; i++) {
+
+				if (i > 0 && i % input_tuples.size() == 0)
+					repetition++;
+
 				LRTuple lrTuple = inputTuplesConverted.get(i
 						% input_tuples.size());
 
+				lrTuple.time += repetition * timeStep;
+
+				long before = System.nanoTime();
 				List<Values> results = new ArrayList<Values>();
 				if (lrTuple.type == 0) {
 					results.add(new Values(lrTuple.type, lrTuple.time,
 							lrTuple.vid, lrTuple.speed, lrTuple.xway,
 							lrTuple.lane, lrTuple.dir, lrTuple.seg, lrTuple.pos));
 					outputs++;
+
 				}
-
-				// Just to prevent compiler optimizations (hopefully)
-				results.size();
-
+				duration += System.nanoTime() - before;
 			}
-			after = System.currentTimeMillis();
 			out.println("StatelessForwardPositionReportsOnly - cost: "
-					+ myFormatter.format((after - before) / repetitions)
+					+ myFormatter.format(duration / repetitions)
 					+ " selectivity: "
 					+ myFormatter.format((outputs / repetitions)));
 
-			// StatelessForwardStoppedCarsOnly
+			// /////////////// STATELESSFORWARDSTOPPEDCARSONLY
+			// ///////////////
+
+			duration = 0;
+			repetition = 0;
 			outputs = 0;
-			before = System.currentTimeMillis();
 			for (int i = 0; i < repetitions; i++) {
+
+				if (i > 0 && i % input_tuples.size() == 0)
+					repetition++;
+
 				LRTuple lrTuple = inputTuplesConverted.get(i
 						% input_tuples.size());
 
+				lrTuple.time += repetition * timeStep;
+
+				long before = System.nanoTime();
 				List<Values> results = new ArrayList<Values>();
 				if (lrTuple.type == 0 && lrTuple.speed == 0) {
 					results.add(new Values(lrTuple.type, lrTuple.time,
 							lrTuple.vid, lrTuple.speed, lrTuple.xway,
 							lrTuple.lane, lrTuple.dir, lrTuple.seg, lrTuple.pos));
 					outputs++;
+
 				}
-
-				// Just to prevent compiler optimizations (hopefully)
-				results.size();
-
+				duration += System.nanoTime() - before;
 			}
-			after = System.currentTimeMillis();
 			out.println("StatelessForwardStoppedCarsOnly - cost: "
-					+ myFormatter.format((after - before) / repetitions)
+					+ myFormatter.format(duration / repetitions)
 					+ " selectivity: "
 					+ myFormatter.format((outputs / repetitions)));
+
 			out.flush();
 			out.close();
 
