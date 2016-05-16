@@ -228,7 +228,7 @@ def create_overview_graph(spout_rate_x, spout_rate_y, spout_cost_x, spout_cost_y
 
     op_cost_index = [index for index, value in enumerate(medians_op_cost_y) if value <= 0.9]
 
-    threshold = 1000
+    threshold = 5000
     latency_indexes = [index for index, value in enumerate(medians_latency_y) if value <= threshold]
 
     valid_indexes = reduce(set.intersection, [set(spout_cost_index), set(op_cost_index), set(latency_indexes)])
@@ -347,7 +347,7 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
 
     try:
         operator_cost_values = [
-            results['op_cost_value'][i] * results['op_invocations_value'][i] / op_parallelism / pow(10, 9) for i in
+            results['op_cost_value'][i] * results['spout_rate_value'][i] / op_parallelism / pow(10, 9) for i in
             range(start_ts, end_ts)]
 
         results['op_cost_ts'][:] = [x - earliest_ts for x in results['op_cost_ts']]
@@ -361,7 +361,7 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
     # SINK
 
     sink_cost_values = [
-        results['sink_cost_value'][i] * results['sink_invocations_value'][i] / sink_parallelism / pow(10, 9) for i in
+        results['sink_cost_value'][i] * results['op_rate_value'][i] / sink_parallelism / pow(10, 9) for i in
         range(start_ts, end_ts)]
 
     results['sink_cost_ts'][:] = [x - earliest_ts for x in results['sink_cost_ts']]

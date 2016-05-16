@@ -1,38 +1,12 @@
 import json
-from LinearRoadStateful.create_single_exp_graphs import create_single_exp_graphs
-from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
-from os import listdir
-from os.path import isfile, join
-import statistics
-from LinearRoadStateful.storm_vs_viper_paper_graph import create_overview_graph
 import numpy
 from matplotlib import rcParams
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy import stats as scipystat
 import matplotlib.pyplot as plt
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots'
-
-# state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/'
-# results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2'
-
-main_title = 'Storm '
-
-stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
-
-run_ranges = range(0, 1)
-
-keys = []
-throughput_x = dict()
-throughput_y = dict()
-latency_x = dict()
-latency_y = dict()
-consumption_x = dict()
-consumption_y = dict()
-keys_markers = dict()
-keys_legend = dict()
-
+# PLEASE NOTICE: THIS SCRIPT WORKS AS LONS AS THE QUERY IS A STRAIGHT LINE OF OPERATORS (EVEN PARALLEL OPERATORS).
+# IF AN OPERATOR FED BY TWO DISTINCT OPERATORS EXISTS, THE RESULTS OF THE SCRIPT MAKE NO SENSE!
 
 def get_operations_durations_and_operators_costs(state_json_file, experiment_json_file, operators, instances,
                                                  result_boundaries_left,
@@ -49,23 +23,49 @@ def get_operations_durations_and_operators_costs(state_json_file, experiment_jso
 
     results_json = json.load(open(experiment_json_file, 'r'))
 
-    for o in operators:
+    for index in range(0, len(operators)):
+
+        o = operators[index]
 
         if str(o + "_cost_value") in results_json.keys():
             operators_found.append(o)
             instances_found.append(instances[o])
             operation_duration.append(
-                    scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0) / pow(10, 3))
+                    scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0) / int(
+                                instances[o])/ pow(10, 3))
 
-            operator_cost.append(
-                    scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0) * scipystat.trim_mean(
-                            results_json[o + "_invocations_value"][start_ts:end_ts], 0) / int(instances[o]) / pow(10,
-                                                                                                                  9))
+            if index == 0:
+                operator_cost.append(
+                        scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0) * scipystat.trim_mean(
+                                results_json[o + "_invocations_value"][start_ts:end_ts], 0) / pow(
+                                10,
+                                9))
+            else:
+
+                prev_index = index - 1
+                if 'merger' in operators[prev_index]:
+                    prev_index -= 1
+
+                print(
+                        'in order to compute the cost of operator ' + o + ' the script is going to use the rate of operator ' +
+                        operators[prev_index])
+
+                # operator_cost.append(
+                #         scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0) * scipystat.trim_mean(
+                #                 results_json[operators[prev_index] + "_rate_value"][start_ts:end_ts], 0) / int(
+                #                 instances[o]) / pow(10,
+                #                                     9))
+                operator_cost.append(
+                        scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0) * scipystat.trim_mean(
+                                results_json[operators[prev_index] + "_rate_value"][start_ts:end_ts], 0)  / pow(10,
+                                                    9))
+
+            index += 1
 
     return operators_found, instances_found, operation_duration, operator_cost
 
 
-def analyze_experiments_in_state_file(state_json_file, exps, results_base_folder):
+def analyze_experiments_in_state_file(state_json_file, exps, results_base_folder, type_of_stat):
     data = json.load(open(state_json_file, 'r'))
 
     ncols = 4
@@ -75,7 +75,17 @@ def analyze_experiments_in_state_file(state_json_file, exps, results_base_folder
     subfig_index = 1
 
     rcParams.update({'figure.autolayout': False})
-    pp = PdfPages(results_base_folder + 'durations' + str(fig_number) + '.pdf')
+    if type_of_stat == 'durations':
+        pp = PdfPages(results_base_folder + 'durations' + str(fig_number) + '.pdf')
+    elif type_of_stat == 'costs':
+        pp = PdfPages(results_base_folder + 'costs' + str(fig_number) + '.pdf')
+    elif type_of_stat == 'individualmaxrates':
+        pp = PdfPages(results_base_folder + 'individualmaxrates' + str(fig_number) + '.pdf')
+    elif type_of_stat == 'maxrates':
+        pp = PdfPages(results_base_folder + 'maxrates' + str(fig_number) + '.pdf')
+    else:
+        print('Unkown type_of_stat value')
+        exit()
 
     f = plt.figure()
     f.set_size_inches(20, 10)
@@ -106,29 +116,85 @@ def analyze_experiments_in_state_file(state_json_file, exps, results_base_folder
         bar_width = 0.35
 
         ax = plt.subplot(ncols, nrows, subfig_index)
-        #plt.bar(numpy.arange(len(operators)), operator_cost, bar_width)
-        plt.bar(numpy.arange(len(operators)), operation_duration, bar_width)
+
+        if type_of_stat == 'durations':
+            plt.bar(numpy.arange(len(operators)), operation_duration, bar_width)
+            for i in numpy.arange(len(operators)):
+                ax.text(i, operation_duration[i] + .01, str("{0:.2f}".format(operation_duration[i])), color='blue',
+                        fontweight='bold')
+            plt.ylim(0, 20)
+        elif type_of_stat == 'costs':
+            plt.bar(numpy.arange(len(operators)), operator_cost, bar_width)
+            for i in numpy.arange(len(operators)):
+                ax.text(i, operator_cost[i] + .01, str("{0:.2f}".format(operator_cost[i])), color='blue',
+                        fontweight='bold')
+            plt.ylim(0, 10)
+        elif type_of_stat == 'individualmaxrates':
+            individual_rates = list(numpy.array(operator_cost) * 1000000 / numpy.array(operation_duration))
+            plt.bar(numpy.arange(len(operators)), individual_rates, bar_width)
+            for i in numpy.arange(len(operators)):
+                ax.text(i, individual_rates[i] + .01, str("{0:.2f}".format(individual_rates[i])), color='blue',
+                        fontweight='bold')
+            plt.ylim(0, 700000)
+        elif type_of_stat == 'maxrates':
+            rates = list(numpy.array(operator_cost) * 1000000 / numpy.array(operation_duration)) * numpy.array(
+                    instances)
+            plt.bar(numpy.arange(len(operators)), rates, bar_width)
+            for i in numpy.arange(len(operators)):
+                ax.text(i, rates[i] + .01, str("{0:.2f}".format(rates[i])), color='blue', fontweight='bold')
+            plt.ylim(0, 700000)
+        else:
+            print('Unkown type_of_stat value')
+            exit()
 
         plt.title(exp_id)
         plt.xticks(numpy.arange(len(operators)), operators)
-        plt.ylim(0, 10)
 
         if subfig_index >= ncols * nrows:
-            # plt.subplots_adjust(left=0.16, right=0.99, top=0.93, bottom=0.1)
             plt.close()
             pp.savefig(f)
             pp.close()
 
             fig_number += 1
             subfig_index = 1
-            pp = PdfPages(results_base_folder + 'durations' + str(fig_number) + '.pdf')
+            if type_of_stat == 'durations':
+                pp = PdfPages(results_base_folder + 'durations' + str(fig_number) + '.pdf')
+            elif type_of_stat == 'costs':
+                pp = PdfPages(results_base_folder + 'costs' + str(fig_number) + '.pdf')
+            elif type_of_stat == 'individualmaxrates':
+                pp = PdfPages(results_base_folder + 'individualmaxrates' + str(fig_number) + '.pdf')
+            elif type_of_stat == 'maxrates':
+                pp = PdfPages(results_base_folder + 'maxrates' + str(fig_number) + '.pdf')
+            else:
+                print('Unkown type_of_stat value')
+                exit()
 
             f = plt.figure()
             f.set_size_inches(20, 10)
         else:
             subfig_index += 1
 
+
 analyze_experiments_in_state_file(
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_2/state.json',
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
         32,
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_2/')
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
+        'durations')
+
+analyze_experiments_in_state_file(
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
+        32,
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
+        'costs')
+
+analyze_experiments_in_state_file(
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
+        32,
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
+        'individualmaxrates')
+
+analyze_experiments_in_state_file(
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
+        32,
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
+        'maxrates')

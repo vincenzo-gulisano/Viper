@@ -12,6 +12,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import usecases.linearroad.DetectAccidentOperator.UpdateSegmentAnswer;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.tuple.Values;
@@ -47,11 +48,42 @@ public class CostsAndSelectivities {
 				inputTuplesConverted.add(new LRTuple(s));
 			}
 
+			// /////////////// STATEFULVEHICLEDETECTACCIDENT ///////////////
+
+			DetectAccidentOperator detectAccOperator = new DetectAccidentOperator();
+
+			long before = System.currentTimeMillis();
+			for (int i = 0; i < repetitions; i++) {
+				LRTuple lrTuple = inputTuplesConverted.get(i
+						% input_tuples.size());
+
+				List<Values> results = new ArrayList<Values>();
+				if (lrTuple.type == 0) {
+
+					UpdateSegmentAnswer result = detectAccOperator.run(
+							lrTuple.xway, lrTuple.seg, lrTuple.time,
+							lrTuple.vid, lrTuple.speed, lrTuple.lane,
+							lrTuple.pos);
+
+					results.add(new Values(lrTuple.type, lrTuple.time,
+							lrTuple.vid, lrTuple.speed, lrTuple.xway,
+							lrTuple.lane, lrTuple.dir, lrTuple.seg,
+							lrTuple.pos, result.newacc, result.cleared));
+					outputs++;
+
+				}
+			}
+			long after = System.currentTimeMillis();
+			out.println("StatefulVehicleDetectAccident - cost: "
+					+ myFormatter.format((after - before) / repetitions)
+					+ " selectivity: "
+					+ myFormatter.format((outputs / repetitions)));
+
 			// Spout
 			outputs = 0;
 			long repetition = 0;
 			long timeStep = 60 * 60 * 3;
-			long before = System.currentTimeMillis();
+			before = System.currentTimeMillis();
 			for (int i = 0; i < repetitions; i++) {
 				LRTuple lrTuple = inputTuplesConverted.get(i
 						% input_tuples.size());
@@ -70,7 +102,7 @@ public class CostsAndSelectivities {
 				outputs++;
 
 			}
-			long after = System.currentTimeMillis();
+			after = System.currentTimeMillis();
 			out.println("Spout - cost: "
 					+ myFormatter.format((after - before) / repetitions)
 					+ " selectivity: "

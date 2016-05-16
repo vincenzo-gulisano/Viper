@@ -89,13 +89,12 @@ exp_num = 1
 
 # StatelessForwardPositionReportsOnly
 # for type in ['storm', 'viper']:
-#     for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
-#                        'StatelessForwardStoppedCarsOnly']:
+#     for main_class in ['StatelessForwardPositionReportsOnly', 'StatelessForwardStoppedCarsOnly',
+#                            'StatefulVehicleEnteringNewSegment', 'StatefulVehicleDetectAccident']:
 
 for repetition in range(0, 1):
     for type in ['storm', 'viper']:
-        for main_class in ['StatelessForwardPositionReportsOnly', 'StatelessForwardStoppedCarsOnly',
-                           'StatefulVehicleEnteringNewSegment', 'StatefulVehicleDetectAccident']:
+        for main_class in ['StatefulVehicleEnteringNewSegment', 'StatefulVehicleDetectAccident']:
             for spout_parallelism in [1, 2, 4, 6]:
                 for op_parallelism in [1, 2, 4, 6]:
                     data['exp_' + str(exp_num) + '_spout_parallelism'] = str(spout_parallelism)

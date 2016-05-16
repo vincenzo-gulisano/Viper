@@ -71,16 +71,18 @@ public class StatefulVehicleDetectAccident {
 							arg0.getIntegerByField("lr_lane"),
 							arg0.getIntegerByField("lr_pos"));
 
-					results.add(new Values(arg0.getIntegerByField("lr_type"),
-							arg0.getLongByField("lr_time"), arg0
-									.getIntegerByField("lr_vid"), arg0
-									.getIntegerByField("lr_speed"), arg0
-									.getIntegerByField("lr_xway"), arg0
-									.getIntegerByField("lr_lane"), arg0
-									.getIntegerByField("lr_dir"), arg0
-									.getIntegerByField("lr_seg"), arg0
-									.getIntegerByField("lr_pos"),
-							result.newacc, result.cleared));
+					if (result.cleared || result.newacc)
+						results.add(new Values(arg0
+								.getIntegerByField("lr_type"), arg0
+								.getLongByField("lr_time"), arg0
+								.getIntegerByField("lr_vid"), arg0
+								.getIntegerByField("lr_speed"), arg0
+								.getIntegerByField("lr_xway"), arg0
+								.getIntegerByField("lr_lane"), arg0
+								.getIntegerByField("lr_dir"), arg0
+								.getIntegerByField("lr_seg"), arg0
+								.getIntegerByField("lr_pos"), result.newacc,
+								result.cleared));
 
 				}
 				return results;

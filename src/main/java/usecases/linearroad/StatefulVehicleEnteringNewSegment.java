@@ -60,20 +60,22 @@ public class StatefulVehicleEnteringNewSegment {
 			public List<Values> process(Tuple arg0) {
 				List<Values> results = new ArrayList<Values>();
 				if (arg0.getIntegerByField("lr_type") == 0) {
-					results.add(new Values(arg0.getIntegerByField("lr_type"),
-							arg0.getLongByField("lr_time"), arg0
-									.getIntegerByField("lr_vid"), arg0
-									.getIntegerByField("lr_speed"), arg0
-									.getIntegerByField("lr_xway"), arg0
-									.getIntegerByField("lr_lane"), arg0
-									.getIntegerByField("lr_dir"), arg0
-									.getIntegerByField("lr_seg"), arg0
-									.getIntegerByField("lr_pos"),
-							detectNewVehicles.isThisANewVehicle(
-									arg0.getLongByField("lr_time"),
-									arg0.getIntegerByField("lr_xway"),
-									arg0.getIntegerByField("lr_seg"),
-									arg0.getIntegerByField("lr_vid"))));
+					boolean newVehicle = detectNewVehicles.isThisANewVehicle(
+							arg0.getLongByField("lr_time"),
+							arg0.getIntegerByField("lr_xway"),
+							arg0.getIntegerByField("lr_seg"),
+							arg0.getIntegerByField("lr_vid"));
+					if (newVehicle)
+						results.add(new Values(arg0
+								.getIntegerByField("lr_type"), arg0
+								.getLongByField("lr_time"), arg0
+								.getIntegerByField("lr_vid"), arg0
+								.getIntegerByField("lr_speed"), arg0
+								.getIntegerByField("lr_xway"), arg0
+								.getIntegerByField("lr_lane"), arg0
+								.getIntegerByField("lr_dir"), arg0
+								.getIntegerByField("lr_seg"), arg0
+								.getIntegerByField("lr_pos"), newVehicle));
 					// System.out.println(results);
 
 				}

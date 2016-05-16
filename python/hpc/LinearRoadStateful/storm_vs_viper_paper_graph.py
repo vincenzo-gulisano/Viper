@@ -17,7 +17,7 @@ def create_overview_graph(storm_keys, viper_keys, keys_marker, keys_legend, ops,
     pp = PdfPages(outFile)
 
     f = plt.figure()
-    f.set_size_inches(20, 10)
+    f.set_size_inches(3.33334, 3.33334)
 
     # plot_lines = []
     # labels = []
@@ -31,9 +31,10 @@ def create_overview_graph(storm_keys, viper_keys, keys_marker, keys_legend, ops,
     plt.subplots_adjust(wspace=.0)
     plt.xticks(ops_ticks, [])
     plt.yticks(throughput_ticks, throughput_ticks_labels)
+    plt.ylim([throughput_ticks[0],throughput_ticks[-1]])
     plt.grid(True)
     plt.ylabel('Throughput (t/s)')
-    plt.title('Shared-nothing')
+    plt.title('SN')
     plt.legend(loc='upper left', fontsize=7, ncol=2, columnspacing=0.4, labelspacing=0.1)
     for axis in ['top', 'bottom', 'left', 'right']:
         ax.spines[axis].set_linewidth(0.4)
@@ -45,6 +46,7 @@ def create_overview_graph(storm_keys, viper_keys, keys_marker, keys_legend, ops,
     plt.subplots_adjust(wspace=.0)
     plt.xticks(ops_ticks, [])
     plt.yticks(latency_ticks, latency_ticks_labels)
+    plt.ylim([latency_ticks[0],latency_ticks[-1]])
     plt.grid(True)
     plt.ylabel('Latency (ms)')
     ax.title.set_visible(False)
@@ -57,10 +59,11 @@ def create_overview_graph(storm_keys, viper_keys, keys_marker, keys_legend, ops,
     plt.subplots_adjust(hspace=.0)
     plt.subplots_adjust(wspace=.0)
     plt.yticks(consumption_ticks, consumption_ticks_labels)
+    plt.ylim([consumption_ticks[0],consumption_ticks[-1]])
     plt.xticks(ops_ticks, ops_labels)
     plt.grid(True)
-    plt.xlabel('# of Operators')
-    plt.ylabel('Consumption (J/t)')
+    plt.xlabel('# of Op. instances')
+    plt.ylabel('Consumption (mJ/t)')
     ax.title.set_visible(False)
     for axis in ['top', 'bottom', 'left', 'right']:
         ax.spines[axis].set_linewidth(0.4)
@@ -72,8 +75,9 @@ def create_overview_graph(storm_keys, viper_keys, keys_marker, keys_legend, ops,
     plt.subplots_adjust(wspace=.0)
     plt.xticks(ops_ticks, [])
     plt.yticks(throughput_ticks, [])
+    plt.ylim([throughput_ticks[0],throughput_ticks[-1]])
     plt.grid(True)
-    plt.title('Hybrid')
+    plt.title('SM')
     for axis in ['top', 'bottom', 'left', 'right']:
         ax.spines[axis].set_linewidth(0.4)
 
@@ -84,6 +88,7 @@ def create_overview_graph(storm_keys, viper_keys, keys_marker, keys_legend, ops,
     plt.subplots_adjust(wspace=.0)
     plt.xticks(ops_ticks, [])
     plt.yticks(latency_ticks, [])
+    plt.ylim([latency_ticks[0],latency_ticks[-1]])
     plt.grid(True)
     ax.title.set_visible(False)
     for axis in ['top', 'bottom', 'left', 'right']:
@@ -96,8 +101,9 @@ def create_overview_graph(storm_keys, viper_keys, keys_marker, keys_legend, ops,
     plt.subplots_adjust(wspace=.0)
     plt.xticks(ops_ticks, ops_labels)
     plt.yticks(consumption_ticks, [])
+    plt.ylim([consumption_ticks[0],consumption_ticks[-1]])
     plt.grid(True)
-    plt.xlabel('# of Operators')
+    plt.xlabel('# of Op. instances')
     ax.title.set_visible(False)
     for axis in ['top', 'bottom', 'left', 'right']:
         ax.spines[axis].set_linewidth(0.4)

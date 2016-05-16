@@ -7,8 +7,8 @@ import statistics
 from LinearRoadStateful.storm_vs_viper_paper_graph import create_overview_graph
 import numpy
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_2/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_2'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all'
 
 # state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/'
 # results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2'
@@ -17,17 +17,8 @@ main_title = 'Storm '
 
 stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
 
-run_ranges = range(0, 1)
+run_ranges = range(0, 3)
 
-keys = []
-throughput_x = dict()
-throughput_y = dict()
-latency_x = dict()
-latency_y = dict()
-consumption_x = dict()
-consumption_y = dict()
-keys_markers = dict()
-keys_legend = dict()
 
 def compute_top_results(keys, throughput, latency, consumption):
     results = [[0 for x in range(3)] for x in range(3)]
@@ -82,7 +73,19 @@ markers = ['x', '+', 's', '*']
 # for main_class in ['StatefulVehicleDetectAccident']:
 # for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
 #                        'StatelessForwardStoppedCarsOnly']:
-for main_class in ['StatelessForwardPositionReportsOnly']:
+for main_class in ['StatelessForwardPositionReportsOnly', 'StatelessForwardStoppedCarsOnly',
+                   'StatefulVehicleEnteringNewSegment', 'StatefulVehicleDetectAccident']:
+
+    keys = []
+    throughput_x = dict()
+    throughput_y = dict()
+    latency_x = dict()
+    latency_y = dict()
+    consumption_x = dict()
+    consumption_y = dict()
+    keys_markers = dict()
+    keys_legend = dict()
+
     for type in ['storm', 'viper']:
 
         marker_index = 0
@@ -147,21 +150,21 @@ for main_class in ['StatelessForwardPositionReportsOnly']:
                 print('')
             print('')
 
-storm_keys = [value for index, value in enumerate(keys) if 'storm' in value]
-viper_keys = [value for index, value in enumerate(keys) if 'viper' in value]
+    storm_keys = [value for index, value in enumerate(keys) if 'storm' in value]
+    viper_keys = [value for index, value in enumerate(keys) if 'viper' in value]
 
-create_overview_graph(storm_keys, viper_keys, keys_markers, keys_legend, [1, 2, 4, 6],
-                      throughput_y, latency_y, consumption_y, throughput_y, latency_y, consumption_y,
-                      [0.9, 1, 2, 4, 6, 6.1], ['', '1', '2', '4', '6', ''], [0, 250000, 500000, 750000],
-                      ['0', '250K', '500K', '750K'], [-50, 0, 250, 500, 750, 1000, 1110],
-                      ['', '0', '250', '500', '750', '1000', ''], [0.00000, 0.00020, 0.00040, 0.00060, 0.0007],
-                      ['0', '0.2', '0.4', '0.6', ''],
-                      state_folder + main_class + '.pdf')
+    create_overview_graph(storm_keys, viper_keys, keys_markers, keys_legend, [1, 2, 4, 6],
+                          throughput_y, latency_y, consumption_y, throughput_y, latency_y, consumption_y,
+                          [0.9, 1, 2, 4, 6, 6.1], ['', '1', '2', '4', '6', ''], [0, 250000, 500000, 750000, 1000000],
+                          ['0', '250K', '500K', '750K', '1M'], [-50, 0, 1000, 2000, 3000, 4000],
+                          ['', '0', '1000', '2000', '3000', ''], [0.00000, 0.00020, 0.00040, 0.00060, 0.0008, 0.001],
+                          ['0.0', '0.2', '0.4', '0.6', '0.8', ''],
+                          state_folder + main_class + '.pdf')
 
-# Summary results
-resultsStorm = compute_top_results(storm_keys, throughput_y, latency_y, consumption_y)
-print(str(resultsStorm))
-resultsViper = compute_top_results(viper_keys, throughput_y, latency_y, consumption_y)
-print(str(resultsViper))
+    # Summary results
+    resultsStorm = compute_top_results(storm_keys, throughput_y, latency_y, consumption_y)
+    print(str(resultsStorm))
+    resultsViper = compute_top_results(viper_keys, throughput_y, latency_y, consumption_y)
+    print(str(resultsViper))
 
-print(str(numpy.divide(resultsViper, resultsStorm)))
+    print(str(numpy.divide(resultsViper, resultsStorm)))
