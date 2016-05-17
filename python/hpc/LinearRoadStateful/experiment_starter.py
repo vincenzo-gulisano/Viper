@@ -96,9 +96,9 @@ exp_num = 1
 
         # for main_class in ['StatefulVehicleEnteringNewSegment', 'StatefulVehicleDetectAccident']:
 
-for repetition in range(0, 1):
+for repetition in range(0, 3):
     for type in ['storm', 'viper']:
-        for main_class in ['CostsAndSelectivities']:
+        for main_class in ['StatefulVehicleEnteringNewSegment']:
             for spout_parallelism in [1, 2, 4, 6]:
                 for op_parallelism in [1, 2, 4, 6]:
                     data['exp_' + str(exp_num) + '_spout_parallelism'] = str(spout_parallelism)
