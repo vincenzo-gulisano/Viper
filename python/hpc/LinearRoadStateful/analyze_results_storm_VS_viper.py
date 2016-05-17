@@ -4,15 +4,15 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all/run2/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all/run2'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all_modifiedstateful/run0/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all_modifiedstateful/run0'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
 # json_out_id = '2_viper'
 
 stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
-run = 2
+run = 0
 
 exp_num = 1
 # for type in ['storm', 'viper']:
