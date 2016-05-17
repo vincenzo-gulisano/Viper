@@ -7,8 +7,8 @@ import statistics
 from LinearRoadStateful.storm_vs_viper_paper_graph import create_overview_graph
 import numpy
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulVehicleEnteringNewSegment/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulVehicleEnteringNewSegment'
 
 # state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/'
 # results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2'
@@ -17,7 +17,7 @@ main_title = 'Storm '
 
 stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
 
-run_ranges = range(0, 3)
+run_ranges = range(0, 1)
 
 
 def compute_top_results(keys, throughput, latency, consumption):
@@ -71,10 +71,9 @@ def compute_top_results(keys, throughput, latency, consumption):
 markers = ['x', '+', 's', '*']
 
 # for main_class in ['StatefulVehicleDetectAccident']:
-# for main_class in ['StatefulVehicleEnteringNewSegment', 'StatelessForwardPositionReportsOnly',
-#                        'StatelessForwardStoppedCarsOnly']:
-for main_class in ['StatelessForwardPositionReportsOnly', 'StatelessForwardStoppedCarsOnly',
-                   'StatefulVehicleEnteringNewSegment', 'StatefulVehicleDetectAccident']:
+# for main_class in ['StatelessForwardPositionReportsOnly', 'StatelessForwardStoppedCarsOnly',
+#                    'StatefulVehicleEnteringNewSegment', 'StatefulVehicleDetectAccident']:
+for main_class in ['StatefulVehicleEnteringNewSegment']:
 
     keys = []
     throughput_x = dict()

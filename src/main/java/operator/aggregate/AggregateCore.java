@@ -105,7 +105,7 @@ public class AggregateCore<T extends AggregateWindow> implements BoltFunction {
 		// Take the group-by
 		String groupby = "";
 		if (!groupbyFieldID.equals(""))
-			groupby = t.getStringByField(groupbyFieldID);
+			groupby = String.valueOf(t.getValueByField(groupbyFieldID));
 
 		// Purge stale windows
 		List<Long> windowsStart = getWindowsStartTimestamps(timestamp,

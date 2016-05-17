@@ -5,6 +5,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from scipy import stats as scipystat
 import matplotlib.pyplot as plt
 
+
 # PLEASE NOTICE: THIS SCRIPT WORKS AS LONS AS THE QUERY IS A STRAIGHT LINE OF OPERATORS (EVEN PARALLEL OPERATORS).
 # IF AN OPERATOR FED BY TWO DISTINCT OPERATORS EXISTS, THE RESULTS OF THE SCRIPT MAKE NO SENSE!
 
@@ -32,14 +33,14 @@ def get_operations_durations_and_operators_costs(state_json_file, experiment_jso
             instances_found.append(instances[o])
             operation_duration.append(
                     scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0) / int(
-                                instances[o])/ pow(10, 3))
+                            instances[o]) / pow(10, 3))
 
             if index == 0:
                 operator_cost.append(
                         scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0) * scipystat.trim_mean(
-                                results_json[o + "_invocations_value"][start_ts:end_ts], 0) / pow(
-                                10,
-                                9))
+                                results_json[o + "_invocations_value"][start_ts:end_ts], 0) / int(
+                                instances[o]) / pow(10, 9))
+
             else:
 
                 prev_index = index - 1
@@ -57,8 +58,8 @@ def get_operations_durations_and_operators_costs(state_json_file, experiment_jso
                 #                                     9))
                 operator_cost.append(
                         scipystat.trim_mean(results_json[o + "_cost_value"][start_ts:end_ts], 0) * scipystat.trim_mean(
-                                results_json[operators[prev_index] + "_rate_value"][start_ts:end_ts], 0)  / pow(10,
-                                                    9))
+                                results_json[operators[prev_index] + "_rate_value"][start_ts:end_ts], 0) / int(
+                                instances[operators[prev_index]]) / pow(10, 9))
 
             index += 1
 
@@ -175,26 +176,38 @@ def analyze_experiments_in_state_file(state_json_file, exps, results_base_folder
             subfig_index += 1
 
 
-analyze_experiments_in_state_file(
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
-        32,
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
-        'durations')
+# analyze_experiments_in_state_file(
+#         '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
+#         32,
+#         '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
+#         'durations')
+#
+# analyze_experiments_in_state_file(
+#         '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
+#         32,
+#         '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
+#         'costs')
+#
+# analyze_experiments_in_state_file(
+#         '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
+#         32,
+#         '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
+#         'individualmaxrates')
+#
+# analyze_experiments_in_state_file(
+#         '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
+#         32,
+#         '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
+#         'maxrates')
 
 analyze_experiments_in_state_file(
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all/run0/state.json',
         32,
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all/run0/',
         'costs')
 
 analyze_experiments_in_state_file(
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all/run0/state.json',
         32,
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
-        'individualmaxrates')
-
-analyze_experiments_in_state_file(
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/state.json',
-        32,
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/costs_plots_4/',
-        'maxrates')
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/all/run0/',
+        'durations')
