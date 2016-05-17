@@ -96,7 +96,7 @@ exp_num = 1
 
         # for main_class in ['StatefulVehicleEnteringNewSegment', 'StatefulVehicleDetectAccident']:
 
-for repetition in range(0, 3):
+for repetition in range(0, 1):
     for type in ['storm', 'viper']:
         for main_class in ['StatefulVehicleEnteringNewSegment']:
             for spout_parallelism in [1, 2, 4, 6]:
