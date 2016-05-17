@@ -57,25 +57,23 @@ public class CostsAndSelectivities {
 			long duration = 0;
 			for (int i = 0; i < repetitions; i++) {
 
-				if (i > 0 && i % input_tuples.size() == 0)
+				if (i > 0 && i % inputTuplesConverted.size() == 0)
 					repetition++;
 
 				LRTuple lrTuple = inputTuplesConverted.get(i
 						% input_tuples.size());
-
-				lrTuple.time += repetition * timeStep;
 
 				long before = System.nanoTime();
 				List<Values> results = new ArrayList<Values>();
 				if (lrTuple.type == 0) {
 
 					UpdateSegmentAnswer result = detectAccOperator.run(
-							lrTuple.xway, lrTuple.seg, lrTuple.time,
+							lrTuple.xway, lrTuple.seg, lrTuple.time + repetition * timeStep,
 							lrTuple.vid, lrTuple.speed, lrTuple.lane,
 							lrTuple.pos);
 
 					if (result.cleared || result.newacc) {
-						results.add(new Values(lrTuple.type, lrTuple.time,
+						results.add(new Values(lrTuple.type, lrTuple.time + repetition * timeStep,
 								lrTuple.vid, lrTuple.speed, lrTuple.xway,
 								lrTuple.lane, lrTuple.dir, lrTuple.seg,
 								lrTuple.pos, result.newacc, result.cleared));
@@ -98,23 +96,21 @@ public class CostsAndSelectivities {
 			outputs = 0;
 			for (int i = 0; i < repetitions; i++) {
 
-				if (i > 0 && i % input_tuples.size() == 0)
+				if (i > 0 && i % inputTuplesConverted.size() == 0)
 					repetition++;
 
 				LRTuple lrTuple = inputTuplesConverted.get(i
 						% input_tuples.size());
-
-				lrTuple.time += repetition * timeStep;
 
 				long before = System.nanoTime();
 				List<Values> results = new ArrayList<Values>();
 				if (lrTuple.type == 0) {
 
 					boolean newVehicle = detectNewVehicles.isThisANewVehicle(
-							lrTuple.time, lrTuple.xway, lrTuple.seg,
+							lrTuple.time + repetition * timeStep, lrTuple.xway, lrTuple.seg,
 							lrTuple.vid);
 					if (newVehicle) {
-						results.add(new Values(lrTuple.type, lrTuple.time,
+						results.add(new Values(lrTuple.type, lrTuple.time + repetition * timeStep,
 								lrTuple.vid, lrTuple.speed, lrTuple.xway,
 								lrTuple.lane, lrTuple.dir, lrTuple.seg,
 								lrTuple.pos, newVehicle));
@@ -137,18 +133,16 @@ public class CostsAndSelectivities {
 			outputs = 0;
 			for (int i = 0; i < repetitions; i++) {
 
-				if (i > 0 && i % input_tuples.size() == 0)
+				if (i > 0 && i % inputTuplesConverted.size() == 0)
 					repetition++;
 
 				LRTuple lrTuple = inputTuplesConverted.get(i
 						% input_tuples.size());
 
-				lrTuple.time += repetition * timeStep;
-
 				long before = System.nanoTime();
 				List<Values> results = new ArrayList<Values>();
 				if (lrTuple.type == 0) {
-					results.add(new Values(lrTuple.type, lrTuple.time,
+					results.add(new Values(lrTuple.type, lrTuple.time + repetition * timeStep,
 							lrTuple.vid, lrTuple.speed, lrTuple.xway,
 							lrTuple.lane, lrTuple.dir, lrTuple.seg, lrTuple.pos));
 					outputs++;
@@ -169,18 +163,16 @@ public class CostsAndSelectivities {
 			outputs = 0;
 			for (int i = 0; i < repetitions; i++) {
 
-				if (i > 0 && i % input_tuples.size() == 0)
+				if (i > 0 && i % inputTuplesConverted.size() == 0)
 					repetition++;
 
 				LRTuple lrTuple = inputTuplesConverted.get(i
 						% input_tuples.size());
 
-				lrTuple.time += repetition * timeStep;
-
 				long before = System.nanoTime();
 				List<Values> results = new ArrayList<Values>();
 				if (lrTuple.type == 0 && lrTuple.speed == 0) {
-					results.add(new Values(lrTuple.type, lrTuple.time,
+					results.add(new Values(lrTuple.type, lrTuple.time + repetition * timeStep,
 							lrTuple.vid, lrTuple.speed, lrTuple.xway,
 							lrTuple.lane, lrTuple.dir, lrTuple.seg, lrTuple.pos));
 					outputs++;
