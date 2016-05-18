@@ -7,8 +7,8 @@ import statistics
 from LinearRoadStateful.storm_vs_viper_paper_graph import create_overview_graph
 import numpy
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulVehicleEnteringNewSegment/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulVehicleEnteringNewSegment'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulSegmentAverageSpeed/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulSegmentAverageSpeed'
 
 # state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2/'
 # results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/stateful/completerun_nostats1_2'
@@ -73,7 +73,7 @@ markers = ['x', '+', 's', '*']
 # for main_class in ['StatefulVehicleDetectAccident']:
 # for main_class in ['StatelessForwardPositionReportsOnly', 'StatelessForwardStoppedCarsOnly',
 #                    'StatefulVehicleEnteringNewSegment', 'StatefulVehicleDetectAccident']:
-for main_class in ['StatefulVehicleEnteringNewSegment']:
+for main_class in ['StatefulSegmentAverageSpeed']:
 
     keys = []
     throughput_x = dict()

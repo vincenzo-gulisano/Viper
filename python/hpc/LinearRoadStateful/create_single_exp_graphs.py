@@ -360,13 +360,23 @@ def create_single_exp_graphs(state_folder, results_folder, energy_file, spout_pa
 
     # SINK
 
+    #### THIS PART HAS BEEN CHANGED TO WORK IF MEASUREMENTS END BEFORE end_ts
+
+    temp_end_ts = end_ts;
+    if len(results['sink_cost_value']) < temp_end_ts:
+        temp_end_ts = len(results['sink_cost_value'])-1
+        print('ADJUSTING END TS FROM ' + str(end_ts) + ' TO ' + str(temp_end_ts))
+    if len(results['op_rate_value']) < temp_end_ts:
+        temp_end_ts = len(results['op_rate_value'])-1
+        print('ADJUSTING END TS FROM ' + str(end_ts) + ' TO ' + str(temp_end_ts))
+
     sink_cost_values = [
         results['sink_cost_value'][i] * results['op_rate_value'][i] / sink_parallelism / pow(10, 9) for i in
-        range(start_ts, end_ts)]
+        range(start_ts, temp_end_ts)]
 
     results['sink_cost_ts'][:] = [x - earliest_ts for x in results['sink_cost_ts']]
     if savePDF:
-        create_graph_time_value(results['sink_cost_ts'][start_ts:end_ts], sink_cost_values, 'Sink cost',
+        create_graph_time_value(results['sink_cost_ts'][start_ts:temp_end_ts], sink_cost_values, 'Sink cost',
                                 'time (seconds)',
                                 'cost', results_folder + 'sink.cost.pdf')
 
