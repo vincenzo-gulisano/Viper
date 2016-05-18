@@ -47,9 +47,9 @@ public class StatefulSegmentAverageSpeed {
 		// //////////////// SPOUT //////////////////////////
 
 		builder.setSpout("spout", new ViperSpout(new LRSpout(input_data,
-				spout_parallelism, duration), new Fields("lr_type", "lr_time",
-				"lr_vid", "lr_speed", "lr_xway", "lr_lane", "lr_dir", "lr_seg",
-				"lr_pos")), spout_parallelism);
+				spout_parallelism, duration, true), new Fields("lr_type",
+				"lr_time", "lr_vid", "lr_speed", "lr_xway", "lr_lane",
+				"lr_dir", "lr_seg", "lr_pos")), spout_parallelism);
 
 		// //////////////// STATEFUL OPERATOR //////////////////////////
 
@@ -91,7 +91,7 @@ public class StatefulSegmentAverageSpeed {
 		if (useOptimizedQueues) {
 
 			op.customGrouping("spout", new ViperFieldsSharedChannels(logStats,
-					statsPath, topologyName, 1, 6));
+					statsPath, topologyName, 1, 7));
 
 		} else {
 

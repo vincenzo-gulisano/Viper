@@ -145,11 +145,11 @@ public class ViperFieldsSharedChannels implements CustomStreamGrouping,
 
 			// Notice that I am assuming the timestamp is alway in position 1,
 			// so it is the internal timestamp, not user defined one
-
 			sharedChannels.addObj("" + taskId, destinationChannelsIDs
 					.get(targetTasks.get(index)),
 					new MergerEntry((Long) values.get(tsIndex), taskId,
 							streamId, values));
+
 			// index = (index + 1) % targetTasks.size();
 			// counter++;
 			return result;

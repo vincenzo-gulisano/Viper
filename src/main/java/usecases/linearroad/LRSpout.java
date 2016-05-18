@@ -30,10 +30,18 @@ public class LRSpout implements SpoutFunction {
 	int spout_parallelism;
 	long duration;
 
-	public LRSpout(String input_data, int spout_parallelism, long duration) {
+	boolean onlyPositionReports;
+
+	public LRSpout(String input_data, int spout_parallelism, long duration,
+			boolean onlyPositionReports) {
 		this.input_data = input_data;
 		this.spout_parallelism = spout_parallelism;
 		this.duration = duration;
+		this.onlyPositionReports = onlyPositionReports;
+	}
+
+	public LRSpout(String input_data, int spout_parallelism, long duration) {
+		this(input_data, spout_parallelism, duration, false);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -59,7 +67,9 @@ public class LRSpout implements SpoutFunction {
 			while ((strLine = br.readLine()) != null) {
 				if (lineNumber % spout_parallelism == taskIndex) {
 					LRTuple t = new LRTuple(strLine);
-					input_tuples.add(t);
+					if (!onlyPositionReports
+							|| (onlyPositionReports && t.type == 0))
+						input_tuples.add(t);
 				}
 				lineNumber++;
 			}

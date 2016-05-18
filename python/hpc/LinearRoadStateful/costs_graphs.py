@@ -101,6 +101,7 @@ def analyze_experiments_in_state_file(state_json_file, exps, results_base_folder
         result_boundaries_left = data['exp_' + str(exp_num) + '_result_boundaries_left']
         result_boundaries_right = data['exp_' + str(exp_num) + '_result_boundaries_right']
 
+        print('Experiment id: ' + exp_id + ' (' + data['exp_' + str(exp_num) + '_main_class'] + ')')
         [operators, instances, operation_duration, operator_cost] = get_operations_durations_and_operators_costs(
                 state_json_file, results_base_folder + '/' + result_path + '/exp_result.json',
                 ['spout', 'op_merger', 'op', 'sink_merger', 'sink'],
