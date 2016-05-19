@@ -4,15 +4,15 @@ from LinearRoad.create_single_exp_graphs import create_graph_multiple_time_value
 from os import listdir
 from os.path import isfile, join
 
-state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulSegmentAverageSpeed/run0/'
-results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulSegmentAverageSpeed/run0'
+state_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulOps/run2/'
+results_base_folder = '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulOps/run2'
 main_title = 'Storm '
 
 state = json.load(open(state_folder + 'state.json', 'r'))
 # json_out_id = '2_viper'
 
-stats_data = dict() # json.load(open(results_base_folder + '/summary.json', 'r'))
-run = 0
+stats_data = json.load(open(results_base_folder + '/summary.json', 'r'))
+run = 2
 
 exp_num = 1
 # for type in ['storm', 'viper']:
@@ -22,7 +22,7 @@ exp_num = 1
 
 # for run in range(0, 1):
 for type in ['storm', 'viper']:
-    for main_class in ['StatefulSegmentAverageSpeed']:
+    for main_class in ['StatefulVehicleEnteringNewSegment','StatefulSegmentAverageSpeed']:
         for spout_parallelism in [1, 2, 4, 6]:
             for op_parallelism in [1, 2, 4, 6]:
 

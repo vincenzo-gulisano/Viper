@@ -219,7 +219,7 @@ def analyze_experiments_in_state_file(state_json_file, exps, results_base_folder
 #         'durations')
 
 analyze_experiments_in_state_file(
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulSegmentAverageSpeed/run0/state.json',
-        32,
-        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulSegmentAverageSpeed/run0/',
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulOps/run2/state.json',
+        64,
+        '/Users/vinmas/repositories/viper_experiments/linear_road/hpc_results/ticks_smartqueues/StatefulOps/run2/',
         'durations')
