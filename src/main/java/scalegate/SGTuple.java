@@ -28,4 +28,7 @@ public interface SGTuple extends Comparable<SGTuple> {
 
     public long getTS();
 
+    public boolean isWM();
+    
+    public long getWM();
 }

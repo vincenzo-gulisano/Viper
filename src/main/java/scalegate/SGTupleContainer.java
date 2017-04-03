@@ -40,4 +40,14 @@ public class SGTupleContainer implements SGTuple {
 	public boolean isFake() {
 		return isFake;
 	}
+
+	@Override
+	public boolean isWM() {
+		return false;
+	}
+
+	@Override
+	public long getWM() {
+		return -1;
+	}
 }

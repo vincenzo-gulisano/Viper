@@ -47,4 +47,15 @@ public class TestTupleImpl implements Comparable<SGTuple>, SGTuple {
 	}
     }
 
+	@Override
+	public boolean isWM() {
+		return false;
+	}
+
+	@Override
+	public long getWM() {
+		// TODO Auto-generated method stub
+		return -1;
+	}
+
 }
