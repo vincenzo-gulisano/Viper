@@ -25,6 +25,7 @@
 package scalegate;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 public class ScaleGateAArrImpl implements ScaleGate {
 
@@ -72,7 +73,17 @@ public class ScaleGateAArrImpl implements ScaleGate {
 		SGNodeAArrImpl next = getReaderLocal(readerID).localHead.getNext(0);
 
 		if (next != tail && !next.isLastAdded()) {
+			
 			getReaderLocal(readerID).localHead = next;
+
+			/*Watermark code for flow control */
+			if (next.getTuple().isWM()) {
+				long newWM = next.getTuple().getWM();
+				if (newWM > getReaderLocal(readerID).watermarksSeen.get(next.writerID)) 
+					getReaderLocal(readerID).watermarksSeen.set(next.writerID, newWM);
+				return null; //readers outside should not know about watermarks
+			}
+			
 			return next.getTuple();
 		}
 		return null;
@@ -165,9 +176,11 @@ public class ScaleGateAArrImpl implements ScaleGate {
 
 	protected class ReaderThreadLocalData {
 		SGNodeAArrImpl localHead;
+		AtomicLongArray watermarksSeen;
 
 		public ReaderThreadLocalData(SGNodeAArrImpl lhead) {
 			localHead = lhead;
+			watermarksSeen = new AtomicLongArray(numberOfWriters);
 		}
 	}
 }

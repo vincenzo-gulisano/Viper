@@ -29,43 +29,43 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class SGNodeAArrImpl {
 
-    final AtomicReferenceArray<SGNodeAArrImpl> next;
-    final SGTuple obj;
-    final ScaleGateAArrImpl.WriterThreadLocalData ln;
-    final int writerID;
-    volatile boolean assigned;
-    
-    public SGNodeAArrImpl (int levels, SGTuple t, ScaleGateAArrImpl.WriterThreadLocalData ln, int writerID) {
-	next = new AtomicReferenceArray<SGNodeAArrImpl>(levels);
-	for (int i = 0; i < levels; i++) {
-	    	next.set(i, null);
+	final AtomicReferenceArray<SGNodeAArrImpl> next;
+	final SGTuple obj;
+	final ScaleGateAArrImpl.WriterThreadLocalData ln;
+	final int writerID;
+	volatile boolean assigned;
+
+	public SGNodeAArrImpl (int levels, SGTuple t, ScaleGateAArrImpl.WriterThreadLocalData ln, int writerID) {
+		next = new AtomicReferenceArray<SGNodeAArrImpl>(levels);
+		for (int i = 0; i < levels; i++) {
+			next.set(i, null);
+		}
+		this.obj = t;
+		this.assigned = false;
+		this.ln = ln;
+		this.writerID = writerID;
 	}
-	this.obj = t;
-	this.assigned = false;
-	this.ln = ln;
-	this.writerID = writerID;
-    }
-    
-    public SGNodeAArrImpl getNext(int level) {
-	return next.get(level);
-    }
 
-    public SGTuple getTuple() {
-	return this.obj;
-    }
+	public SGNodeAArrImpl getNext(int level) {
+		return next.get(level);
+	}
 
-    public void setNext(int i, SGNodeAArrImpl newNode) {
-	next.set(i, newNode);
-    }
+	public SGTuple getTuple() {
+		return this.obj;
+	}
 
-    public boolean trySetNext(int i, SGNodeAArrImpl oldNode,
-	    SGNodeAArrImpl newNode) {
-	return next.compareAndSet(i, oldNode, newNode);
-    }
+	public void setNext(int i, SGNodeAArrImpl newNode) {
+		next.set(i, newNode);
+	}
 
-    public boolean isLastAdded() {
-	// read this as volatile
-	return this == ln.written;
-    }
+	public boolean trySetNext(int i, SGNodeAArrImpl oldNode,
+			SGNodeAArrImpl newNode) {
+		return next.compareAndSet(i, oldNode, newNode);
+	}
 
+	public boolean isLastAdded() {
+		// read this as volatile
+		return this == ln.written;
+	}
+	
 }
