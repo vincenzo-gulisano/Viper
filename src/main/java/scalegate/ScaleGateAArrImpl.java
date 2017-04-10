@@ -40,6 +40,15 @@ public class ScaleGateAArrImpl implements ScaleGate {
 	ReaderThreadLocalData[] readertld;
 
 
+	/* 
+	 * maxlevels: maximum levels the skiplist may have (3 or 4) has shown to be working well.
+	 * writers: number of writer threads/streams inserting tuples
+	 * readers: number of reader threads/streaming reading tuples
+	 * Flow Control parameters (optional):
+	 * watermark_frequency: writers will add a watermark tuple for every watermark_frequency tuples inserted
+	 * watermark_max_defference: a writer will allow at most watermark_max_difference watermarks distance 
+	 * from the last inserted to the lowest watermark a reader has seen
+	 */
 	public ScaleGateAArrImpl (int maxlevels, int writers, int readers, int watermark_frequency, int watermark_max_difference) {
 		this.maxlevels = maxlevels;
 
