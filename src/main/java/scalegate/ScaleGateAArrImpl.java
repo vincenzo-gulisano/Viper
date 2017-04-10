@@ -40,7 +40,7 @@ public class ScaleGateAArrImpl implements ScaleGate {
 	ReaderThreadLocalData[] readertld;
 
 
-	public ScaleGateAArrImpl (int maxlevels, int writers, int readers) {
+	public ScaleGateAArrImpl (int maxlevels, int writers, int readers, int watermark_frequency, int watermark_max_difference) {
 		this.maxlevels = maxlevels;
 
 		this.head = new SGNodeAArrImpl(maxlevels, null, null, -1);
@@ -54,7 +54,7 @@ public class ScaleGateAArrImpl implements ScaleGate {
 
 		writertld = new WriterThreadLocalData[numberOfWriters];
 		for (int i=0; i < numberOfWriters; i++) {
-			writertld[i] = new WriterThreadLocalData(head);
+			writertld[i] = new WriterThreadLocalData(head, watermark_frequency,watermark_max_difference);
 		}
 
 		readertld = new ReaderThreadLocalData[numberOfReaders];
@@ -64,6 +64,11 @@ public class ScaleGateAArrImpl implements ScaleGate {
 
 		head = null;
 	}
+	
+	public ScaleGateAArrImpl (int maxlevels, int writers, int readers) {
+		this(maxlevels, writers, readers, -1, Integer.MAX_VALUE);
+	}
+	
 	@Override
 	/*
 	 * (non-Javadoc)
@@ -92,7 +97,40 @@ public class ScaleGateAArrImpl implements ScaleGate {
 	@Override
 	// Add a tuple 
 	public void addTuple(SGTuple tuple, int writerID) {
+		long counter = getWriterLocal(writerID).incrementAndGetWMCounter();
 		this.internalAddTuple(tuple, writerID);
+		//The comparison with -1 is a corner case for when no Flow Control is used and the WATERMARK_FREQUENCY is set to -1
+			
+		if (counter != -1 && counter == getWriterLocal(writerID).WATERMARK_FREQUENCY) {
+			//add new watermark
+			long newWatermark = getWriterLocal(writerID).incrementAndGetWatermark();
+			this.internalAddTuple(new SGWatermarkTuple(tuple.getTS(), newWatermark), writerID);
+			
+			//check the difference and wait if needed
+			while (true) {
+				//get the lowest watermark seen from the readers
+				long lowestWM = Long.MAX_VALUE;
+				for (int readerID = 0; readerID < this.numberOfReaders; readerID++) {
+					long tmp = getReaderLocal(readerID).getWatermark(writerID);
+					lowestWM = tmp < lowestWM ? tmp : lowestWM;
+				}
+				
+				if (newWatermark - lowestWM < getWriterLocal(writerID).WM_ALLOWED_DIFFERENCE) {
+					return;
+				}
+				//Add exponential backoff here
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}	
+		}
+		
+		
+		
+		
 	}
 
 	private void insertNode(SGNodeAArrImpl fromNode, SGNodeAArrImpl newNode, final SGTuple obj, final int level) {
@@ -124,7 +162,7 @@ public class ScaleGateAArrImpl implements ScaleGate {
 		for (int i = maxlevels - 1; i >= 0; i--) {
 			SGNodeAArrImpl tx = curNode.getNext(i);
 
-			while (tx != tail && tx.getTuple().compareTo(obj) < 0) {
+			while (tx != tail && tx.getTuple().compareTo(obj) <= 0) {
 				curNode = tx;
 				tx = curNode.getNext(i);
 			}
@@ -154,10 +192,11 @@ public class ScaleGateAArrImpl implements ScaleGate {
 		final Random rand;
 		final int WATERMARK_FREQUENCY;
 		final int WM_ALLOWED_DIFFERENCE;
-		private long current_wm;
+		private long cur_wm_counter;
+		private long cur_watermark;
 
 		public WriterThreadLocalData(SGNodeAArrImpl localHead) {
-			this(localHead, -1, -1);
+			this(localHead, -1, Integer.MAX_VALUE);
 		}
 		
 		public WriterThreadLocalData(SGNodeAArrImpl localHead, int wm_freq, int wm_diff) {
@@ -170,7 +209,21 @@ public class ScaleGateAArrImpl implements ScaleGate {
 
 			this.WATERMARK_FREQUENCY = wm_freq;
 			this.WM_ALLOWED_DIFFERENCE = wm_diff;
-			current_wm = 0;
+			cur_wm_counter = 0;
+			cur_watermark = 0;
+		}
+		
+		protected long incrementAndGetWMCounter() {
+			this.cur_wm_counter = (cur_wm_counter + 1) % WATERMARK_FREQUENCY;
+			if (cur_wm_counter != 0)
+				return cur_wm_counter;
+			else
+				return WATERMARK_FREQUENCY;
+		}
+		
+		protected long incrementAndGetWatermark() {
+			this.cur_watermark++;
+			return this.cur_watermark;
 		}
 	}
 
@@ -181,6 +234,10 @@ public class ScaleGateAArrImpl implements ScaleGate {
 		public ReaderThreadLocalData(SGNodeAArrImpl lhead) {
 			localHead = lhead;
 			watermarksSeen = new AtomicLongArray(numberOfWriters);
+		}
+		
+		protected long getWatermark(int writerID) {
+			return watermarksSeen.get(writerID);
 		}
 	}
 }

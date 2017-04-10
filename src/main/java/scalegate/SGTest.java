@@ -27,119 +27,125 @@ package scalegate;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SGTest {
-    
-    static final int TEST_SIZE = 1000001;
-    static int PRODUCERS, CONSUMERS;
-    
-    static ScaleGate tgate;
-    static AtomicInteger barrier;
-    
-    public static void main(String[] args) throws InterruptedException {
 
-	PRODUCERS = 2;
-	CONSUMERS = 2;
-	SGTest theTest = new SGTest();
-	
-	tgate = new ScaleGateAArrImpl(4, PRODUCERS, CONSUMERS);
-	barrier = new AtomicInteger(PRODUCERS + CONSUMERS);
+	static final int TEST_SIZE = 1000001;
+	static int PRODUCERS, CONSUMERS;
 
-	System.out.println(" Hello world! Starting threads...");
-	
-	Thread[] producers = new Thread[PRODUCERS];
-	Thread[] consumers = new Thread[CONSUMERS];
-	
-	for (int i=0; i < PRODUCERS; i++) {
-	    producers[i] = new Thread(theTest.new Produce(i));
-	}	
-	for (int i=0; i< CONSUMERS; i++) {
-	    consumers[i] = new Thread(theTest.new Consume(i));
-	}
-	
-	for (int i=0; i< PRODUCERS; i++) {
-	    producers[i].start();
-	}	
-	for (int i=0; i < CONSUMERS; i++) {
-	    consumers[i].start();
-	}
-	
-	
-	for (Thread t : producers) {
-	    t.join();
-	}
-	
-	for (Thread t : consumers) {
-	    t.join();
-	}
-	
-	System.out.println("Done!");
-    }
-    
-    class Produce implements Runnable {
+	static ScaleGate tgate;
+	static AtomicInteger barrier;
 
-	int id;
-	
-	Produce (int id) {
-	    this.id = id;
-	}
-	
-	@Override
-	public void run() {
-	    //Initialization i.e. ensure one tuple from each producer
-	    TestTupleImpl foo = new TestTupleImpl(1 + id);
-	    tgate.addTuple(foo, id);
-	    
-	    //Synch with the rest
-	    barrier.getAndDecrement();
-	    while (barrier.get() != 0);
-	    
-	    for (int i= 1 + PRODUCERS + id; i < TEST_SIZE; i++) {
-		foo = new TestTupleImpl(i);
-		tgate.addTuple(foo, id);
-	    }
-	    
-	    System.out.println("Producer thread " + id + " done");
-	}
-	
-    }
-    
-    class Consume implements Runnable {
+	public static void main(String[] args) throws InterruptedException {
 
-	int id;
-	
-	Consume (int id) {
-	    this.id = id;
-	}
-	
-	@Override
-	public void run() {
-	    
-	    //Make sure the system is correctly initialized, i.e. one tuple from each producer exists
-	    barrier.getAndDecrement();
-	    while (barrier.get() != 0);
-	    
-	    // Get the first tuple so that we can later check assertions for sanity checks
-	    SGTuple cur, prev;
-	    do {
-		prev = tgate.getNextReadyTuple(id);
-	    } while (prev == null);
-	    
-	    long sum = prev.getTS();
-	    
-	    while (true) {
-		cur = tgate.getNextReadyTuple(id);
-		if (cur != null) {
-		    assert(prev.getTS() + 1 == cur.getTS());
-		    sum += cur.getTS();
-		    
-		    if (cur.getTS() >= TEST_SIZE - 1 - PRODUCERS) //last tuple, break
-			break;
-		    prev = cur;
+		PRODUCERS = 2;
+		CONSUMERS = 2;
+		SGTest theTest = new SGTest();
+
+//		tgate = new ScaleGateAArrImpl(4, PRODUCERS, CONSUMERS);
+		tgate = new ScaleGateAArrImpl(4, PRODUCERS, CONSUMERS,100, 10);
+		barrier = new AtomicInteger(PRODUCERS + CONSUMERS);
+
+		System.out.println(" Hello world! Starting threads...");
+
+		Thread[] producers = new Thread[PRODUCERS];
+		Thread[] consumers = new Thread[CONSUMERS];
+
+		for (int i=0; i < PRODUCERS; i++) {
+			producers[i] = new Thread(theTest.new Produce(i));
+		}	
+		for (int i=0; i< CONSUMERS; i++) {
+			consumers[i] = new Thread(theTest.new Consume(i));
 		}
-	    }
-	    
-	    System.out.println("Consumer thread " + id + " done " + sum);
+
+		for (int i=0; i< PRODUCERS; i++) {
+			producers[i].start();
+		}	
+		for (int i=0; i < CONSUMERS; i++) {
+			consumers[i].start();
+		}
+
+
+		for (Thread t : producers) {
+			t.join();
+		}
+
+		for (Thread t : consumers) {
+			t.join();
+		}
+
+		System.out.println("Done!");
 	}
-	
-    }
+
+	class Produce implements Runnable {
+
+		int id;
+
+		Produce (int id) {
+			this.id = id;
+		}
+
+		@Override
+		public void run() {
+			//Initialization i.e. ensure one tuple from each producer
+			TestTupleImpl foo = new TestTupleImpl(1 + id);
+			tgate.addTuple(foo, id);
+
+			//Synch with the rest
+			barrier.getAndDecrement();
+			while (barrier.get() != 0);
+
+			for (int i= 1 + PRODUCERS + id; i < TEST_SIZE; i++) {
+				foo = new TestTupleImpl(i);
+				tgate.addTuple(foo, id);
+			}
+
+			System.out.println("Producer thread " + id + " done");
+		}
+
+	}
+
+	class Consume implements Runnable {
+
+		int id;
+
+		Consume (int id) {
+			this.id = id;
+		}
+
+		@Override
+		public void run() {
+
+			//Make sure the system is correctly initialized, i.e. one tuple from each producer exists
+			barrier.getAndDecrement();
+			while (barrier.get() != 0);
+
+			// Get the first tuple so that we can later check assertions for sanity checks
+			SGTuple cur, prev;
+			do {
+				prev = tgate.getNextReadyTuple(id);
+			} while (prev == null);
+
+			long sum = prev.getTS();
+
+			while (true) {
+				cur = tgate.getNextReadyTuple(id);
+				if (cur != null) {
+					if (cur.isWM()) {
+						System.out.println("Watermark Leaked! " + cur.getTS() + " " + cur.getWM());
+						break;
+					}
+
+					assert(prev.getTS() + 1 == cur.getTS());
+					sum += cur.getTS();
+
+					if (cur.getTS() >= TEST_SIZE - 1 - PRODUCERS) //last tuple, break
+						break;
+					prev = cur;
+				}
+			}
+
+			System.out.println("Consumer thread " + id + " done " + sum);
+		}
+
+	}
 
 }
