@@ -27,6 +27,8 @@ package scalegate;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLongArray;
 
+import utilities.ExpBackOff;
+
 public class ScaleGateAArrImpl implements ScaleGate {
 
 	final int maxlevels;
@@ -106,13 +108,14 @@ public class ScaleGateAArrImpl implements ScaleGate {
 	@Override
 	// Add a tuple 
 	public void addTuple(SGTuple tuple, int writerID) {
-		long counter = getWriterLocal(writerID).incrementAndGetWMCounter();
+		WriterThreadLocalData writer = getWriterLocal(writerID);
+		long counter = writer.incrementAndGetWMCounter();
 		this.internalAddTuple(tuple, writerID);
 		//The comparison with -1 is a corner case for when no Flow Control is used and the WATERMARK_FREQUENCY is set to -1
 			
-		if (counter != -1 && counter == getWriterLocal(writerID).WATERMARK_FREQUENCY) {
+		if (counter != -1 && counter == writer.WATERMARK_FREQUENCY) {
 			//add new watermark
-			long newWatermark = getWriterLocal(writerID).incrementAndGetWatermark();
+			long newWatermark = writer.incrementAndGetWatermark();
 			this.internalAddTuple(new SGWatermarkTuple(tuple.getTS(), newWatermark), writerID);
 			
 			//check the difference and wait if needed
@@ -124,12 +127,13 @@ public class ScaleGateAArrImpl implements ScaleGate {
 					lowestWM = tmp < lowestWM ? tmp : lowestWM;
 				}
 				
-				if (newWatermark - lowestWM < getWriterLocal(writerID).WM_ALLOWED_DIFFERENCE) {
+				if (newWatermark - lowestWM < writer.WM_ALLOWED_DIFFERENCE) {
 					return;
 				}
 				//Add exponential backoff here
 				try {
-					Thread.sleep(10);
+//					Thread.sleep(10);
+					writer.expBackOff.backoff();
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -199,6 +203,7 @@ public class ScaleGateAArrImpl implements ScaleGate {
 		volatile SGNodeAArrImpl written; 
 		SGNodeAArrImpl [] update;
 		final Random rand;
+		final ExpBackOff expBackOff;
 		final int WATERMARK_FREQUENCY;
 		final int WM_ALLOWED_DIFFERENCE;
 		private long cur_wm_counter;
@@ -215,6 +220,7 @@ public class ScaleGateAArrImpl implements ScaleGate {
 				update[i]= localHead;
 			}	    
 			rand = new Random();
+			expBackOff = new ExpBackOff(2, 15);
 
 			this.WATERMARK_FREQUENCY = wm_freq;
 			this.WM_ALLOWED_DIFFERENCE = wm_diff;
